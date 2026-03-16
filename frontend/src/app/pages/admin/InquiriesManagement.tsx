@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { motion } from 'motion/react';
 import {
@@ -24,16 +24,17 @@ import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
 import { AdminSidebar } from '../../components/AdminSidebar';
 
 interface Inquiry {
-  id: string;
+  id: string; // backend _id
+  externalId?: string;
   name: string;
   email: string;
-  phone: string;
-  subject: string;
+  phone?: string;
+  subject?: string;
   message: string;
-  type: string;
+  type?: string;
   status: 'new' | 'in-review' | 'responded' | 'closed';
-  priority: 'low' | 'medium' | 'high';
-  date: string;
+  priority?: 'low' | 'medium' | 'high';
+  date: string; // ISO string
   assignedTo?: string;
 }
 
@@ -50,87 +51,61 @@ export function InquiriesManagement() {
   const [showRespondModal, setShowRespondModal] = useState(false);
   const [responseText, setResponseText] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  const [inquiries, setInquiries] = useState<Inquiry[]>([
-    {
-      id: 'INQ001',
-      name: 'Amit Sharma',
-      email: 'amit.sharma@example.com',
-      phone: '+91 98765 43210',
-      subject: 'Residential Lift Installation Quote',
-      message: 'I need a quote for installing a luxury lift in my 4-story villa in Mumbai. Looking for premium options with glass design.',
-      type: 'Residential',
-      status: 'new',
-      priority: 'high',
-      date: '2024-03-13',
-      assignedTo: 'Sales Team'
-    },
-    {
-      id: 'INQ002',
-      name: 'Priya Reddy',
-      email: 'priya.reddy@example.com',
-      phone: '+91 98765 43211',
-      subject: 'Commercial Building - 10 Lifts Required',
-      message: 'We are building a commercial complex and need 10 high-speed elevators. Please share your catalog and pricing.',
-      type: 'Commercial',
-      status: 'in-review',
-      priority: 'high',
-      date: '2024-03-12',
-      assignedTo: 'Rajesh Kumar'
-    },
-    {
-      id: 'INQ003',
-      name: 'Suresh Patel',
-      email: 'suresh.patel@example.com',
-      phone: '+91 98765 43212',
-      subject: 'Lift Maintenance Contract',
-      message: 'Looking for AMC contract for 5 existing lifts in our office building. Need regular maintenance and emergency support.',
-      type: 'Maintenance',
-      status: 'responded',
-      priority: 'medium',
-      date: '2024-03-10',
-      assignedTo: 'Service Team'
-    },
-    {
-      id: 'INQ004',
-      name: 'Kavita Singh',
-      email: 'kavita.singh@example.com',
-      phone: '+91 98765 43213',
-      subject: 'Hospital Lift System Query',
-      message: 'We need specialized medical lifts for our new hospital. Require stretcher compatible units with smooth operation.',
-      type: 'Medical',
-      status: 'new',
-      priority: 'high',
-      date: '2024-03-13',
-      assignedTo: undefined
-    },
-    {
-      id: 'INQ005',
-      name: 'Rohit Desai',
-      email: 'rohit.desai@example.com',
-      phone: '+91 98765 43214',
-      subject: 'Home Lift Customization Options',
-      message: 'Want to customize a home lift with wooden interiors and smart features. Please share available options.',
-      type: 'Residential',
-      status: 'closed',
-      priority: 'low',
-      date: '2024-03-08',
-      assignedTo: 'Design Team'
-    },
-    {
-      id: 'INQ006',
-      name: 'Anita Mehta',
-      email: 'anita.mehta@example.com',
-      phone: '+91 98765 43215',
-      subject: 'Showroom Visit Request',
-      message: 'Would like to visit your showroom to see different lift models and discuss my requirements in person.',
-      type: 'General',
-      status: 'in-review',
-      priority: 'medium',
-      date: '2024-03-11',
-      assignedTo: 'Customer Service'
-    }
-  ]);
+  const [inquiries, setInquiries] = useState<Inquiry[]>([]);
+
+  useEffect(() => {
+    const loadInquiries = async () => {
+      const accessToken = localStorage.getItem('accessToken');
+      if (!accessToken) {
+        navigate('/admin-login');
+        return;
+      }
+      try {
+        setIsLoading(true);
+        setLoadError(null);
+        const res = await fetch('http://localhost:8000/api/inquiries', {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+        if (res.status === 401 || res.status === 403) {
+          navigate('/admin-login');
+          return;
+        }
+        if (!res.ok) {
+          const data = await res.json().catch(() => null);
+          setLoadError(data?.message || 'Failed to load inquiries.');
+          return;
+        }
+        const data = await res.json().catch(() => null);
+        const items = Array.isArray(data?.items) ? data.items : [];
+        const mapped: Inquiry[] = items.map((item: any) => ({
+          id: item._id,
+          externalId: item.externalId,
+          name: item.name ?? '',
+          email: item.email ?? '',
+          phone: item.phone ?? '',
+          subject: item.subject ?? '',
+          message: item.message ?? '',
+          type: item.type ?? '',
+          status: (item.status as Inquiry['status']) ?? 'new',
+          priority: (item.priority as Inquiry['priority']) ?? 'medium',
+          date: item.createdAt ?? '',
+          assignedTo: item.assignedToUserId ? 'Team Member' : undefined,
+        }));
+        setInquiries(mapped);
+      } catch (err) {
+        setLoadError('Unable to load inquiries. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadInquiries();
+  }, [navigate]);
 
   const filteredInquiries = inquiries.filter((inquiry) => {
     const matchesSearch = 
@@ -176,7 +151,14 @@ export function InquiriesManagement() {
     { label: 'Total Inquiries', value: inquiries.length, color: 'from-blue-500 to-blue-600', icon: MessageSquare },
     { label: 'New', value: inquiries.filter(i => i.status === 'new').length, color: 'from-orange-500 to-orange-600', icon: AlertCircle },
     { label: 'In Review', value: inquiries.filter(i => i.status === 'in-review').length, color: 'from-yellow-500 to-yellow-600', icon: Clock },
-    { label: 'Response Rate', value: '89%', color: 'from-green-500 to-green-600', icon: TrendingUp }
+    {
+      label: 'Response Rate',
+      value: inquiries.length
+        ? `${Math.round((inquiries.filter(i => i.status === 'responded' || i.status === 'closed').length / inquiries.length) * 100)}%`
+        : '0%',
+      color: 'from-green-500 to-green-600',
+      icon: TrendingUp
+    }
   ];
 
   const handleViewDetails = (inquiry: Inquiry) => {
@@ -184,22 +166,65 @@ export function InquiriesManagement() {
     setShowViewModal(true);
   };
 
+  const updateInquiryStatus = async (inquiry: Inquiry, status: Inquiry['status']) => {
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) {
+      navigate('/admin-login');
+      return;
+    }
+
+    try {
+      const res = await fetch(`http://localhost:8000/api/inquiries/${inquiry.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ status }),
+      });
+
+      if (res.status === 401 || res.status === 403) {
+        navigate('/admin-login');
+        return;
+      }
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        setToastMessage(data?.message || 'Failed to update inquiry.');
+        setShowSuccessToast(true);
+        setTimeout(() => setShowSuccessToast(false), 3000);
+        return;
+      }
+
+      const data = await res.json().catch(() => null);
+      const updated = data?.inquiry;
+      setInquiries(prev =>
+        prev.map(inq =>
+          inq.id === inquiry.id
+            ? {
+                ...inq,
+                status: (updated?.status as Inquiry['status']) ?? status,
+              }
+            : inq
+        )
+      );
+
+      setToastMessage(status === 'responded' ? 'Inquiry marked as responded' : 'Inquiry closed successfully');
+      setShowSuccessToast(true);
+      setTimeout(() => setShowSuccessToast(false), 3000);
+    } catch {
+      setToastMessage('Unable to update inquiry right now.');
+      setShowSuccessToast(true);
+      setTimeout(() => setShowSuccessToast(false), 3000);
+    }
+  };
+
   const handleMarkAsResponded = (inquiry: Inquiry) => {
-    setInquiries(inquiries.map(inq => 
-      inq.id === inquiry.id ? { ...inq, status: 'responded' as Inquiry['status'] } : inq
-    ));
-    setToastMessage('Inquiry marked as responded');
-    setShowSuccessToast(true);
-    setTimeout(() => setShowSuccessToast(false), 3000);
+    updateInquiryStatus(inquiry, 'responded');
   };
 
   const handleCloseInquiry = (inquiry: Inquiry) => {
-    setInquiries(inquiries.map(inq => 
-      inq.id === inquiry.id ? { ...inq, status: 'closed' as Inquiry['status'] } : inq
-    ));
-    setToastMessage('Inquiry closed successfully');
-    setShowSuccessToast(true);
-    setTimeout(() => setShowSuccessToast(false), 3000);
+    updateInquiryStatus(inquiry, 'closed');
   };
 
   const handleExport = () => {
@@ -298,7 +323,17 @@ export function InquiriesManagement() {
             </motion.div>
 
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }} className="space-y-4">
-              {filteredInquiries.map((inquiry, index) => (
+              {isLoading && (
+                <div className="text-center py-12">
+                  <p className="text-white/60">Loading inquiries...</p>
+                </div>
+              )}
+              {loadError && !isLoading && (
+                <div className="text-center py-4">
+                  <p className="text-red-400 text-sm">{loadError}</p>
+                </div>
+              )}
+              {!isLoading && filteredInquiries.map((inquiry, index) => (
                 <motion.div
                   key={inquiry.id}
                   initial={{ opacity: 0, x: -20 }}
@@ -341,7 +376,7 @@ export function InquiriesManagement() {
                       <div className="flex items-center gap-4 text-sm">
                         <div className="flex items-center gap-2 text-white/60">
                           <Calendar size={14} className="text-orange-500" />
-                          <span>{inquiry.date}</span>
+                          <span>{inquiry.date ? new Date(inquiry.date).toLocaleDateString() : '-'}</span>
                         </div>
                         {inquiry.assignedTo && (
                           <div className="flex items-center gap-2 text-white/60">

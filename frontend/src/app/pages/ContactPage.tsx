@@ -4,8 +4,10 @@ import { Footer } from '../components/Footer';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { Send, Phone, Mail, MapPin, MessageCircle } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useNavigate } from 'react-router';
 
 export function ContactPage() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -16,12 +18,53 @@ export function ContactPage() {
   });
 
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitted(true);
-    setTimeout(() => {
-      setIsSubmitted(false);
+
+    const accessToken = localStorage.getItem('accessToken');
+
+    if (!accessToken) {
+      alert('Please create your identity and log in before sending an inquiry.');
+      navigate('/create-identity');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+
+      const response = await fetch('http://localhost:8000/api/inquiries/user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          city: formData.city,
+          message: formData.message,
+          type: formData.propertyType,
+          source: 'contact-page',
+        }),
+      });
+
+      if (response.status === 401) {
+        alert('Your session has expired. Please log in again.');
+        navigate('/login');
+        return;
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        const message = errorData?.message ?? 'Failed to send inquiry. Please try again.';
+        alert(message);
+        return;
+      }
+
+      setIsSubmitted(true);
       setFormData({
         name: '',
         email: '',
@@ -30,7 +73,12 @@ export function ContactPage() {
         propertyType: 'Residential Villa',
         message: '',
       });
-    }, 3000);
+    } catch (error) {
+      console.error('Error sending inquiry', error);
+      alert('Something went wrong. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -272,9 +320,10 @@ export function ContactPage() {
 
                     <button
                       type="submit"
-                      className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-4 rounded-full hover:from-orange-600 hover:to-orange-700 transition-all shadow-lg hover:shadow-orange-500/30 uppercase tracking-wider font-semibold flex items-center justify-center"
+                      disabled={isSubmitting}
+                      className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-4 rounded-full hover:from-orange-600 hover:to-orange-700 transition-all shadow-lg hover:shadow-orange-500/30 uppercase tracking-wider font-semibold flex items-center justify-center disabled:opacity-60 disabled:hover:shadow-none"
                     >
-                      Send Inquiry →
+                      {isSubmitting ? 'Sending…' : 'Send Inquiry →'}
                     </button>
                   </div>
                 )}

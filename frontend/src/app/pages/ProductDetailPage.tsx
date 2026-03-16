@@ -189,9 +189,10 @@ export function ProductDetailPage() {
               <div className="space-y-4">
                 <button
                   className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-4 rounded-full hover:from-orange-600 hover:to-orange-700 transition-all shadow-lg hover:shadow-orange-500/30 uppercase tracking-wider text-sm font-semibold"
-                  onClick={() => {
-                    addToCart({
-                      id: id || '1',
+                  onClick={async () => {
+                    const productId = id || '1';
+                    await addToCart({
+                      id: productId,
                       name: 'Sovereign MRL Elevator',
                       category: 'RESIDENTIAL • PREMIUM COLLECTION',
                       price: 19900000,

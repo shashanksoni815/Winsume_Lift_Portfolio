@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { motion } from 'motion/react';
 import {
@@ -24,19 +24,109 @@ export function AdminProfile() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    fullName: 'Admin User',
-    email: 'admin@winsume.com',
-    phone: '+91 99999 88888',
-    role: 'Super Admin',
-    department: 'Management',
-    location: 'Mumbai, Maharashtra',
-    joinedDate: '2024-01-01',
-    bio: 'Experienced administrator with expertise in managing luxury lift installations and customer relations.'
+    fullName: '',
+    email: '',
+    phone: '',
+    role: '',
+    department: '',
+    location: '',
+    joinedDate: '',
+    bio: ''
   });
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  const handleSave = () => {
-    setIsEditing(false);
-    alert('Profile updated successfully!');
+  const adminFetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) {
+      navigate('/admin-login');
+      throw new Error('Not authenticated');
+    }
+    const res = await fetch(input, {
+      ...init,
+      headers: {
+        ...(init?.headers || {}),
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    if (res.status === 401 || res.status === 403) {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('userEmail');
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('isLoggedIn');
+      navigate('/admin-login');
+      throw new Error('Unauthorized');
+    }
+    return res;
+  };
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        setIsLoading(true);
+        setLoadError(null);
+        const res = await adminFetch('http://localhost:8000/api/users/me/profile');
+        if (!res.ok) {
+          const data = await res.json().catch(() => null);
+          setLoadError(data?.message || 'Failed to load admin profile.');
+          return;
+        }
+        const data = await res.json().catch(() => null);
+        const u = data?.user;
+        if (!u) {
+          setLoadError('Admin profile not found.');
+          return;
+        }
+        setFormData({
+          fullName: u.fullName ?? u.email ?? 'Admin',
+          email: u.email ?? '',
+          phone: u.phone ?? '',
+          role: u.role === 'admin' ? 'Admin' : 'User',
+          department: u.department ?? '',
+          location: [u.city, u.state].filter(Boolean).join(', '),
+          joinedDate: u.createdAt ? new Date(u.createdAt).toISOString().slice(0, 10) : '',
+          bio:
+            u.company ||
+            'Administrator account. You can update your profile details here for internal reference.',
+        });
+      } catch {
+        setLoadError('Unable to load admin profile. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadProfile();
+  }, [navigate]);
+
+  const handleSave = async () => {
+    try {
+      const payload: Record<string, unknown> = {
+        fullName: formData.fullName,
+        phone: formData.phone,
+        company: formData.bio,
+        city: formData.location.split(',')[0]?.trim() || undefined,
+        state:
+          formData.location.split(',').length > 1
+            ? formData.location.split(',').slice(1).join(',').trim()
+            : undefined,
+      };
+      const res = await adminFetch('http://localhost:8000/api/users/me/profile', {
+        method: 'PATCH',
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        alert(data?.message || 'Failed to update profile.');
+        return;
+      }
+      setIsEditing(false);
+      alert('Profile updated successfully.');
+    } catch {
+      alert('Unable to update profile right now.');
+    }
   };
 
   return (
@@ -120,7 +210,7 @@ export function AdminProfile() {
               <div className="flex flex-col items-center">
                 <div className="relative">
                   <div className="w-32 h-32 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center text-white text-5xl font-bold">
-                    A
+                    {(formData.fullName || formData.email || 'A').charAt(0)}
                   </div>
                   {isEditing && (
                     <button className="absolute bottom-0 right-0 w-10 h-10 bg-orange-500 hover:bg-orange-600 rounded-full flex items-center justify-center text-white shadow-lg transition-all">
@@ -129,8 +219,8 @@ export function AdminProfile() {
                   )}
                 </div>
                 <div className="mt-4 text-center">
-                  <div className="px-4 py-1 bg-red-500/20 border border-red-500/30 rounded-full inline-block">
-                    <p className="text-red-400 text-xs font-semibold uppercase">{formData.role}</p>
+                    <div className="px-4 py-1 bg-red-500/20 border border-red-500/30 rounded-full inline-block">
+                    <p className="text-red-400 text-xs font-semibold uppercase">{formData.role || 'ADMIN'}</p>
                   </div>
                 </div>
               </div>
@@ -227,7 +317,7 @@ export function AdminProfile() {
                     <label className="block text-white/60 text-sm mb-2">Joined Date</label>
                     <div className="flex items-center gap-2 text-white text-lg">
                       <Calendar size={18} className="text-orange-500" />
-                      <span>{formData.joinedDate}</span>
+                        <span>{formData.joinedDate || '—'}</span>
                     </div>
                   </div>
                 </div>
@@ -242,7 +332,10 @@ export function AdminProfile() {
                       className="w-full bg-[#0a1514]/80 border border-orange-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500/40 resize-none"
                     />
                   ) : (
-                    <p className="text-white/80 leading-relaxed">{formData.bio}</p>
+                    <p className="text-white/80 leading-relaxed">
+                      {formData.bio ||
+                        'Administrator account. Update your profile information for internal reference.'}
+                    </p>
                   )}
                 </div>
               </div>

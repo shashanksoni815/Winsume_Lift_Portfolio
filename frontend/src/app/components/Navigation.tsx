@@ -21,14 +21,18 @@ export function Navigation() {
   }, []);
 
   useEffect(() => {
-    // Check login status
-    const loginStatus = localStorage.getItem('isLoggedIn') === 'true';
-    setIsLoggedIn(loginStatus);
+    // Check login status based on stored auth tokens (new flow)
+    const hasToken = !!localStorage.getItem('accessToken');
+    const legacyFlag = localStorage.getItem('isLoggedIn') === 'true';
+    setIsLoggedIn(hasToken || legacyFlag);
   }, [location]);
 
   const handleLogout = () => {
     localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('userEmail');
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('userRole');
     setIsLoggedIn(false);
     setIsProfileMenuOpen(false);
     navigate('/');

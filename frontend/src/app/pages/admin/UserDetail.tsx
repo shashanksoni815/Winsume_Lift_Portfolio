@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { motion } from 'motion/react';
 import {
@@ -30,23 +30,22 @@ import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
 import { AdminSidebar } from '../../components/AdminSidebar';
 
 interface UserDetailData {
-  id: string;
+  id: string; // backend _id
   name: string;
   email: string;
-  phone: string;
-  role: 'admin' | 'user' | 'manager' | 'guest';
+  phone?: string;
+  role: 'admin' | 'user';
   status: 'active' | 'inactive' | 'suspended';
-  registeredDate: string;
-  lastActive: string;
+  registeredDate?: string;
+  lastActive?: string;
   projects: number;
-  avatar?: string;
-  address: string;
-  city: string;
-  state: string;
-  company: string;
-  totalSpent: number;
-  activeProjects: number;
-  completedProjects: number;
+  address?: string;
+  city?: string;
+  state?: string;
+  company?: string;
+  totalSpent?: number;
+  activeProjects?: number;
+  completedProjects?: number;
 }
 
 export function UserDetail() {
@@ -56,47 +55,94 @@ export function UserDetail() {
   const [activeTab, setActiveTab] = useState<'overview' | 'projects' | 'activity' | 'settings'>('overview');
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [userData, setUserData] = useState<UserDetailData | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  // Mock User Data
-  const userData: UserDetailData = {
-    id: id || 'USR001',
-    name: 'Rajesh Kumar',
-    email: 'rajesh.kumar@example.com',
-    phone: '+91 98765 43210',
-    role: 'admin',
-    status: 'active',
-    registeredDate: '2024-01-15',
-    lastActive: '2 hours ago',
-    projects: 12,
-    address: '123 Marine Drive',
-    city: 'Mumbai',
-    state: 'Maharashtra',
-    company: 'Kumar Constructions',
-    totalSpent: 5000000,
-    activeProjects: 3,
-    completedProjects: 9
+  const adminFetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) {
+      navigate('/admin-login');
+      throw new Error('Not authenticated');
+    }
+    const res = await fetch(input, {
+      ...init,
+      headers: {
+        ...(init?.headers || {}),
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    if (res.status === 401 || res.status === 403) {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('userEmail');
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('isLoggedIn');
+      navigate('/admin-login');
+      throw new Error('Unauthorized');
+    }
+    return res;
   };
 
-  const userProjects = [
-    { id: 'PRJ001', name: 'Luxury Villa Lift', status: 'active', progress: 75 },
-    { id: 'PRJ002', name: 'Commercial Tower Elevator', status: 'active', progress: 60 },
-    { id: 'PRJ003', name: 'Residential Complex', status: 'completed', progress: 100 }
-  ];
+  useEffect(() => {
+    const loadUser = async () => {
+      if (!id) {
+        navigate('/admin/users');
+        return;
+      }
+      try {
+        setIsLoading(true);
+        setLoadError(null);
+        const res = await adminFetch(`http://localhost:8000/api/users/${id}`);
+        if (!res.ok) {
+          const data = await res.json().catch(() => null);
+          setLoadError(data?.message || 'Failed to load user.');
+          return;
+        }
+        const data = await res.json().catch(() => null);
+        const u = data?.user;
+        if (!u) {
+          setLoadError('User not found.');
+          return;
+        }
+        const detail: UserDetailData = {
+          id: u._id,
+          name: u.fullName ?? u.email ?? 'User',
+          email: u.email ?? '',
+          phone: u.phone,
+          role: (u.role as UserDetailData['role']) ?? 'user',
+          status: (u.status as UserDetailData['status']) ?? 'active',
+          registeredDate: u.createdAt ? new Date(u.createdAt).toISOString().slice(0, 10) : undefined,
+          lastActive: u.lastActive
+            ? new Date(u.lastActive).toLocaleString()
+            : u.updatedAt
+            ? new Date(u.updatedAt).toLocaleString()
+            : undefined,
+          projects: typeof u.totalProjects === 'number' ? u.totalProjects : 0,
+          address: u.address,
+          city: u.city,
+          state: u.state,
+          company: u.company,
+          totalSpent: u.totalSpent,
+          activeProjects: u.activeProjects,
+          completedProjects: u.completedProjects,
+        };
+        setUserData(detail);
+      } catch {
+        setLoadError('Unable to load user. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const activityLog = [
-    { action: 'Logged in to dashboard', time: '2 hours ago', type: 'login' },
-    { action: 'Updated project PRJ001', time: '5 hours ago', type: 'update' },
-    { action: 'Downloaded invoice INV-234', time: '1 day ago', type: 'download' },
-    { action: 'Sent message to admin', time: '2 days ago', type: 'message' },
-    { action: 'Created new project', time: '3 days ago', type: 'create' }
-  ];
+    loadUser();
+  }, [id, navigate]);
 
   const getRoleBadge = (role: string) => {
     switch (role) {
       case 'admin':
         return 'bg-red-500/20 text-red-400 border-red-500/30';
-      case 'manager':
-        return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
       case 'user':
         return 'bg-green-500/20 text-green-400 border-green-500/30';
       default:
@@ -172,19 +218,23 @@ export function UserDetail() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-orange-500 text-xs uppercase tracking-widest mb-2">USER DETAILS</p>
-                <h1 className="text-white text-4xl font-bold">{userData.name}</h1>
+                <h1 className="text-white text-4xl font-bold">
+                  {userData ? userData.name : isLoading ? 'Loading…' : 'User'}
+                </h1>
               </div>
               <div className="flex gap-3">
                 <button
-                  onClick={() => setShowEditModal(true)}
+                  onClick={() => userData && setShowEditModal(true)}
                   className="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-all flex items-center gap-2"
+                  disabled={!userData}
                 >
                   <Edit size={18} />
                   <span>Edit User</span>
                 </button>
                 <button
-                  onClick={() => setShowDeleteConfirm(true)}
+                  onClick={() => userData && setShowDeleteConfirm(true)}
                   className="px-6 py-3 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 rounded-lg transition-all flex items-center gap-2"
+                  disabled={!userData}
                 >
                   <Trash2 size={18} />
                   <span>Delete</span>
@@ -192,6 +242,12 @@ export function UserDetail() {
               </div>
             </div>
           </motion.div>
+
+          {loadError && (
+            <div className="bg-red-500/10 border border-red-500/30 text-red-200 rounded-xl p-4 mb-6 text-sm">
+              {loadError}
+            </div>
+          )}
 
           {/* User Info Card */}
           <motion.div
@@ -203,35 +259,39 @@ export function UserDetail() {
             <div className="flex flex-col md:flex-row gap-8">
               <div className="flex-shrink-0">
                 <div className="w-32 h-32 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center text-white text-5xl font-bold">
-                  {userData.name.charAt(0)}
+                  {(userData?.name || userData?.email || 'U').charAt(0)}
                 </div>
               </div>
 
               <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <p className="text-white/40 text-xs uppercase tracking-wider mb-1">User ID</p>
-                  <p className="text-white font-semibold">{userData.id}</p>
+                  <p className="text-white font-semibold">{userData?.id || id}</p>
                 </div>
 
                 <div>
                   <p className="text-white/40 text-xs uppercase tracking-wider mb-1">Role</p>
-                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold border uppercase ${getRoleBadge(userData.role)}`}>
-                    {userData.role}
-                  </span>
+                  {userData && (
+                    <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold border uppercase ${getRoleBadge(userData.role)}`}>
+                      {userData.role}
+                    </span>
+                  )}
                 </div>
 
                 <div>
                   <p className="text-white/40 text-xs uppercase tracking-wider mb-1">Status</p>
-                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold border uppercase ${getStatusBadge(userData.status)}`}>
-                    {userData.status}
-                  </span>
+                  {userData && (
+                    <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold border uppercase ${getStatusBadge(userData.status)}`}>
+                      {userData.status}
+                    </span>
+                  )}
                 </div>
 
                 <div>
                   <p className="text-white/40 text-xs uppercase tracking-wider mb-1">Email</p>
                   <div className="flex items-center gap-2">
                     <Mail size={16} className="text-orange-500" />
-                    <p className="text-white">{userData.email}</p>
+                    <p className="text-white">{userData?.email || '—'}</p>
                   </div>
                 </div>
 
@@ -239,7 +299,7 @@ export function UserDetail() {
                   <p className="text-white/40 text-xs uppercase tracking-wider mb-1">Phone</p>
                   <div className="flex items-center gap-2">
                     <Phone size={16} className="text-orange-500" />
-                    <p className="text-white">{userData.phone}</p>
+                    <p className="text-white">{userData?.phone || '—'}</p>
                   </div>
                 </div>
 
@@ -247,7 +307,7 @@ export function UserDetail() {
                   <p className="text-white/40 text-xs uppercase tracking-wider mb-1">Company</p>
                   <div className="flex items-center gap-2">
                     <Building2 size={16} className="text-orange-500" />
-                    <p className="text-white">{userData.company}</p>
+                    <p className="text-white">{userData?.company || '—'}</p>
                   </div>
                 </div>
 
@@ -255,7 +315,11 @@ export function UserDetail() {
                   <p className="text-white/40 text-xs uppercase tracking-wider mb-1">Location</p>
                   <div className="flex items-center gap-2">
                     <MapPin size={16} className="text-orange-500" />
-                    <p className="text-white">{userData.city}, {userData.state}</p>
+                    <p className="text-white">
+                      {userData?.city || userData?.state
+                        ? `${userData?.city || ''}${userData?.city && userData?.state ? ', ' : ''}${userData?.state || ''}`
+                        : '—'}
+                    </p>
                   </div>
                 </div>
 
@@ -263,7 +327,7 @@ export function UserDetail() {
                   <p className="text-white/40 text-xs uppercase tracking-wider mb-1">Last Active</p>
                   <div className="flex items-center gap-2">
                     <Clock size={16} className="text-orange-500" />
-                    <p className="text-white">{userData.lastActive}</p>
+                    <p className="text-white">{userData?.lastActive || '—'}</p>
                   </div>
                 </div>
               </div>
@@ -284,7 +348,7 @@ export function UserDetail() {
                 </div>
                 <div>
                   <p className="text-white/60 text-sm">Total Projects</p>
-                  <p className="text-white text-2xl font-bold">{userData.projects}</p>
+                  <p className="text-white text-2xl font-bold">{userData?.projects ?? 0}</p>
                 </div>
               </div>
             </div>
@@ -296,7 +360,7 @@ export function UserDetail() {
                 </div>
                 <div>
                   <p className="text-white/60 text-sm">Active Projects</p>
-                  <p className="text-white text-2xl font-bold">{userData.activeProjects}</p>
+                  <p className="text-white text-2xl font-bold">{userData?.activeProjects ?? 0}</p>
                 </div>
               </div>
             </div>
@@ -308,7 +372,7 @@ export function UserDetail() {
                 </div>
                 <div>
                   <p className="text-white/60 text-sm">Completed</p>
-                  <p className="text-white text-2xl font-bold">{userData.completedProjects}</p>
+                  <p className="text-white text-2xl font-bold">{userData?.completedProjects ?? 0}</p>
                 </div>
               </div>
             </div>
@@ -320,7 +384,9 @@ export function UserDetail() {
                 </div>
                 <div>
                   <p className="text-white/60 text-sm">Total Spent</p>
-                  <p className="text-white text-2xl font-bold">₹{(userData.totalSpent / 100000).toFixed(1)}L</p>
+                  <p className="text-white text-2xl font-bold">
+                    ₹{userData?.totalSpent ? (userData.totalSpent / 100000).toFixed(1) + 'L' : '0'}
+                  </p>
                 </div>
               </div>
             </div>
@@ -388,38 +454,38 @@ export function UserDetail() {
                   <div className="space-y-4">
                     <div>
                       <p className="text-white/40 text-sm mb-1">Full Name</p>
-                      <p className="text-white text-lg">{userData.name}</p>
+                      <p className="text-white text-lg">{userData?.name || '—'}</p>
                     </div>
                     <div>
                       <p className="text-white/40 text-sm mb-1">Email Address</p>
-                      <p className="text-white text-lg">{userData.email}</p>
+                      <p className="text-white text-lg">{userData?.email || '—'}</p>
                     </div>
                     <div>
                       <p className="text-white/40 text-sm mb-1">Phone Number</p>
-                      <p className="text-white text-lg">{userData.phone}</p>
+                      <p className="text-white text-lg">{userData?.phone || '—'}</p>
                     </div>
                     <div>
                       <p className="text-white/40 text-sm mb-1">Company</p>
-                      <p className="text-white text-lg">{userData.company}</p>
+                      <p className="text-white text-lg">{userData?.company || '—'}</p>
                     </div>
                   </div>
 
                   <div className="space-y-4">
                     <div>
                       <p className="text-white/40 text-sm mb-1">Address</p>
-                      <p className="text-white text-lg">{userData.address}</p>
+                      <p className="text-white text-lg">{userData?.address || '—'}</p>
                     </div>
                     <div>
                       <p className="text-white/40 text-sm mb-1">City</p>
-                      <p className="text-white text-lg">{userData.city}</p>
+                      <p className="text-white text-lg">{userData?.city || '—'}</p>
                     </div>
                     <div>
                       <p className="text-white/40 text-sm mb-1">State</p>
-                      <p className="text-white text-lg">{userData.state}</p>
+                      <p className="text-white text-lg">{userData?.state || '—'}</p>
                     </div>
                     <div>
                       <p className="text-white/40 text-sm mb-1">Registered Date</p>
-                      <p className="text-white text-lg">{userData.registeredDate}</p>
+                      <p className="text-white text-lg">{userData?.registeredDate || '—'}</p>
                     </div>
                   </div>
                 </div>
@@ -429,56 +495,20 @@ export function UserDetail() {
             {activeTab === 'projects' && (
               <div className="bg-[#1a3332]/80 backdrop-blur-md border border-orange-500/20 rounded-xl p-8">
                 <h3 className="text-white text-xl font-semibold mb-6">User Projects</h3>
-                <div className="space-y-4">
-                  {userProjects.map((project) => (
-                    <div key={project.id} className="bg-[#0a1514]/50 border border-orange-500/20 rounded-lg p-6">
-                      <div className="flex items-center justify-between mb-4">
-                        <div>
-                          <h4 className="text-white text-lg font-semibold">{project.name}</h4>
-                          <p className="text-white/40 text-sm">{project.id}</p>
-                        </div>
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold border uppercase ${
-                          project.status === 'active' 
-                            ? 'bg-blue-500/20 text-blue-400 border-blue-500/30'
-                            : 'bg-green-500/20 text-green-400 border-green-500/30'
-                        }`}>
-                          {project.status}
-                        </span>
-                      </div>
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-white/60 text-sm">Progress</span>
-                          <span className="text-orange-500 font-semibold">{project.progress}%</span>
-                        </div>
-                        <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
-                          <div 
-                            className="bg-gradient-to-r from-orange-500 to-orange-600 h-full rounded-full transition-all" 
-                            style={{ width: `${project.progress}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <p className="text-white/60 text-sm">
+                  Project breakdown per user is not configured yet. Total projects for this user:{" "}
+                  <span className="font-semibold text-white">{userData?.projects ?? 0}</span>.
+                </p>
               </div>
             )}
 
             {activeTab === 'activity' && (
               <div className="bg-[#1a3332]/80 backdrop-blur-md border border-orange-500/20 rounded-xl p-8">
                 <h3 className="text-white text-xl font-semibold mb-6">Activity Log</h3>
-                <div className="space-y-3">
-                  {activityLog.map((activity, index) => (
-                    <div key={index} className="flex items-start gap-4 p-4 bg-[#0a1514]/50 border border-white/10 rounded-lg">
-                      <div className="w-8 h-8 bg-white/5 rounded-full flex items-center justify-center flex-shrink-0">
-                        {getActivityIcon(activity.type)}
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-white">{activity.action}</p>
-                        <p className="text-white/40 text-sm">{activity.time}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <p className="text-white/60 text-sm">
+                  Detailed activity logs are not tracked yet. This section will show real user actions in a future
+                  update.
+                </p>
               </div>
             )}
 
@@ -538,7 +568,7 @@ export function UserDetail() {
       </div>
 
       {/* Edit User Modal */}
-      {showEditModal && (
+      {showEditModal && userData && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[200] flex items-center justify-center p-6">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -559,6 +589,7 @@ export function UserDetail() {
               <div>
                 <label className="block text-white/80 text-sm mb-2">Full Name</label>
                 <input
+                  id="edit-full-name"
                   type="text"
                   defaultValue={userData.name}
                   className="w-full bg-[#0a1514]/80 border border-orange-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500/40"
@@ -571,25 +602,26 @@ export function UserDetail() {
                   type="email"
                   defaultValue={userData.email}
                   className="w-full bg-[#0a1514]/80 border border-orange-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500/40"
+                  readOnly
                 />
               </div>
 
               <div>
                 <label className="block text-white/80 text-sm mb-2">Role</label>
                 <select
+                  id="edit-role"
                   defaultValue={userData.role}
                   className="w-full bg-[#0a1514]/80 border border-orange-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500/40"
                 >
                   <option value="admin">Admin</option>
-                  <option value="manager">Manager</option>
                   <option value="user">User</option>
-                  <option value="guest">Guest</option>
                 </select>
               </div>
 
               <div>
                 <label className="block text-white/80 text-sm mb-2">Status</label>
                 <select
+                  id="edit-status"
                   defaultValue={userData.status}
                   className="w-full bg-[#0a1514]/80 border border-orange-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500/40"
                 >
@@ -601,9 +633,55 @@ export function UserDetail() {
 
               <div className="flex gap-3 pt-4">
                 <button
-                  onClick={() => {
-                    setShowEditModal(false);
-                    alert('User updated successfully!');
+                  onClick={async () => {
+                    try {
+                      const fullNameInput = (document.getElementById('edit-full-name') as HTMLInputElement | null)?.value;
+                      const roleSelect = (document.getElementById('edit-role') as HTMLSelectElement | null)?.value;
+                      const statusSelect = (document.getElementById('edit-status') as HTMLSelectElement | null)?.value;
+
+                      const payload: Record<string, unknown> = {};
+                      if (fullNameInput && fullNameInput !== userData.name) {
+                        payload.fullName = fullNameInput;
+                      }
+                      if (roleSelect && roleSelect !== userData.role) {
+                        payload.role = roleSelect;
+                      }
+                      if (statusSelect && statusSelect !== userData.status) {
+                        payload.status = statusSelect;
+                      }
+
+                      if (Object.keys(payload).length === 0) {
+                        setShowEditModal(false);
+                        return;
+                      }
+
+                      const res = await adminFetch(`http://localhost:8000/api/users/${userData.id}`, {
+                        method: 'PATCH',
+                        body: JSON.stringify(payload),
+                      });
+                      if (!res.ok) {
+                        const data = await res.json().catch(() => null);
+                        alert(data?.message || 'Failed to update user.');
+                        return;
+                      }
+                      const data = await res.json().catch(() => null);
+                      const u = data?.user;
+                      if (u) {
+                        setUserData((prev) =>
+                          prev
+                            ? {
+                                ...prev,
+                                name: u.fullName ?? prev.name,
+                                role: (u.role as UserDetailData['role']) ?? prev.role,
+                                status: (u.status as UserDetailData['status']) ?? prev.status,
+                              }
+                            : prev
+                        );
+                      }
+                      setShowEditModal(false);
+                    } catch {
+                      alert('Unable to update user right now.');
+                    }
                   }}
                   className="flex-1 px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-all flex items-center justify-center gap-2"
                 >
@@ -623,7 +701,7 @@ export function UserDetail() {
       )}
 
       {/* Delete Confirm Modal */}
-      {showDeleteConfirm && (
+      {showDeleteConfirm && userData && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[200] flex items-center justify-center p-6">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -646,14 +724,34 @@ export function UserDetail() {
 
             <div className="flex gap-3">
               <button
-                onClick={() => {
-                  setShowDeleteConfirm(false);
-                  alert('User deleted successfully!');
-                  navigate('/admin/users');
+                onClick={async () => {
+                  try {
+                    const res = await adminFetch(`http://localhost:8000/api/users/${userData.id}`, {
+                      method: 'PATCH',
+                      body: JSON.stringify({ status: 'suspended' }),
+                    });
+                    if (!res.ok) {
+                      const data = await res.json().catch(() => null);
+                      alert(data?.message || 'Failed to disable user.');
+                      return;
+                    }
+                    setUserData((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            status: 'suspended',
+                          }
+                        : prev
+                    );
+                    setShowDeleteConfirm(false);
+                    alert('User has been suspended (disabled) and not deleted.');
+                  } catch {
+                    alert('Unable to disable user right now.');
+                  }
                 }}
                 className="flex-1 px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all"
               >
-                Delete User
+                Suspend User
               </button>
               <button
                 onClick={() => setShowDeleteConfirm(false)}

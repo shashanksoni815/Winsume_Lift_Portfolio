@@ -19,19 +19,48 @@ export function CreateIdentityPage() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validate passwords match
+
     if (formData.password !== formData.confirmPassword) {
       alert('Passwords do not match!');
       return;
     }
-    
-    console.log('Create Identity:', formData);
-    alert('Identity created successfully! Please login.');
-    navigate('/login');
+
+    try {
+      setIsSubmitting(true);
+      const response = await fetch('http://localhost:8000/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          fullName: formData.fullName,
+          email: formData.email,
+          phone: formData.phone,
+          company: formData.company,
+          city: formData.city,
+          password: formData.password
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        const message = errorData?.message ?? 'Failed to create identity. Please try again.';
+        alert(message);
+        return;
+      }
+
+      alert('Identity created successfully! Please login.');
+      navigate('/login');
+    } catch (error) {
+      console.error('Error creating identity', error);
+      alert('Something went wrong. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -220,9 +249,10 @@ export function CreateIdentityPage() {
               {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full bg-orange-500 text-white px-8 py-4 rounded-full hover:bg-orange-600 hover:scale-105 transition-all duration-300 shadow-lg font-semibold uppercase tracking-wider"
+                disabled={isSubmitting}
+                className="w-full bg-orange-500 text-white px-8 py-4 rounded-full hover:bg-orange-600 hover:scale-105 transition-all duration-300 shadow-lg font-semibold uppercase tracking-wider disabled:opacity-60 disabled:hover:scale-100"
               >
-                Create Identity →
+                {isSubmitting ? 'Creating...' : 'Create Identity →'}
               </button>
 
               {/* Login Link */}

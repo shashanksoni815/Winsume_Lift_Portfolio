@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
 import {
@@ -45,51 +45,173 @@ export function AdminDashboard() {
   const navigate = useNavigate();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedFilter, setSelectedFilter] = useState('all');
-  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
-  const [selectedDateRange, setSelectedDateRange] = useState('last30');
+  const [selectedFilter] = useState('all');
+  const [selectedDateRange] = useState('last30');
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [projects, setProjects] = useState<any[]>([]);
+  const [inquiries, setInquiries] = useState<any[]>([]);
+  const [clients, setClients] = useState<any[]>([]);
 
-  // Mock Data for Charts
-  const projectData = [
-    { id: 'proj-jan', month: 'Jan', completed: 12, inProgress: 8, pending: 5 },
-    { id: 'proj-feb', month: 'Feb', completed: 19, inProgress: 12, pending: 3 },
-    { id: 'proj-mar', month: 'Mar', completed: 15, inProgress: 10, pending: 6 },
-    { id: 'proj-apr', month: 'Apr', completed: 25, inProgress: 15, pending: 4 },
-    { id: 'proj-may', month: 'May', completed: 22, inProgress: 18, pending: 7 },
-    { id: 'proj-jun', month: 'Jun', completed: 30, inProgress: 20, pending: 5 }
-  ];
+  const adminFetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) {
+      navigate('/admin-login');
+      throw new Error('Not authenticated');
+    }
+    const res = await fetch(input, {
+      ...init,
+      headers: {
+        ...(init?.headers || {}),
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    if (res.status === 401 || res.status === 403) {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('userEmail');
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('isLoggedIn');
+      navigate('/admin-login');
+      throw new Error('Unauthorized');
+    }
+    return res;
+  };
 
-  const statusData = [
-    { id: 'status-completed', name: 'Completed', value: 45, color: '#10b981' },
-    { id: 'status-inprogress', name: 'In Progress', value: 30, color: '#3b82f6' },
-    { id: 'status-pending', name: 'Pending', value: 15, color: '#f59e0b' },
-    { id: 'status-onhold', name: 'On Hold', value: 10, color: '#ef4444' }
-  ];
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+        setLoadError(null);
 
-  const revenueData = [
-    { id: 'rev-jan', month: 'Jan', revenue: 450000, budget: 400000 },
-    { id: 'rev-feb', month: 'Feb', revenue: 520000, budget: 450000 },
-    { id: 'rev-mar', month: 'Mar', revenue: 480000, budget: 500000 },
-    { id: 'rev-apr', month: 'Apr', revenue: 650000, budget: 550000 },
-    { id: 'rev-may', month: 'May', revenue: 720000, budget: 600000 },
-    { id: 'rev-jun', month: 'Jun', revenue: 800000, budget: 700000 }
-  ];
+        const [projectsRes, inquiriesRes, clientsRes] = await Promise.all([
+          adminFetch('http://localhost:8000/api/projects'),
+          adminFetch('http://localhost:8000/api/inquiries'),
+          adminFetch('http://localhost:8000/api/users?role=user&status=active&pageSize=100'),
+        ]);
 
-  const clientEngagementData = [
-    { id: 'client-jan', month: 'Jan', active: 65, new: 12 },
-    { id: 'client-feb', month: 'Feb', active: 72, new: 18 },
-    { id: 'client-mar', month: 'Mar', active: 68, new: 15 },
-    { id: 'client-apr', month: 'Apr', active: 80, new: 22 },
-    { id: 'client-may', month: 'May', active: 85, new: 25 },
-    { id: 'client-jun', month: 'Jun', active: 92, new: 28 }
-  ];
+        const projectsJson = projectsRes.ok ? await projectsRes.json().catch(() => null) : null;
+        const inquiriesJson = inquiriesRes.ok ? await inquiriesRes.json().catch(() => null) : null;
+        const clientsJson = clientsRes.ok ? await clientsRes.json().catch(() => null) : null;
 
-  // KPI Stats
+        setProjects(Array.isArray(projectsJson?.items) ? projectsJson.items : []);
+        setInquiries(Array.isArray(inquiriesJson?.items) ? inquiriesJson.items : []);
+        setClients(Array.isArray(clientsJson?.items) ? clientsJson.items : []);
+      } catch {
+        setLoadError('Unable to load dashboard data. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  const projectData = useMemo(() => {
+    if (!projects.length) return [];
+    const byMonth: Record<string, { id: string; month: string; completed: number; inProgress: number; pending: number }> =
+      {};
+    const statusMap: Record<string, 'completed' | 'in-progress' | 'pending' | 'on-hold'> = {
+      completed: 'completed',
+      'in-progress': 'in-progress',
+      pending: 'pending',
+      'on-hold': 'on-hold',
+    };
+
+    for (const p of projects) {
+      const createdAt = p.createdAt ? new Date(p.createdAt) : null;
+      const monthKey = createdAt ? createdAt.toLocaleString('default', { month: 'short' }) : 'N/A';
+      if (!byMonth[monthKey]) {
+        byMonth[monthKey] = { id: `proj-${monthKey}`, month: monthKey, completed: 0, inProgress: 0, pending: 0 };
+      }
+      const status: string = p.status || 'pending';
+      if (statusMap[status] === 'completed') byMonth[monthKey].completed += 1;
+      else if (statusMap[status] === 'in-progress') byMonth[monthKey].inProgress += 1;
+      else byMonth[monthKey].pending += 1;
+    }
+    return Object.values(byMonth);
+  }, [projects]);
+
+  const statusData = useMemo(() => {
+    const counts = { completed: 0, 'in-progress': 0, pending: 0, 'on-hold': 0 };
+    for (const p of projects) {
+      const status: 'completed' | 'in-progress' | 'pending' | 'on-hold' = p.status || 'pending';
+      counts[status] += 1;
+    }
+    const total = projects.length || 1;
+    return [
+      { id: 'status-completed', name: 'Completed', value: (counts.completed / total) * 100, color: '#10b981' },
+      { id: 'status-inprogress', name: 'In Progress', value: (counts['in-progress'] / total) * 100, color: '#3b82f6' },
+      { id: 'status-pending', name: 'Pending', value: (counts.pending / total) * 100, color: '#f59e0b' },
+      { id: 'status-onhold', name: 'On Hold', value: (counts['on-hold'] / total) * 100, color: '#ef4444' },
+    ];
+  }, [projects]);
+
+  const revenueData = useMemo(() => {
+    if (!projects.length) return [];
+    const byMonth: Record<string, { id: string; month: string; revenue: number; budget: number }> = {};
+    for (const p of projects) {
+      const createdAt = p.createdAt ? new Date(p.createdAt) : null;
+      const monthKey = createdAt ? createdAt.toLocaleString('default', { month: 'short' }) : 'N/A';
+      if (!byMonth[monthKey]) {
+        byMonth[monthKey] = { id: `rev-${monthKey}`, month: monthKey, revenue: 0, budget: 0 };
+      }
+      const budget = typeof p.budget === 'number' ? p.budget : 0;
+      const spent = typeof p.spent === 'number' ? p.spent : 0;
+      byMonth[monthKey].budget += budget;
+      byMonth[monthKey].revenue += budget - spent;
+    }
+    return Object.values(byMonth);
+  }, [projects]);
+
+  const clientEngagementData = useMemo(() => {
+    if (!clients.length) return [];
+    // Simple placeholder derived metric: treat each client as active, no "new" distinction from DB
+    const byMonth: Record<string, { id: string; month: string; active: number; new: number }> = {};
+    for (const c of clients) {
+      const createdAt = c.createdAt ? new Date(c.createdAt) : null;
+      const monthKey = createdAt ? createdAt.toLocaleString('default', { month: 'short' }) : 'N/A';
+      if (!byMonth[monthKey]) {
+        byMonth[monthKey] = { id: `client-${monthKey}`, month: monthKey, active: 0, new: 0 };
+      }
+      byMonth[monthKey].active += 1;
+      byMonth[monthKey].new += 1;
+    }
+    return Object.values(byMonth);
+  }, [clients]);
+
+  const pendingInquiriesCount = useMemo(
+    () => inquiries.filter((inq) => inq.status === 'open' || inq.status === 'pending').length,
+    [inquiries]
+  );
+
+  const completionRate = useMemo(() => {
+    if (!projects.length) return 0;
+    const completed = projects.filter((p) => p.status === 'completed').length;
+    return (completed / projects.length) * 100;
+  }, [projects]);
+
+  const mtdRevenue = useMemo(() => {
+    if (!projects.length) return 0;
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    let total = 0;
+    for (const p of projects) {
+      const createdAt = p.createdAt ? new Date(p.createdAt) : null;
+      if (!createdAt || createdAt < startOfMonth) continue;
+      const budget = typeof p.budget === 'number' ? p.budget : 0;
+      const spent = typeof p.spent === 'number' ? p.spent : 0;
+      total += Math.max(budget - spent, 0);
+    }
+    return total;
+  }, [projects]);
+
   const stats = [
     {
       title: 'Total Projects',
-      value: '156',
-      change: '+12%',
+      value: projects.length.toString(),
+      change: '',
       trend: 'up',
       icon: FolderKanban,
       color: 'from-blue-500 to-blue-600',
@@ -98,8 +220,8 @@ export function AdminDashboard() {
     },
     {
       title: 'Active Clients',
-      value: '89',
-      change: '+8%',
+      value: clients.length.toString(),
+      change: '',
       trend: 'up',
       icon: Users,
       color: 'from-green-500 to-green-600',
@@ -108,8 +230,8 @@ export function AdminDashboard() {
     },
     {
       title: 'Pending Inquiries',
-      value: '23',
-      change: '-5%',
+      value: pendingInquiriesCount.toString(),
+      change: '',
       trend: 'down',
       icon: MessageSquare,
       color: 'from-orange-500 to-orange-600',
@@ -118,8 +240,8 @@ export function AdminDashboard() {
     },
     {
       title: 'Revenue (MTD)',
-      value: '₹8.2L',
-      change: '+18%',
+      value: `₹${(mtdRevenue / 100000).toFixed(2)}L`,
+      change: '',
       trend: 'up',
       icon: DollarSign,
       color: 'from-purple-500 to-purple-600',
@@ -128,8 +250,8 @@ export function AdminDashboard() {
     },
     {
       title: 'Completion Rate',
-      value: '94%',
-      change: '+3%',
+      value: `${completionRate.toFixed(1)}%`,
+      change: '',
       trend: 'up',
       icon: Target,
       color: 'from-cyan-500 to-cyan-600',
@@ -137,10 +259,10 @@ export function AdminDashboard() {
       textColor: 'text-cyan-400'
     },
     {
-      title: 'Avg Response Time',
-      value: '2.4h',
-      change: '-15%',
-      trend: 'down',
+      title: 'Total Inquiries',
+      value: inquiries.length.toString(),
+      change: '',
+      trend: 'up',
       icon: Clock,
       color: 'from-pink-500 to-pink-600',
       bgColor: 'bg-pink-500/10',
@@ -148,65 +270,44 @@ export function AdminDashboard() {
     }
   ];
 
-  // Recent Activities
-  const recentActivities = [
-    {
-      id: 1,
-      type: 'new_inquiry',
-      message: 'New inquiry from Rajesh Kumar for residential lift',
-      time: '5 min ago',
-      icon: MessageSquare,
-      color: 'text-blue-400',
-      bgColor: 'bg-blue-400/10'
-    },
-    {
-      id: 2,
-      type: 'project_completed',
-      message: 'Project #654340 - Mumbai Towers completed successfully',
-      time: '2 hours ago',
-      icon: CheckCircle2,
-      color: 'text-green-400',
-      bgColor: 'bg-green-400/10'
-    },
-    {
-      id: 3,
-      type: 'document_uploaded',
-      message: 'Contract document uploaded for Project #654341',
-      time: '3 hours ago',
-      icon: Upload,
-      color: 'text-purple-400',
-      bgColor: 'bg-purple-400/10'
-    },
-    {
-      id: 4,
-      type: 'payment_pending',
-      message: 'Payment pending for inquiry INQ-008',
-      time: '4 hours ago',
-      icon: Clock,
-      color: 'text-orange-400',
-      bgColor: 'bg-orange-400/10'
-    },
-    {
-      id: 5,
-      type: 'site_visit',
-      message: 'Site visit scheduled for Delhi project tomorrow at 10 AM',
-      time: '1 day ago',
-      icon: Calendar,
-      color: 'text-cyan-400',
-      bgColor: 'bg-cyan-400/10'
-    },
-    {
-      id: 6,
-      type: 'alert',
-      message: 'Maintenance due for 3 lifts in Bangalore',
-      time: '1 day ago',
-      icon: AlertCircle,
-      color: 'text-red-400',
-      bgColor: 'bg-red-400/10'
-    }
-  ];
+  const recentActivities = useMemo(() => {
+    const activities: {
+      id: string;
+      type: string;
+      message: string;
+      time: string;
+      icon: any;
+      color: string;
+      bgColor: string;
+    }[] = [];
 
-  // Quick Actions
+    for (const inq of inquiries.slice(0, 10)) {
+      activities.push({
+        id: `inq-${inq._id}`,
+        type: 'inquiry',
+        message: `Inquiry from ${inq.name || inq.email || 'Client'} - ${inq.subject || inq.type || 'Inquiry'}`,
+        time: new Date(inq.createdAt || Date.now()).toLocaleString(),
+        icon: MessageSquare,
+        color: 'text-blue-400',
+        bgColor: 'bg-blue-400/10'
+      });
+    }
+
+    for (const proj of projects.slice(0, 10)) {
+      activities.push({
+        id: `proj-${proj._id}`,
+        type: 'project',
+        message: `Project ${proj.name || proj.externalId || proj._id} - ${proj.status || 'pending'}`,
+        time: new Date(proj.createdAt || Date.now()).toLocaleString(),
+        icon: FolderKanban,
+        color: 'text-green-400',
+        bgColor: 'bg-green-400/10'
+      });
+    }
+
+    return activities.slice(0, 12);
+  }, [inquiries, projects]);
+
   const quickActions = [
     {
       title: 'Project Management',
@@ -214,7 +315,7 @@ export function AdminDashboard() {
       icon: FolderKanban,
       route: '/admin/projects',
       color: 'from-blue-500 to-blue-600',
-      stats: '12 Active'
+      stats: `${projects.length} Active`
     },
     {
       title: 'View Inquiries',
@@ -222,7 +323,7 @@ export function AdminDashboard() {
       icon: MessageSquare,
       route: '/admin/inquiries',
       color: 'from-orange-500 to-orange-600',
-      stats: '5 New'
+      stats: `${pendingInquiriesCount} Pending`
     },
     {
       title: 'Analytics & Reports',
@@ -238,7 +339,7 @@ export function AdminDashboard() {
       icon: Users,
       route: '/admin/users',
       color: 'from-cyan-500 to-cyan-600',
-      stats: '23 Users'
+      stats: `${clients.length} Users`
     },
     {
       title: 'Portal Config',
@@ -254,7 +355,7 @@ export function AdminDashboard() {
       icon: Bell,
       route: '/admin/notifications',
       color: 'from-yellow-500 to-yellow-600',
-      stats: '8 New'
+      stats: ''
     }
   ];
 
@@ -321,180 +422,12 @@ export function AdminDashboard() {
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex items-center justify-center gap-3 mb-6 relative">
+              {/* Action Button */}
+              <div className="flex items-center justify-center gap-3 mb-6">
                 <button className="px-4 py-2 bg-orange-500/10 hover:bg-orange-500/20 text-orange-500 rounded-lg transition-all flex items-center gap-2">
                   <Download size={16} />
                   <span className="text-sm">Export Report</span>
                 </button>
-                <div className="relative">
-                  <button
-                    className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-all flex items-center gap-2"
-                    onClick={() => setShowFilterDropdown(!showFilterDropdown)}
-                  >
-                    <Filter size={16} />
-                    <span className="text-sm">Filters</span>
-                    <ChevronDown size={16} className={`transition-transform ${showFilterDropdown ? 'rotate-180' : ''}`} />
-                  </button>
-
-                  <AnimatePresence>
-                    {showFilterDropdown && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.2 }}
-                        className="absolute top-full mt-2 right-0 bg-[#1a3332]/95 backdrop-blur-md border border-orange-500/20 rounded-lg shadow-2xl overflow-hidden z-50 min-w-[450px]"
-                      >
-                        <div className="p-3 grid grid-cols-2 gap-3">
-                          {/* Filter By Status - Left Column */}
-                          <div>
-                            <p className="text-white/60 text-xs uppercase tracking-wider px-3 py-2 mb-1">Filter By Status</p>
-                            <div className="space-y-1">
-                              <button
-                                onClick={() => {
-                                  setSelectedFilter('all');
-                                  setShowFilterDropdown(false);
-                                }}
-                                className={`w-full text-left px-3 py-2 rounded-lg transition-all ${
-                                  selectedFilter === 'all'
-                                    ? 'bg-orange-500 text-white'
-                                    : 'text-white/80 hover:bg-orange-500/10 hover:text-white'
-                                }`}
-                              >
-                                All Projects
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setSelectedFilter('completed');
-                                  setShowFilterDropdown(false);
-                                }}
-                                className={`w-full text-left px-3 py-2 rounded-lg transition-all ${
-                                  selectedFilter === 'completed'
-                                    ? 'bg-orange-500 text-white'
-                                    : 'text-white/80 hover:bg-orange-500/10 hover:text-white'
-                                }`}
-                              >
-                                Completed
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setSelectedFilter('inprogress');
-                                  setShowFilterDropdown(false);
-                                }}
-                                className={`w-full text-left px-3 py-2 rounded-lg transition-all ${
-                                  selectedFilter === 'inprogress'
-                                    ? 'bg-orange-500 text-white'
-                                    : 'text-white/80 hover:bg-orange-500/10 hover:text-white'
-                                }`}
-                              >
-                                In Progress
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setSelectedFilter('pending');
-                                  setShowFilterDropdown(false);
-                                }}
-                                className={`w-full text-left px-3 py-2 rounded-lg transition-all ${
-                                  selectedFilter === 'pending'
-                                    ? 'bg-orange-500 text-white'
-                                    : 'text-white/80 hover:bg-orange-500/10 hover:text-white'
-                                }`}
-                              >
-                                Pending
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setSelectedFilter('onhold');
-                                  setShowFilterDropdown(false);
-                                }}
-                                className={`w-full text-left px-3 py-2 rounded-lg transition-all ${
-                                  selectedFilter === 'onhold'
-                                    ? 'bg-orange-500 text-white'
-                                    : 'text-white/80 hover:bg-orange-500/10 hover:text-white'
-                                }`}
-                              >
-                                On Hold
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Date Range - Right Column */}
-                          <div>
-                            <p className="text-white/60 text-xs uppercase tracking-wider px-3 py-2 mb-1">Date Range</p>
-                            <div className="space-y-1">
-                              <button
-                                onClick={() => {
-                                  setSelectedDateRange('last7');
-                                  setShowFilterDropdown(false);
-                                }}
-                                className={`w-full text-left px-3 py-2 rounded-lg transition-all ${
-                                  selectedDateRange === 'last7'
-                                    ? 'bg-orange-500 text-white'
-                                    : 'text-white/80 hover:bg-orange-500/10 hover:text-white'
-                                }`}
-                              >
-                                Last 7 Days
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setSelectedDateRange('last30');
-                                  setShowFilterDropdown(false);
-                                }}
-                                className={`w-full text-left px-3 py-2 rounded-lg transition-all ${
-                                  selectedDateRange === 'last30'
-                                    ? 'bg-orange-500 text-white'
-                                    : 'text-white/80 hover:bg-orange-500/10 hover:text-white'
-                                }`}
-                              >
-                                Last 30 Days
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setSelectedDateRange('last6months');
-                                  setShowFilterDropdown(false);
-                                }}
-                                className={`w-full text-left px-3 py-2 rounded-lg transition-all ${
-                                  selectedDateRange === 'last6months'
-                                    ? 'bg-orange-500 text-white'
-                                    : 'text-white/80 hover:bg-orange-500/10 hover:text-white'
-                                }`}
-                              >
-                                Last 6 Months
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setSelectedDateRange('thisyear');
-                                  setShowFilterDropdown(false);
-                                }}
-                                className={`w-full text-left px-3 py-2 rounded-lg transition-all ${
-                                  selectedDateRange === 'thisyear'
-                                    ? 'bg-orange-500 text-white'
-                                    : 'text-white/80 hover:bg-orange-500/10 hover:text-white'
-                                }`}
-                              >
-                                This Year
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setSelectedDateRange('custom');
-                                  setShowFilterDropdown(false);
-                                }}
-                                className={`w-full text-left px-3 py-2 rounded-lg transition-all ${
-                                  selectedDateRange === 'custom'
-                                    ? 'bg-orange-500 text-white'
-                                    : 'text-white/80 hover:bg-orange-500/10 hover:text-white'
-                                }`}
-                              >
-                                Custom Range
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
               </div>
 
               {/* Search Bar */}
@@ -717,9 +650,9 @@ export function AdminDashboard() {
               </motion.div>
             </div>
 
-            {/* Quick Actions & Pending Tasks & Recent Activity */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-              {/* Quick Actions - 1 column */}
+            {/* Quick Actions & Pending Tasks */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+              {/* Quick Actions */}
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -752,7 +685,7 @@ export function AdminDashboard() {
                 </div>
               </motion.div>
 
-              {/* Pending Tasks - 1 column */}
+              {/* Pending Tasks */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -792,35 +725,6 @@ export function AdminDashboard() {
                 >
                   View All Tasks
                 </button>
-              </motion.div>
-
-              {/* Recent Activity - 1 column */}
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.8 }}
-                className="bg-[#0a1514]/80 backdrop-blur-sm border border-orange-500/20 rounded-lg p-6"
-              >
-                <h3 className="text-white text-lg font-semibold mb-6 flex items-center gap-2">
-                  <Activity className="text-orange-500" size={20} />
-                  Recent Activity
-                </h3>
-                <div className="space-y-4 max-h-[400px] overflow-y-auto custom-scrollbar">
-                  {recentActivities.map((activity) => (
-                    <div
-                      key={activity.id}
-                      className="flex items-start gap-3 pb-4 border-b border-white/10 last:border-0 last:pb-0"
-                    >
-                      <div className={`w-8 h-8 rounded-full ${activity.bgColor} flex items-center justify-center flex-shrink-0`}>
-                        <activity.icon size={14} className={activity.color} />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-white text-sm mb-1">{activity.message}</p>
-                        <p className="text-white/40 text-xs">{activity.time}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
               </motion.div>
             </div>
           </div>

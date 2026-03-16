@@ -12,6 +12,7 @@ import { AdminLoginPage } from './pages/AdminLoginPage';
 import { CreateIdentityPage } from './pages/CreateIdentityPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { AdminForgotPasswordPage } from './pages/AdminForgotPasswordPage';
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { BespokeProposalPage } from './pages/BespokeProposalPage';
 import { InquiryListPage } from './pages/InquiryListPage';
 import { ProductDetailPage } from './pages/ProductDetailPage';
@@ -32,9 +33,7 @@ import { ProjectsManagement } from "./pages/admin/ProjectsManagement";
 import { InquiriesManagement } from "./pages/admin/InquiriesManagement";
 import { Analytics } from "./pages/admin/Analytics";
 import { Notifications } from "./pages/admin/Notifications";
-import { Settings } from "./pages/admin/Settings";
 import { AdminProfile } from "./pages/admin/AdminProfile";
-import { AdminActivity } from "./pages/admin/AdminActivity";
 import { AdminAccountSettings } from "./pages/admin/AdminAccountSettings";
 import { TasksManagement } from "./pages/admin/TasksManagement";
 import { PagesManagement } from "./pages/admin/config/PagesManagement";
@@ -93,6 +92,10 @@ export const router = createBrowserRouter([
       {
         path: "admin-forgot-password",
         Component: AdminForgotPasswordPage,
+      },
+      {
+        path: "reset-password",
+        Component: ResetPasswordPage,
       },
       {
         path: "bespoke-proposal",
@@ -175,16 +178,8 @@ export const router = createBrowserRouter([
         Component: Notifications,
       },
       {
-        path: "admin/settings",
-        Component: Settings,
-      },
-      {
         path: "admin/profile",
         Component: AdminProfile,
-      },
-      {
-        path: "admin/activity",
-        Component: AdminActivity,
       },
       {
         path: "admin/account-settings",

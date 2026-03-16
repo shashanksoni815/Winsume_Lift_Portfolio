@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { motion } from 'motion/react';
 import {
@@ -26,14 +26,15 @@ import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
 import { AdminSidebar } from '../../components/AdminSidebar';
 
 interface User {
-  id: string;
-  name: string;
+  id: string; // backend _id
+  externalId?: string;
+  name: string; // fullName
   email: string;
-  phone: string;
-  role: 'admin' | 'user' | 'manager' | 'guest';
+  phone?: string;
+  role: 'admin' | 'user';
   status: 'active' | 'inactive' | 'suspended';
-  registeredDate: string;
-  lastActive: string;
+  registeredDate?: string;
+  lastActive?: string;
   projects: number;
   avatar?: string;
 }
@@ -49,98 +50,9 @@ export function UserManagement() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
-
-  // Mock Users Data
-  const [users, setUsers] = useState<User[]>([
-    {
-      id: 'USR001',
-      name: 'Rajesh Kumar',
-      email: 'rajesh.kumar@example.com',
-      phone: '+91 98765 43210',
-      role: 'admin',
-      status: 'active',
-      registeredDate: '2024-01-15',
-      lastActive: '2 hours ago',
-      projects: 12
-    },
-    {
-      id: 'USR002',
-      name: 'Priya Sharma',
-      email: 'priya.sharma@example.com',
-      phone: '+91 98765 43211',
-      role: 'manager',
-      status: 'active',
-      registeredDate: '2024-02-20',
-      lastActive: '1 day ago',
-      projects: 8
-    },
-    {
-      id: 'USR003',
-      name: 'Amit Patel',
-      email: 'amit.patel@example.com',
-      phone: '+91 98765 43212',
-      role: 'user',
-      status: 'active',
-      registeredDate: '2024-03-10',
-      lastActive: '3 hours ago',
-      projects: 5
-    },
-    {
-      id: 'USR004',
-      name: 'Sneha Reddy',
-      email: 'sneha.reddy@example.com',
-      phone: '+91 98765 43213',
-      role: 'user',
-      status: 'inactive',
-      registeredDate: '2024-01-25',
-      lastActive: '2 weeks ago',
-      projects: 3
-    },
-    {
-      id: 'USR005',
-      name: 'Vikram Singh',
-      email: 'vikram.singh@example.com',
-      phone: '+91 98765 43214',
-      role: 'manager',
-      status: 'active',
-      registeredDate: '2024-02-05',
-      lastActive: '5 min ago',
-      projects: 15
-    },
-    {
-      id: 'USR006',
-      name: 'Anita Desai',
-      email: 'anita.desai@example.com',
-      phone: '+91 98765 43215',
-      role: 'user',
-      status: 'suspended',
-      registeredDate: '2024-03-01',
-      lastActive: '1 month ago',
-      projects: 2
-    },
-    {
-      id: 'USR007',
-      name: 'Rohit Mehta',
-      email: 'rohit.mehta@example.com',
-      phone: '+91 98765 43216',
-      role: 'user',
-      status: 'active',
-      registeredDate: '2024-01-10',
-      lastActive: '1 hour ago',
-      projects: 7
-    },
-    {
-      id: 'USR008',
-      name: 'Kavita Nair',
-      email: 'kavita.nair@example.com',
-      phone: '+91 98765 43217',
-      role: 'guest',
-      status: 'active',
-      registeredDate: '2024-03-15',
-      lastActive: '6 hours ago',
-      projects: 1
-    }
-  ]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // Form state for Add/Edit User
   const [formData, setFormData] = useState({
@@ -148,8 +60,86 @@ export function UserManagement() {
     email: '',
     phone: '',
     role: 'user' as User['role'],
-    status: 'active' as User['status']
+    status: 'active' as User['status'],
+    password: ''
   });
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      email: '',
+      phone: '',
+      role: 'user',
+      status: 'active',
+      password: ''
+    });
+  };
+
+  const adminFetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) {
+      navigate('/admin-login');
+      throw new Error('Not authenticated');
+    }
+    const res = await fetch(input, {
+      ...init,
+      headers: {
+        ...(init?.headers || {}),
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    if (res.status === 401 || res.status === 403) {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('userEmail');
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('isLoggedIn');
+      navigate('/admin-login');
+      throw new Error('Unauthorized');
+    }
+    return res;
+  };
+
+  useEffect(() => {
+    const loadUsers = async () => {
+      try {
+        setIsLoading(true);
+        setLoadError(null);
+        const res = await adminFetch('http://localhost:8000/api/users');
+        if (!res.ok) {
+          const data = await res.json().catch(() => null);
+          setLoadError(data?.message || 'Failed to load users.');
+          return;
+        }
+        const data = await res.json().catch(() => null);
+        const items = Array.isArray(data?.items) ? data.items : [];
+        const mapped: User[] = items.map((u: any) => ({
+          id: u._id,
+          externalId: u.externalId,
+          name: u.fullName ?? u.email ?? 'User',
+          email: u.email ?? '',
+          phone: u.phone ?? '',
+          role: (u.role as User['role']) ?? 'user',
+          status: (u.status as User['status']) ?? 'active',
+          registeredDate: u.createdAt ? new Date(u.createdAt).toISOString().slice(0, 10) : '',
+          lastActive: u.lastActive
+            ? new Date(u.lastActive).toLocaleString()
+            : u.updatedAt
+            ? new Date(u.updatedAt).toLocaleString()
+            : '',
+          projects: typeof u.totalProjects === 'number' ? u.totalProjects : 0,
+        }));
+        setUsers(mapped);
+      } catch (err) {
+        setLoadError('Unable to load users. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadUsers();
+  }, [navigate]);
 
   // Filter users based on search and filters
   const filteredUsers = users.filter((user) => {
@@ -167,12 +157,8 @@ export function UserManagement() {
     switch (role) {
       case 'admin':
         return 'bg-red-500/20 text-red-400 border-red-500/30';
-      case 'manager':
-        return 'bg-purple-500/20 text-purple-400 border-purple-500/30';
       case 'user':
         return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
-      case 'guest':
-        return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
       default:
         return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
     }
@@ -191,44 +177,113 @@ export function UserManagement() {
     }
   };
 
-  const handleAddUser = () => {
-    const newUser: User = {
-      id: `USR${String(users.length + 1).padStart(3, '0')}`,
-      name: formData.name,
-      email: formData.email,
-      phone: formData.phone,
-      role: formData.role,
-      status: formData.status,
-      registeredDate: new Date().toISOString().split('T')[0],
-      lastActive: 'Just now',
-      projects: 0
-    };
-    
-    setUsers([...users, newUser]);
-    setShowAddUserModal(false);
-    resetForm();
+  const handleAddUser = async () => {
+    if (!formData.name || !formData.email || !formData.password) {
+      alert('Name, email and password are required.');
+      return;
+    }
+    try {
+      const res = await adminFetch('http://localhost:8000/api/users', {
+        method: 'POST',
+        body: JSON.stringify({
+          fullName: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          role: formData.role,
+          status: formData.status,
+          password: formData.password,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        alert(data?.message || 'Failed to create user.');
+        return;
+      }
+      // Reload users to reflect new record
+      const listRes = await adminFetch('http://localhost:8000/api/users');
+      const listData = await listRes.json().catch(() => null);
+      const items = Array.isArray(listData?.items) ? listData.items : [];
+      const mapped: User[] = items.map((u: any) => ({
+        id: u._id,
+        externalId: u.externalId,
+        name: u.fullName ?? u.email ?? 'User',
+        email: u.email ?? '',
+        phone: u.phone ?? '',
+        role: (u.role as User['role']) ?? 'user',
+        status: (u.status as User['status']) ?? 'active',
+        registeredDate: u.createdAt ? new Date(u.createdAt).toISOString().slice(0, 10) : '',
+        lastActive: u.lastActive
+          ? new Date(u.lastActive).toLocaleString()
+          : u.updatedAt
+          ? new Date(u.updatedAt).toLocaleString()
+          : '',
+        projects: typeof u.totalProjects === 'number' ? u.totalProjects : 0,
+      }));
+      setUsers(mapped);
+      setShowAddUserModal(false);
+      resetForm();
+    } catch {
+      alert('Unable to create user right now.');
+    }
   };
 
-  const handleEditUser = () => {
+  const handleEditUser = async () => {
     if (!selectedUser) return;
-    
-    setUsers(users.map(user => 
-      user.id === selectedUser.id 
-        ? { ...user, ...formData }
-        : user
-    ));
-    
-    setShowEditUserModal(false);
-    setSelectedUser(null);
-    resetForm();
+    try {
+      const res = await adminFetch(`http://localhost:8000/api/users/${selectedUser.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          fullName: formData.name,
+          phone: formData.phone,
+          role: formData.role,
+          status: formData.status,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        alert(data?.message || 'Failed to update user.');
+        return;
+      }
+      const data = await res.json().catch(() => null);
+      const updated = data?.user;
+      setUsers(prev =>
+        prev.map(u =>
+          u.id === selectedUser.id
+            ? {
+                ...u,
+                name: updated?.fullName ?? formData.name,
+                phone: updated?.phone ?? formData.phone,
+                role: (updated?.role as User['role']) ?? formData.role,
+                status: (updated?.status as User['status']) ?? formData.status,
+              }
+            : u
+        )
+      );
+      setShowEditUserModal(false);
+      setSelectedUser(null);
+      resetForm();
+    } catch {
+      alert('Unable to update user right now.');
+    }
   };
 
-  const handleDeleteUser = () => {
+  const handleDeleteUser = async () => {
     if (!selectedUser) return;
-    
-    setUsers(users.filter(user => user.id !== selectedUser.id));
-    setShowDeleteConfirm(false);
-    setSelectedUser(null);
+    try {
+      const res = await adminFetch(`http://localhost:8000/api/users/${selectedUser.id}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok && res.status !== 204) {
+        const data = await res.json().catch(() => null);
+        alert(data?.message || 'Failed to delete user.');
+        return;
+      }
+      setUsers(prev => prev.filter(user => user.id !== selectedUser.id));
+      setShowDeleteConfirm(false);
+      setSelectedUser(null);
+    } catch {
+      alert('Unable to delete user right now.');
+    }
   };
 
   const openEditModal = (user: User) => {
@@ -236,9 +291,10 @@ export function UserManagement() {
     setFormData({
       name: user.name,
       email: user.email,
-      phone: user.phone,
+      phone: user.phone || '',
       role: user.role,
-      status: user.status
+      status: user.status,
+      password: ''
     });
     setShowEditUserModal(true);
   };
@@ -248,21 +304,11 @@ export function UserManagement() {
     setShowDeleteConfirm(true);
   };
 
-  const resetForm = () => {
-    setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      role: 'user',
-      status: 'active'
-    });
-  };
-
   const stats = [
     { label: 'Total Users', value: users.length, color: 'from-blue-500 to-blue-600', bgColor: 'bg-blue-500/10' },
     { label: 'Active Users', value: users.filter(u => u.status === 'active').length, color: 'from-green-500 to-green-600', bgColor: 'bg-green-500/10' },
     { label: 'Admins', value: users.filter(u => u.role === 'admin').length, color: 'from-red-500 to-red-600', bgColor: 'bg-red-500/10' },
-    { label: 'Managers', value: users.filter(u => u.role === 'manager').length, color: 'from-purple-500 to-purple-600', bgColor: 'bg-purple-500/10' }
+    { label: 'Clients', value: users.filter(u => u.role === 'user').length, color: 'from-purple-500 to-purple-600', bgColor: 'bg-purple-500/10' }
   ];
 
   return (
@@ -345,9 +391,7 @@ export function UserManagement() {
                 >
                   <option value="all">All Roles</option>
                   <option value="admin">Admin</option>
-                  <option value="manager">Manager</option>
                   <option value="user">User</option>
-                  <option value="guest">Guest</option>
                 </select>
 
                 {/* Status Filter */}
@@ -460,7 +504,7 @@ export function UserManagement() {
                             </div>
                             <div className="flex items-center gap-2 text-white/70 text-sm">
                               <Phone size={14} />
-                              <span>{user.phone}</span>
+                            <span>{user.phone || '—'}</span>
                             </div>
                           </div>
                         </td>
@@ -480,11 +524,11 @@ export function UserManagement() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-2 text-white/70 text-sm">
                             <Calendar size={14} />
-                            <span>{user.registeredDate}</span>
+                            <span>{user.registeredDate || '—'}</span>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="text-white/70 text-sm">{user.lastActive}</span>
+                          <span className="text-white/70 text-sm">{user.lastActive || '—'}</span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center justify-center gap-2">
@@ -570,6 +614,17 @@ export function UserManagement() {
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="w-full bg-[#1a3332] border border-orange-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500/40"
                   placeholder="user@example.com"
+                />
+              </div>
+
+              <div>
+                <label className="block text-white/80 text-sm font-medium mb-2">Password</label>
+                <input
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  className="w-full bg-[#1a3332] border border-orange-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500/40"
+                  placeholder="Set initial password"
                 />
               </div>
 
@@ -674,7 +729,7 @@ export function UserManagement() {
                 <input
                   type="email"
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  readOnly
                   className="w-full bg-[#1a3332] border border-orange-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500/40"
                 />
               </div>

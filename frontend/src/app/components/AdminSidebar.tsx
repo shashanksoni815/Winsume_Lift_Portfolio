@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
 import {
@@ -8,13 +8,11 @@ import {
   Users,
   BarChart3,
   Bell,
-  Settings,
   LogOut,
   ChevronLeft,
   ChevronRight,
   User,
   Globe,
-  Activity,
   Shield,
   ChevronDown,
   ChevronUp
@@ -29,22 +27,69 @@ export function AdminSidebar({ isCollapsed, onToggle }: AdminSidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [projectCount, setProjectCount] = useState<number | null>(null);
+  const [inquiryCount, setInquiryCount] = useState<number | null>(null);
+  const [notificationCount] = useState<number | null>(null);
+
+  const adminFetch = async (input: RequestInfo | URL) => {
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) return null;
+    const res = await fetch(input, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    if (res.status === 401 || res.status === 403) {
+      return null;
+    }
+    return res;
+  };
+
+  useEffect(() => {
+    const loadCounts = async () => {
+      try {
+        const [projectsRes, inquiriesRes] = await Promise.all([
+          adminFetch('http://localhost:8000/api/projects'),
+          adminFetch('http://localhost:8000/api/inquiries')
+        ]);
+
+        if (projectsRes) {
+          const data = await projectsRes.json().catch(() => null);
+          const items = Array.isArray(data?.items) ? data.items : [];
+          setProjectCount(items.length);
+        }
+
+        if (inquiriesRes) {
+          const data = await inquiriesRes.json().catch(() => null);
+          const items = Array.isArray(data?.items) ? data.items : [];
+          setInquiryCount(items.length);
+        }
+      } catch {
+        // ignore sidebar count errors
+      }
+    };
+
+    loadCounts();
+  }, []);
 
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/admin-dashboard', badge: null },
-    { icon: FolderKanban, label: 'Projects', path: '/admin/projects', badge: '12' },
-    { icon: MessageSquare, label: 'Inquiries', path: '/admin/inquiries', badge: '5' },
+    { icon: FolderKanban, label: 'Projects', path: '/admin/projects', badge: projectCount },
+    { icon: MessageSquare, label: 'Inquiries', path: '/admin/inquiries', badge: inquiryCount },
     { icon: Users, label: 'User Management', path: '/admin/users', badge: null },
     { icon: Globe, label: 'Portal Config', path: '/admin/portal-config', badge: null },
     { icon: BarChart3, label: 'Analytics', path: '/admin/analytics', badge: null },
-    { icon: Bell, label: 'Notifications', path: '/admin/notifications', badge: '8' },
-    { icon: Settings, label: 'Settings', path: '/admin/settings', badge: null },
+    { icon: Bell, label: 'Notifications', path: '/admin/notifications', badge: notificationCount },
   ];
 
   const isActive = (path: string) => location.pathname === path;
 
   const handleLogout = () => {
-    // Add logout logic here
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('userRole');
     navigate('/admin-login');
   };
 
@@ -108,7 +153,7 @@ export function AdminSidebar({ isCollapsed, onToggle }: AdminSidebarProps) {
             {!isCollapsed && (
               <>
                 <span className="flex-1 text-left text-sm font-medium">{item.label}</span>
-                {item.badge && (
+                {typeof item.badge === 'number' && item.badge > 0 && (
                   <span className="px-2 py-0.5 bg-orange-500 text-white text-xs rounded-full flex-shrink-0">
                     {item.badge}
                   </span>
@@ -159,16 +204,6 @@ export function AdminSidebar({ isCollapsed, onToggle }: AdminSidebarProps) {
                   >
                     <User size={16} className="text-orange-500" />
                     <span className="text-sm">My Profile</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      navigate('/admin/activity');
-                      setShowUserDropdown(false);
-                    }}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-white/80 hover:bg-orange-500/10 hover:text-white transition-all"
-                  >
-                    <Activity size={16} className="text-orange-500" />
-                    <span className="text-sm">Activity Log</span>
                   </button>
                   <button
                     onClick={() => {

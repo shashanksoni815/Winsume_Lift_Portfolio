@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { motion } from 'motion/react';
 import {
@@ -20,17 +20,17 @@ import { Navigation } from '../components/Navigation';
 
 export function UserSettings() {
   const navigate = useNavigate();
-  const [activeSection, setActiveSection] = useState<'profile' | 'security' | 'notifications' | 'billing'>('profile');
+  const [activeSection, setActiveSection] = useState<'profile' | 'security' | 'notifications'>('profile');
   
   const [profileData, setProfileData] = useState({
-    name: 'Rajesh Kumar',
-    email: 'rajesh@example.com',
-    phone: '+91 98765 43210',
-    address: '123 Marine Drive, Mumbai',
-    city: 'Mumbai',
-    state: 'Maharashtra',
-    pincode: '400001',
-    company: 'Kumar Constructions'
+    name: '',
+    email: '',
+    phone: '',
+    address: '',
+    city: '',
+    state: '',
+    pincode: '',
+    company: ''
   });
 
   const [securityData, setSecurityData] = useState({
@@ -47,24 +47,145 @@ export function UserSettings() {
     securityAlerts: true
   });
 
-  const handleSaveProfile = () => {
-    // Save profile logic here
-    alert('Profile updated successfully!');
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [isSavingNotifications, setIsSavingNotifications] = useState(false);
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      const accessToken = localStorage.getItem('accessToken');
+      if (!accessToken) {
+        navigate('/login');
+        return;
+      }
+
+      try {
+        const res = await fetch('http://localhost:8000/api/users/me/profile', {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+
+        if (res.status === 401) {
+          navigate('/login');
+          return;
+        }
+
+        const data = await res.json().catch(() => null);
+        if (data?.user) {
+          const u = data.user;
+          setProfileData({
+            name: u.fullName || '',
+            email: u.email || '',
+            phone: u.phone || '',
+            address: u.address || '',
+            city: u.city || '',
+            state: u.state || '',
+            pincode: u.pincode || '',
+            company: u.company || '',
+          });
+        }
+      } catch (error) {
+        console.error('Failed to load profile', error);
+      }
+    };
+
+    loadProfile();
+  }, [navigate]);
+
+  const handleSaveProfile = async () => {
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) {
+      navigate('/login');
+      return;
+    }
+
+    try {
+      setIsSavingProfile(true);
+      const res = await fetch('http://localhost:8000/api/users/me/profile', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          fullName: profileData.name,
+          phone: profileData.phone,
+          company: profileData.company,
+          address: profileData.address,
+          city: profileData.city,
+          state: profileData.state,
+          pincode: profileData.pincode,
+        }),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        const message = errData?.message ?? 'Failed to update profile.';
+        alert(message);
+        return;
+      }
+
+      alert('Profile updated successfully!');
+    } catch (error) {
+      console.error('Failed to save profile', error);
+      alert('Something went wrong while saving your profile.');
+    } finally {
+      setIsSavingProfile(false);
+    }
   };
 
-  const handleChangePassword = () => {
+  const handleChangePassword = async () => {
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) {
+      navigate('/login');
+      return;
+    }
+
     if (securityData.newPassword !== securityData.confirmPassword) {
       alert('Passwords do not match!');
       return;
     }
-    // Change password logic here
-    alert('Password changed successfully!');
-    setSecurityData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+
+    try {
+      setIsChangingPassword(true);
+      const res = await fetch('http://localhost:8000/api/users/me/password', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          currentPassword: securityData.currentPassword,
+          newPassword: securityData.newPassword,
+        }),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        const message = errData?.message ?? 'Failed to change password.';
+        alert(message);
+        return;
+      }
+
+      alert('Password changed successfully!');
+      setSecurityData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (error) {
+      console.error('Failed to change password', error);
+      alert('Something went wrong while changing your password.');
+    } finally {
+      setIsChangingPassword(false);
+    }
   };
 
-  const handleSaveNotifications = () => {
-    // Save notification preferences
-    alert('Notification preferences updated!');
+  const handleSaveNotifications = async () => {
+    try {
+      setIsSavingNotifications(true);
+      // This is local-only for now; wire to backend later if needed.
+      alert('Notification preferences updated!');
+    } finally {
+      setIsSavingNotifications(false);
+    }
   };
 
   return (
@@ -147,17 +268,6 @@ export function UserSettings() {
             >
               <Bell size={18} />
               <span>Notifications</span>
-            </button>
-            <button
-              onClick={() => setActiveSection('billing')}
-              className={`px-6 py-3 rounded-lg transition-all whitespace-nowrap flex items-center gap-2 ${
-                activeSection === 'billing' 
-                  ? 'bg-orange-500 text-white' 
-                  : 'text-white/60 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <CreditCard size={18} />
-              <span>Billing</span>
             </button>
           </motion.div>
 
@@ -288,10 +398,11 @@ export function UserSettings() {
                 <div className="flex justify-end mt-8">
                   <button
                     onClick={handleSaveProfile}
-                    className="px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-all flex items-center gap-2"
+                    disabled={isSavingProfile}
+                    className="px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-all flex items-center gap-2 disabled:opacity-60"
                   >
                     <Save size={18} />
-                    <span>Save Changes</span>
+                    <span>{isSavingProfile ? 'Saving…' : 'Save Changes'}</span>
                   </button>
                 </div>
               </div>
@@ -354,10 +465,11 @@ export function UserSettings() {
                   <div className="flex justify-end">
                     <button
                       onClick={handleChangePassword}
-                      className="px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-all flex items-center gap-2"
+                      disabled={isChangingPassword}
+                      className="px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-all flex items-center gap-2 disabled:opacity-60"
                     >
                       <Save size={18} />
-                      <span>Change Password</span>
+                      <span>{isChangingPassword ? 'Updating…' : 'Change Password'}</span>
                     </button>
                   </div>
                 </div>
@@ -465,57 +577,18 @@ export function UserSettings() {
                 </div>
 
                 <div className="flex justify-end mt-8">
-                  <button
-                    onClick={handleSaveNotifications}
-                    className="px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-all flex items-center gap-2"
+                    <button
+                      onClick={handleSaveNotifications}
+                      disabled={isSavingNotifications}
+                      className="px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-all flex items-center gap-2 disabled:opacity-60"
                   >
                     <Save size={18} />
-                    <span>Save Preferences</span>
+                      <span>{isSavingNotifications ? 'Saving…' : 'Save Preferences'}</span>
                   </button>
                 </div>
               </div>
             )}
 
-            {/* Billing Section */}
-            {activeSection === 'billing' && (
-              <div className="bg-[#1a3332]/80 backdrop-blur-md border border-orange-500/20 rounded-xl p-8">
-                <h2 className="text-white text-2xl font-semibold mb-6">Billing & Invoices</h2>
-                
-                <div className="space-y-6">
-                  <div className="bg-[#0a1514]/50 border border-orange-500/20 rounded-lg p-6">
-                    <h3 className="text-white text-lg font-semibold mb-4">Payment Methods</h3>
-                    <p className="text-white/60 text-sm mb-4">No payment methods added yet</p>
-                    <button className="px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-all">
-                      Add Payment Method
-                    </button>
-                  </div>
-
-                  <div className="bg-[#0a1514]/50 border border-orange-500/20 rounded-lg p-6">
-                    <h3 className="text-white text-lg font-semibold mb-4">Recent Invoices</h3>
-                    <div className="space-y-3">
-                      {[
-                        { id: 'INV-001', date: '2024-03-01', amount: '₹25,00,000', status: 'Paid' },
-                        { id: 'INV-002', date: '2024-02-01', amount: '₹15,00,000', status: 'Paid' },
-                        { id: 'INV-003', date: '2024-01-01', amount: '₹12,00,000', status: 'Paid' }
-                      ].map((invoice) => (
-                        <div key={invoice.id} className="flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-all">
-                          <div>
-                            <p className="text-white font-medium">{invoice.id}</p>
-                            <p className="text-white/40 text-sm">{invoice.date}</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-white font-semibold">{invoice.amount}</p>
-                            <span className="px-2 py-1 bg-green-500/20 text-green-400 border border-green-500/30 rounded text-xs">
-                              {invoice.status}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
           </motion.div>
         </div>
       </div>

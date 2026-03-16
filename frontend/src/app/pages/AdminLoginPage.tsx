@@ -15,12 +15,44 @@ export function AdminLoginPage() {
   const [showForgotModal, setShowForgotModal] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Admin Login attempt:', formData);
-    // Navigate to admin dashboard after login
-    navigate('/admin-dashboard');
+    try {
+      setIsSubmitting(true);
+
+      const response = await fetch('http://localhost:8000/api/auth/admin/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        const message = errorData?.message ?? 'Admin login failed. Please check your credentials.';
+        alert(message);
+        return;
+      }
+
+      const data = await response.json();
+
+      localStorage.setItem('accessToken', data.tokens.accessToken);
+      localStorage.setItem('refreshToken', data.tokens.refreshToken);
+      localStorage.setItem('userEmail', data.user.email);
+      localStorage.setItem('userRole', data.user.role);
+      localStorage.setItem('isLoggedIn', 'true');
+
+      navigate('/admin-dashboard');
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Admin login error', error);
+      alert('Something went wrong. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -143,9 +175,10 @@ export function AdminLoginPage() {
               {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full bg-orange-500 text-white px-8 py-4 rounded-full hover:bg-orange-600 hover:scale-105 transition-all duration-300 shadow-lg font-semibold uppercase tracking-wider"
+                disabled={isSubmitting}
+                className="w-full bg-orange-500 text-white px-8 py-4 rounded-full hover:bg-orange-600 hover:scale-105 transition-all duration-300 shadow-lg font-semibold uppercase tracking-wider disabled:opacity-60 disabled:hover:scale-100"
               >
-                Authorize Admin Access →
+                {isSubmitting ? 'Authorizing…' : 'Authorize Admin Access →'}
               </button>
 
               {/* Security Notice */}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
 import {
   TrendingUp,
@@ -34,37 +34,179 @@ import {
 export function Analytics() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [timeRange, setTimeRange] = useState('6months');
+  const [projects, setProjects] = useState<any[]>([]);
+  const [clients, setClients] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  const revenueData = [
-    { month: 'Oct', revenue: 450000, expenses: 280000, id: 'rev-oct' },
-    { month: 'Nov', revenue: 520000, expenses: 310000, id: 'rev-nov' },
-    { month: 'Dec', revenue: 680000, expenses: 350000, id: 'rev-dec' },
-    { month: 'Jan', revenue: 750000, expenses: 420000, id: 'rev-jan' },
-    { month: 'Feb', revenue: 820000, expenses: 460000, id: 'rev-feb' },
-    { month: 'Mar', revenue: 950000, expenses: 520000, id: 'rev-mar' }
-  ];
+  const adminFetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) {
+      window.location.href = '/admin-login';
+      throw new Error('Not authenticated');
+    }
+    const res = await fetch(input, {
+      ...init,
+      headers: {
+        ...(init?.headers || {}),
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    if (res.status === 401 || res.status === 403) {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('userEmail');
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('isLoggedIn');
+      window.location.href = '/admin-login';
+      throw new Error('Unauthorized');
+    }
+    return res;
+  };
 
-  const projectTypeData = [
-    { name: 'Residential', value: 45, color: '#3b82f6', id: 'type-residential' },
-    { name: 'Commercial', value: 35, color: '#f97316', id: 'type-commercial' },
-    { name: 'Medical', value: 12, color: '#10b981', id: 'type-medical' },
-    { name: 'Industrial', value: 8, color: '#8b5cf6', id: 'type-industrial' }
-  ];
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+        setLoadError(null);
+        const [projectsRes, clientsRes] = await Promise.all([
+          adminFetch('http://localhost:8000/api/projects'),
+          adminFetch('http://localhost:8000/api/users?role=user&status=active&pageSize=500')
+        ]);
 
-  const clientGrowth = [
-    { month: 'Oct', clients: 65, id: 'client-oct' },
-    { month: 'Nov', clients: 72, id: 'client-nov' },
-    { month: 'Dec', clients: 78, id: 'client-dec' },
-    { month: 'Jan', clients: 85, id: 'client-jan' },
-    { month: 'Feb', clients: 92, id: 'client-feb' },
-    { month: 'Mar', clients: 98, id: 'client-mar' }
-  ];
+        const projectsJson = projectsRes.ok ? await projectsRes.json().catch(() => null) : null;
+        const clientsJson = clientsRes.ok ? await clientsRes.json().catch(() => null) : null;
+
+        setProjects(Array.isArray(projectsJson?.items) ? projectsJson.items : []);
+        setClients(Array.isArray(clientsJson?.items) ? clientsJson.items : []);
+      } catch {
+        setLoadError('Unable to load analytics data. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  const filteredProjects = useMemo(() => {
+    if (!projects.length) return [];
+    const now = new Date();
+    const monthsBack =
+      timeRange === '1month' ? 1 : timeRange === '3months' ? 3 : timeRange === '6months' ? 6 : 12;
+    const cutoff = new Date(now.getFullYear(), now.getMonth() - monthsBack, now.getDate());
+    return projects.filter((p) => {
+      const createdAt = p.createdAt ? new Date(p.createdAt) : null;
+      return createdAt && createdAt >= cutoff;
+    });
+  }, [projects, timeRange]);
+
+  const revenueData = useMemo(() => {
+    const byMonth: Record<string, { month: string; id: string; revenue: number; expenses: number }> =
+      {};
+    for (const p of filteredProjects) {
+      const createdAt = p.createdAt ? new Date(p.createdAt) : null;
+      const monthKey = createdAt
+        ? createdAt.toLocaleString('default', { month: 'short' })
+        : 'N/A';
+      if (!byMonth[monthKey]) {
+        byMonth[monthKey] = { month: monthKey, id: `rev-${monthKey}`, revenue: 0, expenses: 0 };
+      }
+      const budget = typeof p.budget === 'number' ? p.budget : 0;
+      const spent = typeof p.spent === 'number' ? p.spent : 0;
+      byMonth[monthKey].revenue += Math.max(budget - spent, 0);
+      byMonth[monthKey].expenses += spent;
+    }
+    return Object.values(byMonth).sort(
+      (a, b) =>
+        new Date(`1 ${a.month} 2000`).getMonth() - new Date(`1 ${b.month} 2000`).getMonth()
+    );
+  }, [filteredProjects]);
+
+  const projectTypeData = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const p of projects) {
+      const type = p.type || 'Other';
+      counts[type] = (counts[type] || 0) + 1;
+    }
+    const palette = ['#3b82f6', '#f97316', '#10b981', '#8b5cf6', '#eab308', '#ec4899'];
+    return Object.entries(counts).map(([name, value], idx) => ({
+      id: `type-${name}`,
+      name,
+      value,
+      color: palette[idx % palette.length]
+    }));
+  }, [projects]);
+
+  const clientGrowth = useMemo(() => {
+    if (!clients.length) return [];
+    const byMonth: Record<string, number> = {};
+    for (const c of clients) {
+      const createdAt = c.createdAt ? new Date(c.createdAt) : null;
+      const monthKey = createdAt
+        ? createdAt.toLocaleString('default', { month: 'short' })
+        : 'N/A';
+      byMonth[monthKey] = (byMonth[monthKey] || 0) + 1;
+    }
+    const months = Object.keys(byMonth).sort(
+      (a, b) =>
+        new Date(`1 ${a} 2000`).getMonth() - new Date(`1 ${b} 2000`).getMonth()
+    );
+    let cumulative = 0;
+    return months.map((m) => {
+      cumulative += byMonth[m];
+      return { id: `client-${m}`, month: m, clients: cumulative };
+    });
+  }, [clients]);
+
+  const totalRevenue = useMemo(
+    () => revenueData.reduce((sum, r) => sum + r.revenue, 0),
+    [revenueData]
+  );
+  const totalExpenses = useMemo(
+    () => revenueData.reduce((sum, r) => sum + r.expenses, 0),
+    [revenueData]
+  );
+  const profitMargin =
+    totalRevenue + totalExpenses > 0
+      ? (totalRevenue / (totalRevenue + totalExpenses)) * 100
+      : 0;
+  const activeProjects = projects.filter((p) => p.status === 'in-progress').length;
 
   const stats = [
-    { label: 'Total Revenue', value: '₹4.17Cr', change: '+24%', trend: 'up', color: 'from-green-500 to-green-600', icon: DollarSign },
-    { label: 'Active Projects', value: '23', change: '+12%', trend: 'up', color: 'from-blue-500 to-blue-600', icon: FolderKanban },
-    { label: 'Total Clients', value: '98', change: '+18%', trend: 'up', color: 'from-purple-500 to-purple-600', icon: Users },
-    { label: 'Profit Margin', value: '38%', change: '+5%', trend: 'up', color: 'from-orange-500 to-orange-600', icon: TrendingUp }
+    {
+      label: 'Total Revenue',
+      value: `₹${(totalRevenue / 10000000).toFixed(2)}Cr`,
+      change: '',
+      trend: 'up',
+      color: 'from-green-500 to-green-600',
+      icon: DollarSign
+    },
+    {
+      label: 'Active Projects',
+      value: activeProjects.toString(),
+      change: '',
+      trend: 'up',
+      color: 'from-blue-500 to-blue-600',
+      icon: FolderKanban
+    },
+    {
+      label: 'Total Clients',
+      value: clients.length.toString(),
+      change: '',
+      trend: 'up',
+      color: 'from-purple-500 to-purple-600',
+      icon: Users
+    },
+    {
+      label: 'Profit Margin',
+      value: `${profitMargin.toFixed(1)}%`,
+      change: '',
+      trend: 'up',
+      color: 'from-orange-500 to-orange-600',
+      icon: TrendingUp
+    }
   ];
 
   return (
@@ -109,6 +251,10 @@ export function Analytics() {
                 </button>
               </div>
             </motion.div>
+
+            {loadError && (
+              <div className="mb-4 text-center text-sm text-red-400">{loadError}</div>
+            )}
 
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
               {stats.map((stat) => (

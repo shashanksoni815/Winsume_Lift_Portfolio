@@ -10,12 +10,37 @@ export function ForgotPasswordPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Password reset request for:', email);
-    setSubmitted(true);
-    // Add logic to send reset password email
+
+    try {
+      setIsSubmitting(true);
+
+      const response = await fetch('http://localhost:8000/api/auth/forgot-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        const message = errorData?.message ?? 'Unable to send reset email. Please try again.';
+        alert(message);
+        return;
+      }
+
+      setSubmitted(true);
+      navigate('/reset-password', { state: { email, origin: 'user' } });
+    } catch (error) {
+      console.error('Forgot password error', error);
+      alert('Something went wrong. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -89,7 +114,7 @@ export function ForgotPasswordPage() {
                   {/* Info Text */}
                   <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-4">
                     <p className="text-white/70 text-xs leading-relaxed">
-                      We'll send you an email with instructions to reset your password. Please check your inbox and spam folder.
+                      After confirming your email, you can immediately set a new password for your account.
                     </p>
                   </div>
 
@@ -104,9 +129,10 @@ export function ForgotPasswordPage() {
                     </button>
                     <button
                       type="submit"
-                      className="flex-1 bg-orange-500 text-white px-6 py-3 rounded-full hover:bg-orange-600 hover:scale-105 transition-all duration-300 shadow-lg uppercase tracking-wider text-sm"
+                      disabled={isSubmitting}
+                      className="flex-1 bg-orange-500 text-white px-6 py-3 rounded-full hover:bg-orange-600 hover:scale-105 transition-all duration-300 shadow-lg uppercase tracking-wider text-sm disabled:opacity-60 disabled:hover:scale-100"
                     >
-                      Send Reset Link
+                      {isSubmitting ? 'Checking…' : 'Update Password'}
                     </button>
                   </div>
                 </form>

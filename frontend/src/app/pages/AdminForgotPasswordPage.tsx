@@ -10,12 +10,37 @@ export function AdminForgotPasswordPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Admin password reset request for:', email);
-    setSubmitted(true);
-    // Add logic to send reset password email
+
+    try {
+      setIsSubmitting(true);
+
+      const response = await fetch('http://localhost:8000/api/auth/forgot-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        const message = errorData?.message ?? 'Unable to send reset email. Please try again.';
+        alert(message);
+        return;
+      }
+
+      setSubmitted(true);
+      navigate('/reset-password', { state: { email, origin: 'admin' } });
+    } catch (error) {
+      console.error('Admin forgot password error', error);
+      alert('Something went wrong. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -91,7 +116,7 @@ export function AdminForgotPasswordPage() {
                     <div className="flex items-start space-x-3">
                       <Shield size={16} className="text-orange-500 mt-0.5 flex-shrink-0" />
                       <p className="text-white/70 text-xs leading-relaxed">
-                        Secure Admin Portal: Password reset requests are verified and logged for security purposes.
+                        After confirming your admin email, you can immediately set a new secure password.
                       </p>
                     </div>
                   </div>
@@ -107,9 +132,10 @@ export function AdminForgotPasswordPage() {
                     </button>
                     <button
                       type="submit"
-                      className="flex-1 bg-orange-500 text-white px-6 py-3 rounded-full hover:bg-orange-600 hover:scale-105 transition-all duration-300 shadow-lg uppercase tracking-wider text-sm"
+                      disabled={isSubmitting}
+                      className="flex-1 bg-orange-500 text-white px-6 py-3 rounded-full hover:bg-orange-600 hover:scale-105 transition-all duration-300 shadow-lg uppercase tracking-wider text-sm disabled:opacity-60 disabled:hover:scale-100"
                     >
-                      Send Reset Link
+                      {isSubmitting ? 'Checking…' : 'Update Password'}
                     </button>
                   </div>
                 </form>

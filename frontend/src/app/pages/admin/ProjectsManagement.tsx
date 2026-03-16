@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
 import {
@@ -27,17 +27,18 @@ import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
 import { AdminSidebar } from '../../components/AdminSidebar';
 
 interface Project {
-  id: string;
+  id: string; // backend _id
+  externalId?: string;
   name: string;
   client: string;
-  clientEmail: string;
-  clientPhone: string;
-  location: string;
+  clientEmail?: string;
+  clientPhone?: string;
+  location?: string;
   status: 'completed' | 'in-progress' | 'pending' | 'on-hold';
   budget: number;
   spent: number;
-  startDate: string;
-  endDate: string;
+  startDate?: string;
+  endDate?: string;
   progress: number;
   team: number;
   type: string;
@@ -53,6 +54,7 @@ export function ProjectsManagement() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showSpentModal, setShowSpentModal] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -65,110 +67,103 @@ export function ProjectsManagement() {
     startDate: '',
     endDate: '',
     team: '',
+    progress: '',
     status: 'pending' as Project['status'],
     image: ''
   });
 
   const [imagePreview, setImagePreview] = useState<string>('');
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [clients, setClients] = useState<{ id: string; name: string; email: string }[]>([]);
+  const [selectedClientId, setSelectedClientId] = useState<string>('');
+  const [additionalSpent, setAdditionalSpent] = useState<string>('');
 
-  const [projects, setProjects] = useState<Project[]>([
-    {
-      id: 'PRJ001',
-      name: 'Luxury Villa Lift Installation',
-      client: 'Rajesh Kumar',
-      clientEmail: 'rajesh@example.com',
-      clientPhone: '+91 98765 43210',
-      location: 'Mumbai, Maharashtra',
-      status: 'in-progress',
-      budget: 2500000,
-      spent: 1850000,
-      startDate: '2024-01-15',
-      endDate: '2024-06-30',
-      progress: 74,
-      team: 8,
-      type: 'Residential'
-    },
-    {
-      id: 'PRJ002',
-      name: 'Commercial Tower - 10 Units',
-      client: 'Prestige Builders Pvt Ltd',
-      clientEmail: 'contact@prestige.com',
-      clientPhone: '+91 98765 43211',
-      location: 'Bangalore, Karnataka',
-      status: 'in-progress',
-      budget: 15000000,
-      spent: 8500000,
-      startDate: '2024-02-01',
-      endDate: '2024-12-31',
-      progress: 57,
-      team: 25,
-      type: 'Commercial'
-    },
-    {
-      id: 'PRJ003',
-      name: 'Hotel Panoramic Elevator',
-      client: 'Grand Hyatt Delhi',
-      clientEmail: 'operations@grandhyatt.com',
-      clientPhone: '+91 98765 43212',
-      location: 'New Delhi, Delhi',
-      status: 'completed',
-      budget: 8500000,
-      spent: 8200000,
-      startDate: '2023-10-01',
-      endDate: '2024-03-15',
-      progress: 100,
-      team: 15,
-      type: 'Commercial'
-    },
-    {
-      id: 'PRJ004',
-      name: 'Residential Complex - 5 Lifts',
-      client: 'DLF Properties',
-      clientEmail: 'projects@dlf.com',
-      clientPhone: '+91 98765 43213',
-      location: 'Gurgaon, Haryana',
-      status: 'pending',
-      budget: 6000000,
-      spent: 0,
-      startDate: '2024-04-01',
-      endDate: '2024-10-31',
-      progress: 0,
-      team: 0,
-      type: 'Residential'
-    },
-    {
-      id: 'PRJ005',
-      name: 'Hospital Medical Lift System',
-      client: 'Apollo Hospitals',
-      clientEmail: 'procurement@apollo.com',
-      clientPhone: '+91 98765 43214',
-      location: 'Chennai, Tamil Nadu',
-      status: 'in-progress',
-      budget: 12000000,
-      spent: 3600000,
-      startDate: '2024-02-15',
-      endDate: '2024-09-30',
-      progress: 30,
-      team: 18,
-      type: 'Medical'
-    },
-    {
-      id: 'PRJ006',
-      name: 'Mall Escalator Installation',
-      client: 'Phoenix Mall',
-      clientEmail: 'maintenance@phoenix.com',
-      clientPhone: '+91 98765 43215',
-      location: 'Pune, Maharashtra',
-      status: 'on-hold',
-      budget: 4500000,
-      spent: 1350000,
-      startDate: '2024-01-10',
-      endDate: '2024-05-31',
-      progress: 30,
-      team: 10,
-      type: 'Commercial'
+  const adminFetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) {
+      navigate('/admin-login');
+      throw new Error('Not authenticated');
     }
-  ]);
+    const res = await fetch(input, {
+      ...init,
+      headers: {
+        ...(init?.headers || {}),
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    if (res.status === 401 || res.status === 403) {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('userEmail');
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('isLoggedIn');
+      navigate('/admin-login');
+      throw new Error('Unauthorized');
+    }
+    return res;
+  };
+
+  const loadProjects = async () => {
+    try {
+      setIsLoading(true);
+      setLoadError(null);
+      const res = await adminFetch('http://localhost:8000/api/projects');
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        setLoadError(data?.message || 'Failed to load projects.');
+        return;
+      }
+      const data = await res.json().catch(() => null);
+      const items = Array.isArray(data?.items) ? data.items : [];
+      const mapped: Project[] = items.map((p: any) => ({
+        id: p._id,
+        externalId: p.externalId,
+        name: p.name ?? 'Project',
+        client: p.clientName ?? 'Client',
+        clientEmail: p.clientEmail ?? '',
+        clientPhone: p.clientPhone ?? '',
+        location: p.location ?? '',
+        status: (p.status as Project['status']) ?? 'pending',
+        budget: typeof p.budget === 'number' ? p.budget : 0,
+        spent: typeof p.spent === 'number' ? p.spent : 0,
+        startDate: p.startDate ? new Date(p.startDate).toISOString().slice(0, 10) : '',
+        endDate: p.endDate ? new Date(p.endDate).toISOString().slice(0, 10) : '',
+        progress: typeof p.progress === 'number' ? p.progress : 0,
+        team: typeof p.teamSize === 'number' ? p.teamSize : 0,
+        type: p.type ?? 'Project',
+        image: p.heroImage,
+      }));
+      setProjects(mapped);
+    } catch {
+      setLoadError('Unable to load projects. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const loadInitial = async () => {
+      await loadProjects();
+      try {
+        const res = await adminFetch('http://localhost:8000/api/users?role=user&status=active&pageSize=100');
+        if (!res.ok) return;
+        const data = await res.json().catch(() => null);
+        const items = Array.isArray(data?.items) ? data.items : [];
+        const mapped = items.map((u: any) => ({
+          id: u._id,
+          name: u.fullName ?? u.email ?? 'User',
+          email: u.email ?? ''
+        }));
+        setClients(mapped);
+      } catch {
+        // ignore client load errors
+      }
+    };
+    loadInitial();
+  }, []);
 
   const filteredProjects = projects.filter((project) => {
     const matchesSearch = 
@@ -196,71 +191,172 @@ export function ProjectsManagement() {
     }
   };
 
+  const totalBudget = projects.reduce((sum, p) => sum + (p.budget || 0), 0);
   const stats = [
     { label: 'Total Projects', value: projects.length, color: 'from-blue-500 to-blue-600', icon: FolderKanban },
     { label: 'In Progress', value: projects.filter(p => p.status === 'in-progress').length, color: 'from-orange-500 to-orange-600', icon: Clock },
     { label: 'Completed', value: projects.filter(p => p.status === 'completed').length, color: 'from-green-500 to-green-600', icon: CheckCircle2 },
-    { label: 'Total Budget', value: `₹${(projects.reduce((sum, p) => sum + p.budget, 0) / 10000000).toFixed(1)}Cr`, color: 'from-purple-500 to-purple-600', icon: DollarSign }
+    {
+      label: 'Total Budget',
+      value: totalBudget > 0 ? `₹${(totalBudget / 100000).toFixed(2)}L` : '₹0.00',
+      color: 'from-purple-500 to-purple-600',
+      icon: DollarSign
+    }
   ];
 
-  const handleAddProject = () => {
-    const newProject: Project = {
-      id: `PRJ${String(projects.length + 1).padStart(3, '0')}`,
-      name: formData.name,
-      client: formData.client,
-      clientEmail: formData.clientEmail,
-      clientPhone: formData.clientPhone,
-      location: formData.location,
-      type: formData.type,
-      budget: parseInt(formData.budget),
-      spent: 0,
-      startDate: formData.startDate,
-      endDate: formData.endDate,
-      progress: 0,
-      team: parseInt(formData.team) || 0,
-      status: formData.status,
-      image: formData.image
+  const calculateProfit = (project: Project) => {
+    const profit = (project.budget || 0) - (project.spent || 0);
+    const margin = project.budget > 0 ? (profit / project.budget) * 100 : 0;
+    return {
+      profit: profit < 0 ? 0 : profit,
+      margin: margin < 0 ? 0 : margin
     };
-    
-    setProjects([...projects, newProject]);
-    setShowAddModal(false);
-    resetForm();
   };
 
-  const handleEditProject = () => {
-    if (!selectedProject) return;
-    
-    setProjects(projects.map(p => 
-      p.id === selectedProject.id 
-        ? {
-            ...p,
-            name: formData.name,
-            client: formData.client,
-            clientEmail: formData.clientEmail,
-            clientPhone: formData.clientPhone,
-            location: formData.location,
-            type: formData.type,
-            budget: parseInt(formData.budget),
-            startDate: formData.startDate,
-            endDate: formData.endDate,
-            team: parseInt(formData.team),
-            status: formData.status,
-            image: formData.image
-          }
-        : p
-    ));
-    
-    setShowEditModal(false);
-    setSelectedProject(null);
-    resetForm();
+  const handleAddProject = async () => {
+    try {
+      let clientIdToUse = selectedClientId;
+
+      // If no existing client selected, create a new user as client
+      if (!clientIdToUse && formData.client && formData.clientEmail) {
+        const userRes = await adminFetch('http://localhost:8000/api/users', {
+          method: 'POST',
+          body: JSON.stringify({
+            fullName: formData.client,
+            email: formData.clientEmail,
+            phone: formData.clientPhone,
+            role: 'user',
+            status: 'active',
+            password: 'Client@123'
+          })
+        });
+        if (!userRes.ok) {
+          const data = await userRes.json().catch(() => null);
+          alert(data?.message || 'Failed to create client user.');
+          return;
+        }
+        const userData = await userRes.json().catch(() => null);
+        clientIdToUse = userData?.user?.id ?? '';
+      }
+
+      const res = await adminFetch('http://localhost:8000/api/projects', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: formData.name,
+          type: formData.type,
+          location: formData.location,
+          status: formData.status,
+          clientId: clientIdToUse || undefined,
+          clientName: formData.client,
+          clientEmail: formData.clientEmail,
+          clientPhone: formData.clientPhone,
+          budget: parseInt(formData.budget) || 0,
+          startDate: formData.startDate || undefined,
+          endDate: formData.endDate || undefined,
+          teamSize: parseInt(formData.team) || 0,
+          progress: parseInt(formData.progress) || 0
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        alert(data?.message || 'Failed to create project.');
+        return;
+      }
+      await loadProjects();
+      setShowAddModal(false);
+      resetForm();
+      setSelectedClientId('');
+    } catch {
+      alert('Unable to create project right now.');
+    }
   };
 
-  const handleDeleteProject = () => {
+  const openSpentModal = (project: Project) => {
+    setSelectedProject(project);
+    setAdditionalSpent('');
+    setShowSpentModal(true);
+  };
+
+  const handleAddSpent = async () => {
     if (!selectedProject) return;
-    
-    setProjects(projects.filter(p => p.id !== selectedProject.id));
-    setShowDeleteConfirm(false);
-    setSelectedProject(null);
+    const amount = parseInt(additionalSpent);
+    if (isNaN(amount) || amount <= 0) {
+      alert('Please enter a valid spent amount.');
+      return;
+    }
+    try {
+      const newSpent = (selectedProject.spent || 0) + amount;
+      const res = await adminFetch(`http://localhost:8000/api/projects/${selectedProject.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          spent: newSpent
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        alert(data?.message || 'Failed to update spent amount.');
+        return;
+      }
+      await loadProjects();
+      setShowSpentModal(false);
+      setSelectedProject(null);
+      setAdditionalSpent('');
+    } catch {
+      alert('Unable to update spent amount right now.');
+    }
+  };
+
+  const handleEditProject = async () => {
+    if (!selectedProject) return;
+    try {
+      const res = await adminFetch(`http://localhost:8000/api/projects/${selectedProject.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          name: formData.name,
+          type: formData.type,
+          location: formData.location,
+          status: formData.status,
+          clientName: formData.client,
+          clientEmail: formData.clientEmail,
+          clientPhone: formData.clientPhone,
+          budget: parseInt(formData.budget) || 0,
+          startDate: formData.startDate || undefined,
+          endDate: formData.endDate || undefined,
+          teamSize: parseInt(formData.team) || 0,
+          progress: parseInt(formData.progress) || 0
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        alert(data?.message || 'Failed to update project.');
+        return;
+      }
+      await loadProjects();
+      setShowEditModal(false);
+      setSelectedProject(null);
+      resetForm();
+    } catch {
+      alert('Unable to update project right now.');
+    }
+  };
+
+  const handleDeleteProject = async () => {
+    if (!selectedProject) return;
+    try {
+      const res = await adminFetch(`http://localhost:8000/api/projects/${selectedProject.id}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok && res.status !== 204) {
+        const data = await res.json().catch(() => null);
+        alert(data?.message || 'Failed to delete project.');
+        return;
+      }
+      setProjects(prev => prev.filter(p => p.id !== selectedProject.id));
+      setShowDeleteConfirm(false);
+      setSelectedProject(null);
+    } catch {
+      alert('Unable to delete project right now.');
+    }
   };
 
   const openEditModal = (project: Project) => {
@@ -276,6 +372,7 @@ export function ProjectsManagement() {
       startDate: project.startDate,
       endDate: project.endDate,
       team: project.team.toString(),
+      progress: project.progress.toString(),
       status: project.status,
       image: project.image || ''
     });
@@ -305,6 +402,7 @@ export function ProjectsManagement() {
       startDate: '',
       endDate: '',
       team: '',
+      progress: '',
       status: 'pending',
       image: ''
     });
@@ -459,6 +557,20 @@ export function ProjectsManagement() {
                           <p className="text-white font-semibold">₹{(project.spent / 100000).toFixed(2)}L</p>
                         </div>
                         <div>
+                          <p className="text-white/40 text-xs mb-1">Profit / Margin</p>
+                          {(() => {
+                            const { profit, margin } = calculateProfit(project);
+                            return (
+                              <p className="text-white font-semibold">
+                                ₹{(profit / 100000).toFixed(2)}L ({margin.toFixed(1)}%)
+                              </p>
+                            );
+                          })()}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div>
                           <p className="text-white/40 text-xs mb-1">Duration</p>
                           <p className="text-white font-semibold">{project.startDate} to {project.endDate}</p>
                         </div>
@@ -476,6 +588,13 @@ export function ProjectsManagement() {
                     </div>
 
                     <div className="flex items-center gap-2 ml-4">
+                      <button
+                        onClick={() => openSpentModal(project)}
+                        className="p-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 rounded-lg transition-all"
+                        title="Add Spent Amount"
+                      >
+                        <DollarSign size={18} />
+                      </button>
                       <button onClick={() => openViewModal(project)} className="p-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-lg transition-all" title="View Details">
                         <Eye size={18} />
                       </button>
@@ -637,7 +756,7 @@ export function ProjectsManagement() {
               Are you sure you want to delete "<span className="text-white font-semibold">{selectedProject.name}</span>"? This action cannot be undone.
             </p>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 mb-4">
               <button
                 onClick={handleDeleteProject}
                 className="flex-1 px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all font-medium"
@@ -646,6 +765,66 @@ export function ProjectsManagement() {
               </button>
               <button
                 onClick={() => { setShowDeleteConfirm(false); setSelectedProject(null); }}
+                className="flex-1 px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all font-medium"
+              >
+                Cancel
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Add Spent Amount Modal */}
+      {showSpentModal && selectedProject && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.2 }}
+            className="bg-[#0a1514] border border-purple-500/20 rounded-xl p-6 max-w-md w-full"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-white text-xl font-semibold">Add Spent Amount</h2>
+              <button
+                onClick={() => { setShowSpentModal(false); setSelectedProject(null); setAdditionalSpent(''); }}
+                className="p-2 hover:bg-white/10 rounded-lg transition-all"
+              >
+                <X className="text-white/60" size={20} />
+              </button>
+            </div>
+
+            <p className="text-white/70 mb-4">
+              Update spent amount for <span className="font-semibold text-white">{selectedProject.name}</span>.
+            </p>
+
+            <div className="space-y-4 mb-6">
+              <div>
+                <p className="text-white/40 text-xs mb-1">Current Spent</p>
+                <p className="text-white font-semibold">₹{(selectedProject.spent / 100000).toFixed(2)}L</p>
+              </div>
+              <div>
+                <label className="block text-white/80 text-sm font-medium mb-2">
+                  Additional Spent Amount (₹)
+                </label>
+                <input
+                  type="number"
+                  value={additionalSpent}
+                  onChange={(e) => setAdditionalSpent(e.target.value)}
+                  className="w-full bg-[#1a3332] border border-purple-500/30 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-purple-500/60"
+                  placeholder="Enter amount spent"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleAddSpent}
+                className="flex-1 px-6 py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-all font-medium"
+              >
+                Save Spent
+              </button>
+              <button
+                onClick={() => { setShowSpentModal(false); setSelectedProject(null); setAdditionalSpent(''); }}
                 className="flex-1 px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all font-medium"
               >
                 Cancel
@@ -763,20 +942,38 @@ export function ProjectsManagement() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
                         <label className="block text-white/80 text-sm font-medium mb-2">
-                          Client Name <span className="text-red-400">*</span>
+                          Client <span className="text-red-400">*</span>
                         </label>
+                        <select
+                          value={selectedClientId}
+                          onChange={(e) => {
+                            const id = e.target.value;
+                            setSelectedClientId(id);
+                            const client = clients.find((c) => c.id === id);
+                            if (client) {
+                              setFormData({
+                                ...formData,
+                                client: client.name,
+                                clientEmail: client.email
+                              });
+                            }
+                          }}
+                          className="w-full bg-[#0a1514]/80 backdrop-blur-sm border border-orange-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500/40 transition-all mb-2"
+                        >
+                          <option value="">Add new client…</option>
+                          {clients.map((c) => (
+                            <option key={c.id} value={c.id}>
+                              {c.name} ({c.email})
+                            </option>
+                          ))}
+                        </select>
                         <input
                           type="text"
                           value={formData.client}
                           onChange={(e) => setFormData({ ...formData, client: e.target.value })}
-                          className="w-full bg-[#0a1514]/80 backdrop-blur-sm border border-orange-500/20 rounded-lg px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-orange-500/40 transition-all"
-                          placeholder="Rajesh Kumar"
+                          className="w-full bg-[#0a1514]/80 backdrop-blur-sm border border-orange-500/20 rounded-lg px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-orange-500/40 transition-all mb-2"
+                          placeholder="Client name"
                         />
-                      </div>
-                      <div>
-                        <label className="block text-white/80 text-sm font-medium mb-2">
-                          Client Email <span className="text-red-400">*</span>
-                        </label>
                         <input
                           type="email"
                           value={formData.clientEmail}
@@ -806,7 +1003,7 @@ export function ProjectsManagement() {
                       <Calendar size={16} />
                       Timeline & Budget
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                       <div>
                         <label className="block text-white/80 text-sm font-medium mb-2">
                           Budget (₹) <span className="text-red-400">*</span>
@@ -851,6 +1048,20 @@ export function ProjectsManagement() {
                           onChange={(e) => setFormData({ ...formData, team: e.target.value })}
                           className="w-full bg-[#0a1514]/80 backdrop-blur-sm border border-orange-500/20 rounded-lg px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-orange-500/40 transition-all"
                           placeholder="8"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-white/80 text-sm font-medium mb-2">
+                          Progress (%) <span className="text-red-400">*</span>
+                        </label>
+                        <input
+                          type="number"
+                          min={0}
+                          max={100}
+                          value={formData.progress}
+                          onChange={(e) => setFormData({ ...formData, progress: e.target.value })}
+                          className="w-full bg-[#0a1514]/80 backdrop-blur-sm border border-orange-500/20 rounded-lg px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-orange-500/40 transition-all"
+                          placeholder="0 - 100"
                         />
                       </div>
                     </div>
@@ -1003,7 +1214,7 @@ export function ProjectsManagement() {
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                   <label className="block text-white/80 text-sm font-medium mb-2">Budget (₹)</label>
                   <input
@@ -1028,6 +1239,17 @@ export function ProjectsManagement() {
                     type="date"
                     value={formData.endDate}
                     onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                    className="w-full bg-[#1a3332] border border-orange-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500/40"
+                  />
+                </div>
+                <div>
+                  <label className="block text-white/80 text-sm font-medium mb-2">Progress (%)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={formData.progress}
+                    onChange={(e) => setFormData({ ...formData, progress: e.target.value })}
                     className="w-full bg-[#1a3332] border border-orange-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500/40"
                   />
                 </div>
