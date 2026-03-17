@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { motion } from 'motion/react';
@@ -5,6 +6,12 @@ import { useNavigate } from 'react-router';
 
 export function Hero() {
   const navigate = useNavigate();
+  const [heading, setHeading] = useState('The Art of Vertical Mastery');
+  const [tagline, setTagline] = useState('Elevating your lifestyle with bespoke vertical transportation solutions');
+  const [projectsCompleted, setProjectsCompleted] = useState(200);
+  const [citiesServed, setCitiesServed] = useState(15);
+  const [yearsExperience, setYearsExperience] = useState(6);
+  const [satisfactionRate, setSatisfactionRate] = useState(98);
 
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
@@ -16,6 +23,41 @@ export function Hero() {
   const handleCollectionClick = () => {
     navigate('/collection');
   };
+
+  useEffect(() => {
+    const loadConfig = async () => {
+      try {
+        const res = await fetch('http://localhost:8000/api/portal-config');
+        if (!res.ok) return;
+        const data = await res.json().catch(() => null);
+        if (!data) return;
+        const ps = data.portalSettings || {};
+        if (ps.tagline) {
+          setTagline(ps.tagline as string);
+        }
+        if (ps.heroHeading) {
+          setHeading(ps.heroHeading as string);
+        } else if (ps.siteName) {
+          setHeading(ps.siteName as string);
+        }
+        if (typeof ps.projectsCompleted === 'number') {
+          setProjectsCompleted(ps.projectsCompleted);
+        }
+        if (typeof ps.citiesServed === 'number') {
+          setCitiesServed(ps.citiesServed);
+        }
+        if (typeof ps.yearsExperience === 'number') {
+          setYearsExperience(ps.yearsExperience);
+        }
+        if (typeof ps.satisfactionRate === 'number') {
+          setSatisfactionRate(ps.satisfactionRate);
+        }
+      } catch {
+        // ignore, keep defaults
+      }
+    };
+    loadConfig();
+  }, []);
 
   return (
     <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
@@ -61,7 +103,7 @@ export function Hero() {
           transition={{ duration: 1, delay: 0.2 }}
           className="font-['Great_Vibes'] text-5xl sm:text-6xl md:text-7xl lg:text-8xl text-white mb-6 sm:mb-8 leading-tight"
         >
-          The Art of Vertical Mastery
+          {heading}
         </motion.h1>
 
         {/* Subtitle */}
@@ -71,7 +113,7 @@ export function Hero() {
           transition={{ duration: 1, delay: 0.4 }}
           className="text-lg sm:text-xl md:text-2xl text-white/90 max-w-3xl mx-auto mb-10 sm:mb-14 px-4"
         >
-          Elevating your lifestyle with bespoke vertical transportation solutions
+          {tagline}
         </motion.p>
 
         {/* CTA Buttons */}
@@ -108,7 +150,9 @@ export function Hero() {
             transition={{ duration: 0.5, delay: 1 }}
             className="text-center p-3 sm:p-4 rounded-lg bg-white/5 backdrop-blur-sm border border-white/10"
           >
-            <div className="text-2xl sm:text-3xl md:text-4xl text-orange-500 mb-1 sm:mb-2 font-bold">200+</div>
+            <div className="text-2xl sm:text-3xl md:text-4xl text-orange-500 mb-1 sm:mb-2 font-bold">
+              {projectsCompleted}+
+            </div>
             <div className="text-white/80 text-[10px] sm:text-xs uppercase tracking-wider">Projects Completed</div>
           </motion.div>
           <motion.div 
@@ -117,7 +161,9 @@ export function Hero() {
             transition={{ duration: 0.5, delay: 1.1 }}
             className="text-center p-3 sm:p-4 rounded-lg bg-white/5 backdrop-blur-sm border border-white/10"
           >
-            <div className="text-2xl sm:text-3xl md:text-4xl text-orange-500 mb-1 sm:mb-2 font-bold">15+</div>
+            <div className="text-2xl sm:text-3xl md:text-4xl text-orange-500 mb-1 sm:mb-2 font-bold">
+              {citiesServed}+
+            </div>
             <div className="text-white/80 text-[10px] sm:text-xs uppercase tracking-wider">Cities Served</div>
           </motion.div>
           <motion.div 
@@ -126,7 +172,9 @@ export function Hero() {
             transition={{ duration: 0.5, delay: 1.2 }}
             className="text-center p-3 sm:p-4 rounded-lg bg-white/5 backdrop-blur-sm border border-white/10"
           >
-            <div className="text-2xl sm:text-3xl md:text-4xl text-orange-500 mb-1 sm:mb-2 font-bold">6+</div>
+            <div className="text-2xl sm:text-3xl md:text-4xl text-orange-500 mb-1 sm:mb-2 font-bold">
+              {yearsExperience}+
+            </div>
             <div className="text-white/80 text-[10px] sm:text-xs uppercase tracking-wider">Years Experience</div>
           </motion.div>
           <motion.div 
@@ -135,7 +183,9 @@ export function Hero() {
             transition={{ duration: 0.5, delay: 1.3 }}
             className="text-center p-3 sm:p-4 rounded-lg bg-white/5 backdrop-blur-sm border border-white/10"
           >
-            <div className="text-2xl sm:text-3xl md:text-4xl text-orange-500 mb-1 sm:mb-2 font-bold">98%</div>
+            <div className="text-2xl sm:text-3xl md:text-4xl text-orange-500 mb-1 sm:mb-2 font-bold">
+              {satisfactionRate}%
+            </div>
             <div className="text-white/80 text-[10px] sm:text-xs uppercase tracking-wider">Satisfaction Rate</div>
           </motion.div>
         </motion.div>

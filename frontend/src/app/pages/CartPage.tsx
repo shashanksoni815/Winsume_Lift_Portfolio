@@ -111,7 +111,7 @@ export function CartPage() {
                   </div>
 
                   <button
-                    onClick={() => navigate('/checkout')}
+                    onClick={() => navigate('/inquiry')}
                     className="w-full bg-gradient-to-r from-orange-600 to-orange-500 text-white py-4 rounded-sm hover:from-orange-700 hover:to-orange-600 transition-all uppercase tracking-[0.2em] text-xs mb-6 flex items-center justify-center gap-2"
                   >
                     SEND INQUIRY <ArrowRight size={14} />
@@ -223,7 +223,7 @@ export function CartPage() {
                   </div>
 
                   <button
-                    onClick={() => navigate('/checkout')}
+                    onClick={() => navigate('/inquiry')}
                     className="w-full bg-gradient-to-r from-orange-600 to-orange-500 text-white py-4 rounded-sm hover:from-orange-700 hover:to-orange-600 transition-all uppercase tracking-[0.2em] text-xs mb-6 flex items-center justify-center gap-2"
                   >
                     SEND INQUIRY <ArrowRight size={14} />

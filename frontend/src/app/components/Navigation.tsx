@@ -8,6 +8,9 @@ export function Navigation() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userRole, setUserRole] = useState<'admin' | 'user' | null>(null);
+  const [siteName, setSiteName] = useState('WINSUME');
+  const [siteSubtitle, setSiteSubtitle] = useState('Lift India');
   const navigate = useNavigate();
   const location = useLocation();
   const { cartCount } = useCart();
@@ -21,10 +24,36 @@ export function Navigation() {
   }, []);
 
   useEffect(() => {
+    const loadConfig = async () => {
+      try {
+        const res = await fetch('http://localhost:8000/api/portal-config');
+        if (!res.ok) return;
+        const data = await res.json().catch(() => null);
+        if (data?.portalSettings?.siteName) {
+          const name = data.portalSettings.siteName as string;
+          // Simple split: main name + subtitle
+          const parts = name.split(' ');
+          setSiteName(parts.slice(0, -1).join(' ') || name);
+          setSiteSubtitle(parts.slice(-1).join(' ') || 'Lift India');
+        }
+      } catch {
+        // ignore errors, keep defaults
+      }
+    };
+    loadConfig();
+  }, []);
+
+  useEffect(() => {
     // Check login status based on stored auth tokens (new flow)
     const hasToken = !!localStorage.getItem('accessToken');
     const legacyFlag = localStorage.getItem('isLoggedIn') === 'true';
     setIsLoggedIn(hasToken || legacyFlag);
+    const storedRole = localStorage.getItem('userRole');
+    if (storedRole === 'admin' || storedRole === 'user') {
+      setUserRole(storedRole);
+    } else {
+      setUserRole(null);
+    }
   }, [location]);
 
   const handleLogout = () => {
@@ -34,6 +63,7 @@ export function Navigation() {
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('userRole');
     setIsLoggedIn(false);
+    setUserRole(null);
     setIsProfileMenuOpen(false);
     navigate('/');
   };
@@ -104,8 +134,8 @@ export function Navigation() {
             
             {/* Logo Text */}
             <div className="text-white">
-              <div className="font-bold text-xl">WINSUME</div>
-              <div className="text-orange-500 text-xs uppercase">Lift India</div>
+              <div className="font-bold text-xl">{siteName}</div>
+              <div className="text-orange-500 text-xs uppercase">{siteSubtitle}</div>
             </div>
           </button>
 
@@ -266,49 +296,103 @@ export function Navigation() {
           <div className="absolute right-6 top-20 bg-[#1a3332]/95 backdrop-blur-md border border-orange-500/20 rounded-lg shadow-2xl p-2 w-64">
             <div className="text-center py-3 border-b border-white/10">
               <p className="text-orange-500/80 text-xs uppercase tracking-widest">
-                {isLoggedIn ? 'User Portal' : 'Security Portal'}
+                {isLoggedIn ? (userRole === 'admin' ? 'Admin Portal' : 'User Portal') : 'Security Portal'}
               </p>
               <h3 className="font-['Great_Vibes'] text-2xl text-white mt-1">
-                {isLoggedIn ? 'Welcome' : 'Login'}
+                {isLoggedIn ? (userRole === 'admin' ? 'Welcome, Admin' : 'Welcome') : 'Login'}
               </h3>
             </div>
             
             {isLoggedIn ? (
-              // Logged In Menu
+              // Logged In Menu (admin vs user)
               <div className="flex flex-col space-y-2 py-2">
-                <button 
-                  onClick={() => {
-                    navigate('/user-portal');
-                    setIsProfileMenuOpen(false);
-                  }}
-                  className="flex items-center space-x-3 text-white/80 hover:text-orange-500 hover:bg-orange-500/10 transition-all px-4 py-3 rounded-lg group"
-                >
-                  <div className="w-8 h-8 bg-orange-500/20 border border-orange-500/40 rounded-full flex items-center justify-center group-hover:bg-orange-500/30 transition-all">
-                    <User size={16} className="text-orange-500" />
-                  </div>
-                  <div className="text-left flex-1">
-                    <div className="text-sm font-medium">User Portal</div>
-                    <div className="text-xs text-white/40">Dashboard Access</div>
-                  </div>
-                </button>
+                {userRole === 'admin' ? (
+                  <>
+                    <button
+                      onClick={() => {
+                        navigate('/admin');
+                        setIsProfileMenuOpen(false);
+                      }}
+                      className="flex items-center space-x-3 text-white/80 hover:text-orange-500 hover:bg-orange-500/10 transition-all px-4 py-3 rounded-lg group"
+                    >
+                      <div className="w-8 h-8 bg-orange-500/20 border border-orange-500/40 rounded-full flex items-center justify-center group-hover:bg-orange-500/30 transition-all">
+                        <User size={16} className="text-orange-500" />
+                      </div>
+                      <div className="text-left flex-1">
+                        <div className="text-sm font-medium">Admin Dashboard</div>
+                        <div className="text-xs text-white/40">Management Portal</div>
+                      </div>
+                    </button>
 
-                <button 
-                  onClick={() => {
-                    navigate('/my-engagements');
-                    setIsProfileMenuOpen(false);
-                  }}
-                  className="flex items-center space-x-3 text-white/80 hover:text-orange-500 hover:bg-orange-500/10 transition-all px-4 py-3 rounded-lg group"
-                >
-                  <div className="w-8 h-8 bg-orange-500/20 border border-orange-500/40 rounded-full flex items-center justify-center group-hover:bg-orange-500/30 transition-all">
-                    <FolderKanban size={16} className="text-orange-500" />
-                  </div>
-                  <div className="text-left flex-1">
-                    <div className="text-sm font-medium">Projects</div>
-                    <div className="text-xs text-white/40">View All Projects</div>
-                  </div>
-                </button>
+                    <button
+                      onClick={() => {
+                        navigate('/admin/projects');
+                        setIsProfileMenuOpen(false);
+                      }}
+                      className="flex items-center space-x-3 text-white/80 hover:text-orange-500 hover:bg-orange-500/10 transition-all px-4 py-3 rounded-lg group"
+                    >
+                      <div className="w-8 h-8 bg-orange-500/20 border border-orange-500/40 rounded-full flex items-center justify-center group-hover:bg-orange-500/30 transition-all">
+                        <FolderKanban size={16} className="text-orange-500" />
+                      </div>
+                      <div className="text-left flex-1">
+                        <div className="text-sm font-medium">Projects</div>
+                        <div className="text-xs text-white/40">Manage All Projects</div>
+                      </div>
+                    </button>
 
-                <button 
+                    <button
+                      onClick={() => {
+                        navigate('/admin/inquiries');
+                        setIsProfileMenuOpen(false);
+                      }}
+                      className="flex items-center space-x-3 text-white/80 hover:text-orange-500 hover:bg-orange-500/10 transition-all px-4 py-3 rounded-lg group"
+                    >
+                      <div className="w-8 h-8 bg-orange-500/20 border border-orange-500/40 rounded-full flex items-center justify-center group-hover:bg-orange-500/30 transition-all">
+                        <Phone size={16} className="text-orange-500" />
+                      </div>
+                      <div className="text-left flex-1">
+                        <div className="text-sm font-medium">Inquiries</div>
+                        <div className="text-xs text-white/40">View All Inquiries</div>
+                      </div>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => {
+                        navigate('/user-portal');
+                        setIsProfileMenuOpen(false);
+                      }}
+                      className="flex items-center space-x-3 text-white/80 hover:text-orange-500 hover:bg-orange-500/10 transition-all px-4 py-3 rounded-lg group"
+                    >
+                      <div className="w-8 h-8 bg-orange-500/20 border border-orange-500/40 rounded-full flex items-center justify-center group-hover:bg-orange-500/30 transition-all">
+                        <User size={16} className="text-orange-500" />
+                      </div>
+                      <div className="text-left flex-1">
+                        <div className="text-sm font-medium">User Portal</div>
+                        <div className="text-xs text-white/40">Dashboard Access</div>
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        navigate('/my-engagements');
+                        setIsProfileMenuOpen(false);
+                      }}
+                      className="flex items-center space-x-3 text-white/80 hover:text-orange-500 hover:bg-orange-500/10 transition-all px-4 py-3 rounded-lg group"
+                    >
+                      <div className="w-8 h-8 bg-orange-500/20 border border-orange-500/40 rounded-full flex items-center justify-center group-hover:bg-orange-500/30 transition-all">
+                        <FolderKanban size={16} className="text-orange-500" />
+                      </div>
+                      <div className="text-left flex-1">
+                        <div className="text-sm font-medium">Projects</div>
+                        <div className="text-xs text-white/40">View All Projects</div>
+                      </div>
+                    </button>
+                  </>
+                )}
+
+                <button
                   onClick={handleLogout}
                   className="flex items-center space-x-3 text-white/80 hover:text-orange-500 hover:bg-orange-500/10 transition-all px-4 py-3 rounded-lg group"
                 >

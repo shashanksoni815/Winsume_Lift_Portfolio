@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { motion } from 'motion/react';
 import { ArrowLeft, Shield, Lock, Eye, EyeOff, Save, Key } from 'lucide-react';

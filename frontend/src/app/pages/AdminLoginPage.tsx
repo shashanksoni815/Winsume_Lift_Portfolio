@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Navigation } from '../components/Navigation';
 import { Footer } from '../components/Footer';
 import { Mail, Lock, Shield, X, Eye, EyeOff } from 'lucide-react';
@@ -113,7 +113,7 @@ export function AdminLoginPage() {
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* Email Field */}
               <div>
-                <label className="block text-white/70 text-xs uppercase tracking-wider mb-2 flex items-center space-x-2">
+                <label className="flex text-white/70 text-xs uppercase tracking-wider mb-2 items-center space-x-2">
                   <Mail size={14} className="text-orange-500" />
                   <span>Admin Email</span>
                 </label>
@@ -130,7 +130,7 @@ export function AdminLoginPage() {
 
               {/* Password Field */}
               <div>
-                <label className="block text-white/70 text-xs uppercase tracking-wider mb-2 flex items-center space-x-2">
+                <label className="flex text-white/70 text-xs uppercase tracking-wider mb-2 items-center space-x-2">
                   <Lock size={14} className="text-orange-500" />
                   <span>Admin Password</span>
                 </label>
@@ -231,7 +231,7 @@ export function AdminLoginPage() {
             <form onSubmit={handleResetPassword} className="space-y-6">
               {/* Email Field */}
               <div>
-                <label className="block text-white/70 text-xs uppercase tracking-wider mb-2 flex items-center space-x-2">
+                <label className="flex text-white/70 text-xs uppercase tracking-wider mb-2 items-center space-x-2">
                   <Mail size={14} className="text-orange-500" />
                   <span>Admin Email</span>
                 </label>

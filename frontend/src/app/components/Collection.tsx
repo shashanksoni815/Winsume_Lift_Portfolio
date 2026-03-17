@@ -1,52 +1,86 @@
+import { useEffect, useState } from 'react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { Check } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useNavigate } from 'react-router';
 
-const collections = [
-  {
-    id: 'signature-series',
-    name: 'Signature Series',
-    tagline: 'The pinnacle of elevator design',
-    price: 'From $150,000',
-    features: [
-      'Custom interior finishes',
-      'Smart home integration',
-      'Whisper-quiet operation',
-      'Premium lighting design',
-    ],
-    image: 'https://images.unsplash.com/photo-1758448511533-e1502259fff6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsdXh1cnklMjByZXNpZGVudGlhbCUyMGVsZXZhdG9yJTIwaW50ZXJpb3J8ZW58MXx8fHwxNzczMzAzNDg2fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
-  },
-  {
-    id: 'panorama-collection',
-    name: 'Panorama Collection',
-    tagline: 'Elevate with a view',
-    price: 'From $200,000',
-    features: [
-      'Full glass enclosure',
-      'Architectural LED lighting',
-      'Climate control system',
-      'Premium safety features',
-    ],
-    image: 'https://images.unsplash.com/photo-1672753782907-d58990efbdc3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxnbGFzcyUyMGVsZXZhdG9yJTIwZXh0ZXJpb3IlMjBob3RlbHxlbnwxfHx8fDE3NzMzMDM0ODZ8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
-  },
-  {
-    id: 'executive-line',
-    name: 'Executive Line',
-    tagline: 'Commercial excellence',
-    price: 'From $120,000',
-    features: [
-      'High-speed operation',
-      'Heavy-duty capacity',
-      'Advanced access control',
-      'Minimal maintenance',
-    ],
-    image: 'https://images.unsplash.com/photo-1772721559246-286e6d986d73?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBjb21tZXJjaWFsJTIwZWxldmF0b3IlMjBsb2JieXxlbnwxfHx8fDE3NzMzMDM0ODZ8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
-  },
-];
+interface CollectionItem {
+  id: string;
+  slug: string;
+  name: string;
+  tagline?: string;
+  priceLabel?: string;
+  features: string[];
+  image?: string;
+}
 
 export function Collection() {
   const navigate = useNavigate();
+  const [collections, setCollections] = useState<CollectionItem[]>([]);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const [configRes, productsRes] = await Promise.all([
+          fetch('http://localhost:8000/api/portal-config'),
+          fetch('http://localhost:8000/api/products/public')
+        ]);
+
+        if (!configRes.ok || !productsRes.ok) return;
+
+        const configData = await configRes.json().catch(() => null);
+        const productsData = await productsRes.json().catch(() => null);
+
+        const ids: string[] | undefined = configData?.portalSettings?.homeCollectionsProductIds;
+        const products: any[] = Array.isArray(productsData?.items) ? productsData.items : [];
+
+        if (!ids || ids.length === 0) {
+          setCollections([]);
+          return;
+        }
+
+        const allItems: CollectionItem[] = products.map((p: any) => {
+          const rawImage = p.heroImage || (Array.isArray(p.images) ? p.images[0] : '');
+          const image =
+            typeof rawImage === 'string' && rawImage.startsWith('/uploads')
+              ? `http://localhost:8000${rawImage}`
+              : rawImage;
+
+          const priceNumber = typeof p.price === 'number' ? p.price : Number(p.price || 0);
+          const priceLabel = priceNumber > 0 ? `From ₹${priceNumber.toLocaleString('en-IN')}` : undefined;
+
+          const features: string[] = Array.isArray(p.features)
+            ? p.features
+            : typeof p.features === 'string'
+            ? p.features
+                .split(',')
+                .map((f: string) => f.trim())
+                .filter(Boolean)
+            : [];
+
+          return {
+            id: p._id,
+            slug: p.slug,
+            name: p.name || 'Lift',
+            tagline: p.shortDescription,
+            priceLabel,
+            features: features.slice(0, 4),
+            image
+          };
+        });
+
+        const selected: CollectionItem[] = ids
+          .map((pid) => allItems.find((p) => p.id === pid))
+          .filter((p): p is CollectionItem => Boolean(p));
+
+        setCollections(selected.slice(0, 3));
+      } catch {
+        // keep empty state on error
+      }
+    };
+
+    load();
+  }, []);
 
   return (
     <section id="collection" className="bg-[#1a3332] py-24">
@@ -75,7 +109,7 @@ export function Collection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.15 }}
-              onClick={() => navigate(`/collection-detail/${collection.id}`)}
+              onClick={() => navigate(`/product/${collection.slug}`)}
               className="bg-[#2a4544] border border-[#3a5554] rounded-2xl overflow-hidden group hover:border-orange-500/50 transition-all duration-300 cursor-pointer hover:shadow-2xl hover:shadow-orange-500/20"
             >
               <div className="relative overflow-hidden aspect-[4/3]">
@@ -89,9 +123,15 @@ export function Collection() {
               </div>
               <div className="p-8">
                 <div className="mb-6">
-                  <h3 className="text-2xl text-white mb-2 font-['Playfair_Display'] group-hover:text-orange-400 transition-colors">{collection.name}</h3>
-                  <p className="text-white/60 italic mb-4">{collection.tagline}</p>
-                  <div className="text-2xl text-orange-500 font-semibold">{collection.price}</div>
+                  <h3 className="text-2xl text-white mb-2 font-['Playfair_Display'] group-hover:text-orange-400 transition-colors">
+                    {collection.name}
+                  </h3>
+                  {collection.tagline && (
+                    <p className="text-white/60 italic mb-4 line-clamp-2">{collection.tagline}</p>
+                  )}
+                  {collection.priceLabel && (
+                    <div className="text-2xl text-orange-500 font-semibold">{collection.priceLabel}</div>
+                  )}
                 </div>
                 <div className="space-y-3 mb-8">
                   {collection.features.map((feature, idx) => (
@@ -107,7 +147,7 @@ export function Collection() {
                   className="w-full bg-[#1a3332] hover:bg-orange-500 border border-[#3a5554] hover:border-orange-500 text-white py-3 rounded-full transition-all uppercase tracking-wider text-sm group-hover:scale-105"
                   onClick={(e) => {
                     e.stopPropagation();
-                    navigate(`/collection-detail/${collection.id}`);
+                    navigate(`/product/${collection.slug}`);
                   }}
                 >
                   View Details

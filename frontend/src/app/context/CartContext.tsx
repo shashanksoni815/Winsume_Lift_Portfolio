@@ -46,15 +46,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
         const data = await res.json().catch(() => null);
         const cart = data?.cart;
         if (!cart || !Array.isArray(cart.items)) return;
-        const mapped: CartItem[] = cart.items.map((item: any) => ({
-          id: item._id,
-          name: item.name ?? '',
-          category: item.category ?? '',
-          price: item.price ?? 0,
-          image: item.image ?? '',
-          quantity: item.quantity ?? 1,
-          specifications: item.specifications ?? '',
-        }));
+        const mapped: CartItem[] = cart.items.map((item: any) => {
+          const rawImage = item.image ?? '';
+          const image =
+            typeof rawImage === 'string' && rawImage.startsWith('/uploads')
+              ? `http://localhost:8000${rawImage}`
+              : rawImage;
+          return {
+            id: item._id,
+            name: item.name ?? '',
+            category: item.category ?? '',
+            price: item.price ?? 0,
+            image,
+            quantity: item.quantity ?? 1,
+            specifications: item.specifications ?? '',
+          };
+        });
         setCartItems(mapped);
       } catch {
         // ignore cart load errors
@@ -88,15 +95,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const data = await res.json().catch(() => null);
       const cart = data?.cart;
       if (!cart || !Array.isArray(cart.items)) return;
-      const mapped: CartItem[] = cart.items.map((ci: any) => ({
-        id: ci._id,
-        name: ci.name ?? '',
-        category: ci.category ?? '',
-        price: ci.price ?? 0,
-        image: ci.image ?? '',
-        quantity: ci.quantity ?? 1,
-        specifications: ci.specifications ?? '',
-      }));
+      const mapped: CartItem[] = cart.items.map((ci: any) => {
+        const rawImage = ci.image ?? '';
+        const image =
+          typeof rawImage === 'string' && rawImage.startsWith('/uploads')
+            ? `http://localhost:8000${rawImage}`
+            : rawImage;
+        return {
+          id: ci._id,
+          name: ci.name ?? '',
+          category: ci.category ?? '',
+          price: ci.price ?? 0,
+          image,
+          quantity: ci.quantity ?? 1,
+          specifications: ci.specifications ?? '',
+        };
+      });
       setCartItems(mapped);
     } catch {
       alert('Unable to add item right now. Please try again.');

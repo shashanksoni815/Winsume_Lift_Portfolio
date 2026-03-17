@@ -215,11 +215,12 @@ export function CollectionDetailPage() {
     addToCart({
       id: collection.id,
       name: collection.name,
-      price: collection.price,
+      price: 0,
       image: collection.mainImage,
       category: collection.category,
+      specifications: collection.tagline,
     });
-    navigate('/checkout');
+    navigate('/inquiry');
   };
 
   return (

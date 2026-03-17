@@ -8,78 +8,15 @@ import { ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router';
 
 interface Product {
-  id: number;
-  title: string;
-  category: string;
-  type: string[];
-  description: string;
-  features: string[];
-  price: string;
-  image: string;
+  id: string;
+  slug: string;
+  name: string;
+  category?: string;
+  price?: number;
+  features?: string[];
+  shortDescription?: string;
+  heroImage?: string;
 }
-
-const products: Product[] = [
-  {
-    id: 1,
-    title: 'Titan Industrial Freight',
-    category: 'GENERAL',
-    type: ['all', 'industrial', 'goods'],
-    description: 'Heavy-duty industrial freight elevator',
-    features: ['CAPACITY: 2000KG', 'SPEED: 1M/S', 'SMART SAFETY SYSTEMS'],
-    price: '₹4,50,000',
-    image: 'https://images.unsplash.com/photo-1695651832926-66591245a88c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcmVtaXVtJTIwbGlmdCUyMGluc3RhbGxhdGlvbiUyMGJ1aWxkaW5nfGVufDF8fHx8MTc3MzMwMzQ4N3ww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
-  },
-  {
-    id: 2,
-    title: 'Sovereign MRL Elevator',
-    category: 'GENERAL',
-    type: ['all', 'commercial', 'residential'],
-    description: 'Machine Room-Less elevator solution',
-    features: ['CAPACITY: 8-10 PERSONS', 'SPEED: 1.5M/S', 'ENERGY EFFICIENT'],
-    price: '₹3,80,000',
-    image: 'https://images.unsplash.com/photo-1758448511533-e1502259fff6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsdXh1cnklMjByZXNpZGVudGlhbCUyMGVsZXZhdG9yJTIwaW50ZXJpb3J8ZW58MXx8fHwxNzczMzAzNDg2fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
-  },
-  {
-    id: 3,
-    title: 'Heritage Glass Lift',
-    category: 'PREMIUM',
-    type: ['all', 'commercial', 'hospitality'],
-    description: 'Panoramic glass elevator',
-    features: ['CAPACITY: 6-8 PERSONS', 'SPEED: 1M/S', 'PREMIUM AESTHETICS'],
-    price: '₹6,50,000',
-    image: 'https://images.unsplash.com/photo-1672753782907-d58990efbdc3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxnbGFzcyUyMGVsZXZhdG9yJTIwZXh0ZXJpb3IlMjBob3RlbHxlbnwxfHx8fDE3NzMzMDM0ODZ8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
-  },
-  {
-    id: 4,
-    title: 'Elegance Home Lift',
-    category: 'RESIDENTIAL',
-    type: ['all', 'residential'],
-    description: 'Compact home elevator solution',
-    features: ['CAPACITY: 3-4 PERSONS', 'SPEED: 0.6M/S', 'SPACE SAVING DESIGN'],
-    price: '₹2,80,000',
-    image: 'https://images.unsplash.com/photo-1663186867803-bd547d4bd5ba?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlbGVnYW50JTIwZWxldmF0b3IlMjBjYWJpbiUyMGdvbGR8ZW58MXx8fHwxNzczMzAzNDg3fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
-  },
-  {
-    id: 5,
-    title: 'Imperial Hotel Lift',
-    category: 'LUXURY',
-    type: ['all', 'hospitality'],
-    description: 'Luxury hospitality elevator',
-    features: ['CAPACITY: 13 PERSONS', 'SPEED: 2.5M/S', 'PREMIUM INTERIORS'],
-    price: '₹5,20,000',
-    image: 'https://images.unsplash.com/photo-1772721559246-286e6d986d73?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBjb21tZXJjaWFsJTIwZWxldmF0b3IlMjBsb2JieXxlbnwxfHx8fDE3NzMzMDM0ODZ8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
-  },
-  {
-    id: 6,
-    title: 'Dumb Waiter Pro',
-    category: 'UTILITY',
-    type: ['all', 'dumb'],
-    description: 'Food & goods service lift',
-    features: ['CAPACITY: 100KG', 'SPEED: 0.4M/S', 'COMPACT & EFFICIENT'],
-    price: '₹1,20,000',
-    image: 'https://images.unsplash.com/photo-1759622956247-f40069072cc7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBlbGV2YXRvciUyMHNoYWZ0JTIwYXJjaGl0ZWN0dXJlfGVufDF8fHx8MTc3MzMwMzQ4OHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
-  },
-];
 
 const filterCategories = [
   { id: 'all', label: 'All' },
@@ -108,6 +45,9 @@ export function CollectionPage() {
   const [activePriceRange, setActivePriceRange] = useState('all');
   const [isPriceDropdownOpen, setIsPriceDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -127,14 +67,58 @@ export function CollectionPage() {
   }, [isPriceDropdownOpen]);
 
   // Helper function to parse price string to number
-  const parsePrice = (priceString: string): number => {
-    const cleanPrice = priceString.replace(/[₹,]/g, '');
-    return parseInt(cleanPrice);
+  const parsePrice = (price?: number): number => {
+    return typeof price === 'number' ? price : 0;
   };
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        setIsLoading(true);
+        setLoadError(null);
+        const res = await fetch('http://localhost:8000/api/products/public');
+        if (!res.ok) {
+          const data = await res.json().catch(() => null);
+          setLoadError(data?.message || 'Failed to load products.');
+          return;
+        }
+        const data = await res.json().catch(() => null);
+        const items = Array.isArray(data?.items) ? data.items : [];
+        const mapped: Product[] = items.map((p: any) => {
+          const rawHero =
+            p.heroImage || (Array.isArray(p.images) ? p.images[0] : undefined);
+          const heroImage =
+            typeof rawHero === 'string' && rawHero.startsWith('/uploads')
+              ? `http://localhost:8000${rawHero}`
+              : rawHero;
+
+          return {
+            id: p._id,
+            slug: p.slug,
+            name: p.name,
+            category: p.category,
+            price: typeof p.price === 'number' ? p.price : undefined,
+            features: Array.isArray(p.features) ? p.features : [],
+            shortDescription: p.shortDescription,
+            heroImage,
+          };
+        });
+        setProducts(mapped);
+      } catch {
+        setLoadError('Unable to load products. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadProducts();
+  }, []);
 
   const filteredProducts = products.filter(product => {
     // Filter by category
-    const categoryMatch = activeFilter === 'all' ? true : product.type.includes(activeFilter);
+    const categoryMatch =
+      activeFilter === 'all'
+        ? true
+        : (product.category || '').toLowerCase().includes(activeFilter.toLowerCase());
     
     // Filter by price range
     const productPrice = parsePrice(product.price);
@@ -254,6 +238,12 @@ export function CollectionPage() {
       {/* Products Grid */}
       <section className="py-16 md:py-24 bg-[#2a4544]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {loadError && (
+            <p className="text-red-400 mb-6 text-center text-sm">{loadError}</p>
+          )}
+          {isLoading && (
+            <p className="text-white/60 mb-6 text-center text-sm">Loading lifts...</p>
+          )}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredProducts.map((product, index) => (
               <motion.div
@@ -263,29 +253,31 @@ export function CollectionPage() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 className="bg-[#1a3332] border border-[#3a5554] rounded-2xl overflow-hidden group hover:border-orange-500/50 transition-all duration-300 cursor-pointer"
-                onClick={() => navigate(`/product/${product.id}`)}
+                onClick={() => navigate(`/product/${product.slug}`)}
               >
                 <div className="relative overflow-hidden aspect-[4/3]">
                   <ImageWithFallback
-                    src={product.image}
-                    alt={product.title}
+                    src={product.heroImage || 'https://images.unsplash.com/photo-1772721559246-286e6d986d73?auto=format&fit=crop&w=1200&q=80'}
+                    alt={product.name}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#1a3332] via-transparent to-transparent"></div>
                   <div className="absolute top-4 right-4">
                     <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-xs uppercase tracking-wider">
-                      {product.category}
+                      {product.category || 'GENERAL'}
                     </span>
                   </div>
                 </div>
                 <div className="p-8">
                   <div className="mb-6">
-                    <h3 className="text-2xl text-white mb-2 font-['Playfair_Display']">{product.title}</h3>
-                    <p className="text-white/60 mb-4">{product.description}</p>
-                    <div className="text-2xl text-orange-500 font-semibold">{product.price}</div>
+                    <h3 className="text-2xl text-white mb-2 font-['Playfair_Display']">{product.name}</h3>
+                    <p className="text-white/60 mb-4">{product.shortDescription}</p>
+                    <div className="text-2xl text-orange-500 font-semibold">
+                      {product.price ? `₹${product.price.toLocaleString('en-IN')}` : 'Price on request'}
+                    </div>
                   </div>
                   <div className="space-y-2 mb-8">
-                    {product.features.map((feature, idx) => (
+                    {(product.features || []).slice(0, 3).map((feature, idx) => (
                       <div key={idx} className="flex items-start">
                         <div className="w-5 h-5 rounded-full bg-orange-500/20 flex items-center justify-center mt-0.5 mr-3 flex-shrink-0">
                           <div className="w-2 h-2 rounded-full bg-orange-500"></div>

@@ -20,7 +20,6 @@ import { ProjectDetailPage } from './pages/ProjectDetailPage';
 import { CollectionDetailPage } from './pages/CollectionDetailPage';
 import { AllProjectsPage } from './pages/AllProjectsPage';
 import { CartPage } from './pages/CartPage';
-import { CheckoutPage } from './pages/CheckoutPage';
 import { MyEngagementsPage } from './pages/MyEngagementsPage';
 import { ThankYouPage } from './pages/ThankYouPage';
 import { UserPortal } from './pages/UserPortal';
@@ -106,7 +105,7 @@ export const router = createBrowserRouter([
         Component: InquiryListPage,
       },
       {
-        path: "product/:id",
+        path: "product/:slug",
         Component: ProductDetailPage,
       },
       {
@@ -124,10 +123,6 @@ export const router = createBrowserRouter([
       {
         path: "cart",
         Component: CartPage,
-      },
-      {
-        path: "checkout",
-        Component: CheckoutPage,
       },
       {
         path: "my-engagements",

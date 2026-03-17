@@ -1,40 +1,77 @@
+import { useEffect, useState } from 'react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { motion } from 'motion/react';
 import { useNavigate } from 'react-router';
 
-const projects = [
-  {
-    id: 'manhattan-penthouse',
-    title: 'Manhattan Penthouse',
-    category: 'Residential',
-    description: 'Custom glass elevator with panoramic city views',
-    image: 'https://images.unsplash.com/photo-1772721559246-286e6d986d73?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsdXh1cnklMjBlbGV2YXRvciUyMGludGVyaW9yJTIwZ29sZHxlbnwxfHx8fDE3NzMyMzI1MjR8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
-  },
-  {
-    id: 'corporate-tower-mumbai',
-    title: 'Corporate Tower',
-    category: 'Commercial',
-    description: 'High-speed executive lift system',
-    image: 'https://images.unsplash.com/photo-1619155631589-89db583e0bcb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBnbGFzcyUyMGVsZXZhdG9yfGVufDF8fHx8MTc3MzIzMjUyNXww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
-  },
-  {
-    id: 'luxury-villa-delhi',
-    title: 'Modern Villa',
-    category: 'Residential',
-    description: 'Minimalist home elevator with smart integration',
-    image: 'https://images.unsplash.com/photo-1770821030454-5e3ccb2d96dc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyZXNpZGVudGlhbCUyMGhvbWUlMjBlbGV2YXRvcnxlbnwxfHx8fDE3NzMyMzM0MDN8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
-  },
-  {
-    id: 'heritage-hotel-jaipur',
-    title: 'Heritage Building',
-    category: 'Commercial',
-    description: 'Restoration-grade lift preserving architectural integrity',
-    image: 'https://images.unsplash.com/photo-1772721559246-286e6d986d73?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb21tZXJjaWFsJTIwYnVpbGRpbmclMjBlbGV2YXRvcnxlbnwxfHx8fDE3NzMyMzM0MDN8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
-  },
-];
+interface PortfolioItem {
+  id: string;
+  slug: string;
+  title: string;
+  category: string;
+  description?: string;
+  image?: string;
+}
 
 export function Portfolio() {
   const navigate = useNavigate();
+  const [projects, setProjects] = useState<PortfolioItem[]>([]);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const [configRes, productsRes] = await Promise.all([
+          fetch('http://localhost:8000/api/portal-config'),
+          fetch('http://localhost:8000/api/products/public')
+        ]);
+
+        if (!configRes.ok || !productsRes.ok) return;
+
+        const configData = await configRes.json().catch(() => null);
+        const productsData = await productsRes.json().catch(() => null);
+
+        const ids: string[] | undefined =
+          configData?.portalSettings?.homePortfolioProjectIds;
+        const products: any[] = Array.isArray(productsData?.items)
+          ? productsData.items
+          : [];
+
+        // If no selection is configured, show nothing in the portfolio
+        if (!ids || ids.length === 0) {
+          setProjects([]);
+          return;
+        }
+
+        const allItems: PortfolioItem[] = products.map((p: any) => {
+          const rawImage = p.heroImage || (Array.isArray(p.images) ? p.images[0] : '');
+          const image =
+            typeof rawImage === 'string' && rawImage.startsWith('/uploads')
+              ? `http://localhost:8000${rawImage}`
+              : rawImage;
+          const category = (p.category || '').toString().toUpperCase();
+
+          return {
+            id: p._id,
+            slug: p.slug,
+            title: p.name || 'Lift',
+            category,
+            description: p.shortDescription,
+            image
+          };
+        });
+
+        // Only show projects explicitly selected by the admin, in that order
+        const selected: PortfolioItem[] = ids
+          .map((pid) => allItems.find((p) => p.id === pid))
+          .filter((p): p is PortfolioItem => Boolean(p));
+
+        setProjects(selected.slice(0, 4));
+      } catch {
+        // ignore errors; keep empty state
+      }
+    };
+
+    load();
+  }, []);
 
   return (
     <section id="portfolio" className="bg-[#2a4544] py-24">
@@ -55,7 +92,7 @@ export function Portfolio() {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {projects.map((project, index) => (
             <motion.div
               key={project.id}
@@ -63,7 +100,7 @@ export function Portfolio() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
-              onClick={() => navigate(`/project/${project.id}`)}
+              onClick={() => navigate(`/product/${project.slug}`)}
               className="group cursor-pointer"
             >
               <div className="relative overflow-hidden rounded-3xl aspect-[3/4] mb-4">

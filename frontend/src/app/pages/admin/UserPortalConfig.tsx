@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { motion } from 'motion/react';
 import {
@@ -54,8 +54,14 @@ interface PageConfig {
 interface PortalSettings {
   siteName: string;
   tagline: string;
+  heroHeading?: string;
   supportEmail: string;
   supportPhone: string;
+  projectsCompleted: number;
+  citiesServed: number;
+  yearsExperience: number;
+  satisfactionRate: number;
+  homePortfolioProjectIds?: string[];
   allowRegistration: boolean;
   requireEmailVerification: boolean;
   enableSocialLogin: boolean;
@@ -80,16 +86,23 @@ interface ThemeSettings {
 export function UserPortalConfig() {
   const navigate = useNavigate();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [activeTab, setActiveTab] = useState<'general' | 'pages' | 'theme' | 'navigation' | 'features'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'pages' | 'theme'>('general');
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
   const [expandedSections, setExpandedSections] = useState<string[]>(['portal-settings']);
+  const [isEditingGeneral, setIsEditingGeneral] = useState(false);
 
   // Portal Settings
   const [portalSettings, setPortalSettings] = useState<PortalSettings>({
     siteName: 'WINSUME LIFT INDIA',
     tagline: 'Luxury Vertical Lift Solutions',
+    heroHeading: 'The Art of Vertical Mastery',
     supportEmail: 'support@winsumelift.com',
     supportPhone: '+91 1800 123 4567',
+    projectsCompleted: 200,
+    citiesServed: 15,
+    yearsExperience: 6,
+    satisfactionRate: 98,
+    homePortfolioProjectIds: ['manhattan-penthouse', 'corporate-tower-mumbai', 'luxury-villa-delhi', 'heritage-hotel-jaipur'],
     allowRegistration: true,
     requireEmailVerification: true,
     enableSocialLogin: false,
@@ -146,25 +159,156 @@ export function UserPortalConfig() {
     );
   };
 
-  const handleSaveChanges = () => {
-    // Save logic here
-    setShowSaveConfirm(true);
-    setTimeout(() => setShowSaveConfirm(false), 3000);
+  const adminFetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) {
+      navigate('/admin-login');
+      throw new Error('Not authenticated');
+    }
+    const res = await fetch(input, {
+      ...init,
+      headers: {
+        ...(init?.headers || {}),
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    if (res.status === 401 || res.status === 403) {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('userEmail');
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('isLoggedIn');
+      navigate('/admin-login');
+      throw new Error('Unauthorized');
+    }
+    return res;
   };
 
-  const handleResetToDefaults = () => {
-    // Reset logic here
-    if (confirm('Are you sure you want to reset all settings to defaults?')) {
-      // Reset to defaults
+  useEffect(() => {
+    const loadConfig = async () => {
+      try {
+        const res = await fetch('http://localhost:8000/api/portal-config');
+        if (!res.ok) return;
+        const data = await res.json().catch(() => null);
+        if (!data) return;
+        if (data.portalSettings) setPortalSettings((prev) => ({ ...prev, ...data.portalSettings }));
+        if (data.themeSettings) setThemeSettings((prev) => ({ ...prev, ...data.themeSettings }));
+        if (Array.isArray(data.pagesConfig)) {
+          setPagesConfig((prev) =>
+            data.pagesConfig.map((p: any) => {
+              const local = prev.find((lp) => lp.id === p.id);
+              const icon =
+                local?.icon ??
+                ({
+                  home: Home,
+                  collection: ShoppingBag,
+                  'our-work': Briefcase,
+                  services: FileCheck,
+                  about: Users,
+                  contact: Phone,
+                  inquiry: MessageSquare,
+                  'my-engagements': User
+                } as Record<string, any>)[p.id] ??
+                Home;
+              return {
+                ...local,
+                ...p,
+                icon
+              };
+            })
+          );
+        }
+      } catch {
+        // ignore load errors, keep defaults
+      }
+    };
+    loadConfig();
+  }, []);
+
+  const handleSaveChanges = async () => {
+    try {
+      const body = {
+        portalSettings,
+        themeSettings,
+        pagesConfig: pagesConfig.map((p) => ({
+          id: p.id,
+          name: p.name,
+          path: p.path,
+          enabled: p.enabled,
+          visible: p.visible,
+          order: p.order,
+          requiredAuth: p.requiredAuth
+        }))
+      };
+      const res = await adminFetch('http://localhost:8000/api/portal-config', {
+        method: 'PATCH',
+        body: JSON.stringify(body)
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        alert(data?.message || 'Failed to save configuration.');
+        return;
+      }
+      setShowSaveConfirm(true);
+      setTimeout(() => setShowSaveConfirm(false), 3000);
+    } catch {
+      alert('Unable to save configuration right now.');
+    }
+  };
+
+  const handleResetToDefaults = async () => {
+    if (!confirm('Are you sure you want to reset all settings to defaults?')) {
+      return;
+    }
+    try {
+      const res = await adminFetch('http://localhost:8000/api/portal-config/reset', {
+        method: 'POST'
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        alert(data?.message || 'Failed to reset configuration.');
+        return;
+      }
+      const data = await res.json().catch(() => null);
+      if (data?.portalSettings) setPortalSettings(data.portalSettings);
+      if (data?.themeSettings) setThemeSettings(data.themeSettings);
+      if (Array.isArray(data?.pagesConfig)) {
+        setPagesConfig((prev) =>
+          data.pagesConfig.map((p: any) => {
+            const local = prev.find((lp) => lp.id === p.id);
+            const icon =
+              local?.icon ??
+              ({
+                home: Home,
+                collection: ShoppingBag,
+                'our-work': Briefcase,
+                services: FileCheck,
+                about: Users,
+                contact: Phone,
+                inquiry: MessageSquare,
+                'my-engagements': User
+              } as Record<string, any>)[p.id] ??
+              Home;
+            return {
+              ...local,
+              ...p,
+              icon
+            };
+          })
+        );
+      }
+      setShowSaveConfirm(true);
+      setTimeout(() => setShowSaveConfirm(false), 3000);
+    } catch {
+      alert('Unable to reset configuration right now.');
     }
   };
 
   const tabs = [
     { id: 'general', label: 'General Settings', icon: Settings },
     { id: 'pages', label: 'Pages Management', icon: Layout },
-    { id: 'navigation', label: 'Navigation Menu', icon: Menu },
-    { id: 'theme', label: 'Theme & Branding', icon: Palette },
-    { id: 'features', label: 'Features Control', icon: ToggleRight }
+    { id: 'theme', label: 'Theme & Branding', icon: Palette }
   ];
 
   return (
@@ -268,10 +412,33 @@ export function UserPortalConfig() {
               >
                 {/* Portal Information */}
                 <div className="bg-[#0a1514]/80 backdrop-blur-sm border border-orange-500/20 rounded-lg p-6">
-                  <h3 className="text-white text-xl font-semibold mb-6 flex items-center gap-2">
-                    <Globe className="text-orange-500" size={24} />
-                    Portal Information
-                  </h3>
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-white text-xl font-semibold flex items-center gap-2">
+                      <Globe className="text-orange-500" size={24} />
+                      Portal Information
+                    </h3>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setIsEditingGeneral((prev) => !prev)}
+                        className="px-3 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs sm:text-sm flex items-center gap-1 transition-all"
+                      >
+                        <Edit3 size={14} />
+                        <span>{isEditingGeneral ? 'Cancel' : 'Edit'}</span>
+                      </button>
+                      <button
+                        onClick={handleSaveChanges}
+                        disabled={!isEditingGeneral}
+                        className={`px-3 py-2 rounded-lg text-xs sm:text-sm flex items-center gap-1 transition-all ${
+                          isEditingGeneral
+                            ? 'bg-orange-500 hover:bg-orange-600 text-white'
+                            : 'bg-orange-500/20 text-white/50 cursor-not-allowed'
+                        }`}
+                      >
+                        <Save size={14} />
+                        <span>Save</span>
+                      </button>
+                    </div>
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-white/80 text-sm font-medium mb-2">Site Name</label>
@@ -279,16 +446,22 @@ export function UserPortalConfig() {
                         type="text"
                         value={portalSettings.siteName}
                         onChange={(e) => updatePortalSetting('siteName', e.target.value)}
-                        className="w-full bg-[#1a3332] border border-orange-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500/40"
+                        disabled={!isEditingGeneral}
+                        className={`w-full bg-[#1a3332] border border-orange-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500/40 ${
+                          !isEditingGeneral ? 'opacity-60 cursor-not-allowed' : ''
+                        }`}
                       />
                     </div>
                     <div>
-                      <label className="block text-white/80 text-sm font-medium mb-2">Tagline</label>
+                      <label className="block text-white/80 text-sm font-medium mb-2">Hero Heading</label>
                       <input
                         type="text"
-                        value={portalSettings.tagline}
-                        onChange={(e) => updatePortalSetting('tagline', e.target.value)}
-                        className="w-full bg-[#1a3332] border border-orange-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500/40"
+                        value={portalSettings.heroHeading || ''}
+                        onChange={(e) => updatePortalSetting('heroHeading', e.target.value)}
+                        disabled={!isEditingGeneral}
+                        className={`w-full bg-[#1a3332] border border-orange-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500/40 ${
+                          !isEditingGeneral ? 'opacity-60 cursor-not-allowed' : ''
+                        }`}
                       />
                     </div>
                     <div>
@@ -297,7 +470,10 @@ export function UserPortalConfig() {
                         type="email"
                         value={portalSettings.supportEmail}
                         onChange={(e) => updatePortalSetting('supportEmail', e.target.value)}
-                        className="w-full bg-[#1a3332] border border-orange-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500/40"
+                        disabled={!isEditingGeneral}
+                        className={`w-full bg-[#1a3332] border border-orange-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500/40 ${
+                          !isEditingGeneral ? 'opacity-60 cursor-not-allowed' : ''
+                        }`}
                       />
                     </div>
                     <div>
@@ -306,74 +482,75 @@ export function UserPortalConfig() {
                         type="tel"
                         value={portalSettings.supportPhone}
                         onChange={(e) => updatePortalSetting('supportPhone', e.target.value)}
-                        className="w-full bg-[#1a3332] border border-orange-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500/40"
+                        disabled={!isEditingGeneral}
+                        className={`w-full bg-[#1a3332] border border-orange-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500/40 ${
+                          !isEditingGeneral ? 'opacity-60 cursor-not-allowed' : ''
+                        }`}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-white/80 text-sm font-medium mb-2">Projects Completed</label>
+                      <input
+                        type="number"
+                        value={portalSettings.projectsCompleted}
+                        onChange={(e) => updatePortalSetting('projectsCompleted', Number(e.target.value) || 0)}
+                        disabled={!isEditingGeneral}
+                        className={`w-full bg-[#1a3332] border border-orange-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500/40 ${
+                          !isEditingGeneral ? 'opacity-60 cursor-not-allowed' : ''
+                        }`}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-white/80 text-sm font-medium mb-2">Cities Served</label>
+                      <input
+                        type="number"
+                        value={portalSettings.citiesServed}
+                        onChange={(e) => updatePortalSetting('citiesServed', Number(e.target.value) || 0)}
+                        disabled={!isEditingGeneral}
+                        className={`w-full bg-[#1a3332] border border-orange-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500/40 ${
+                          !isEditingGeneral ? 'opacity-60 cursor-not-allowed' : ''
+                        }`}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-white/80 text-sm font-medium mb-2">Years Experience</label>
+                      <input
+                        type="number"
+                        value={portalSettings.yearsExperience}
+                        onChange={(e) => updatePortalSetting('yearsExperience', Number(e.target.value) || 0)}
+                        disabled={!isEditingGeneral}
+                        className={`w-full bg-[#1a3332] border border-orange-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500/40 ${
+                          !isEditingGeneral ? 'opacity-60 cursor-not-allowed' : ''
+                        }`}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-white/80 text-sm font-medium mb-2">Satisfaction Rate (%)</label>
+                      <input
+                        type="number"
+                        value={portalSettings.satisfactionRate}
+                        onChange={(e) => updatePortalSetting('satisfactionRate', Number(e.target.value) || 0)}
+                        disabled={!isEditingGeneral}
+                        className={`w-full bg-[#1a3332] border border-orange-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500/40 ${
+                          !isEditingGeneral ? 'opacity-60 cursor-not-allowed' : ''
+                        }`}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-white/80 text-sm font-medium mb-2">Tagline</label>
+                      <input
+                        type="text"
+                        value={portalSettings.tagline}
+                        onChange={(e) => updatePortalSetting('tagline', e.target.value)}
+                        disabled={!isEditingGeneral}
+                        className={`w-full bg-[#1a3332] border border-orange-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500/40 ${
+                          !isEditingGeneral ? 'opacity-60 cursor-not-allowed' : ''
+                        }`}
                       />
                     </div>
                   </div>
                 </div>
 
-                {/* Access & Security */}
-                <div className="bg-[#0a1514]/80 backdrop-blur-sm border border-orange-500/20 rounded-lg p-6">
-                  <h3 className="text-white text-xl font-semibold mb-6 flex items-center gap-2">
-                    <Settings className="text-orange-500" size={24} />
-                    Access & Security Settings
-                  </h3>
-                  <div className="space-y-4">
-                    {[
-                      { key: 'allowRegistration', label: 'Allow User Registration', description: 'Enable new users to create accounts' },
-                      { key: 'requireEmailVerification', label: 'Require Email Verification', description: 'Users must verify email before accessing portal' },
-                      { key: 'enableSocialLogin', label: 'Enable Social Login', description: 'Allow login via Google, Facebook, etc.' },
-                      { key: 'allowGuestCheckout', label: 'Allow Guest Checkout', description: 'Users can checkout without creating account' },
-                      { key: 'maintenanceMode', label: 'Maintenance Mode', description: 'Temporarily disable portal for maintenance' }
-                    ].map((setting) => (
-                      <div
-                        key={setting.key}
-                        className="flex items-center justify-between p-4 bg-[#1a3332]/50 border border-orange-500/10 rounded-lg hover:border-orange-500/20 transition-all"
-                      >
-                        <div className="flex-1">
-                          <p className="text-white font-medium mb-1">{setting.label}</p>
-                          <p className="text-white/60 text-sm">{setting.description}</p>
-                        </div>
-                        <button
-                          onClick={() => updatePortalSetting(setting.key as keyof PortalSettings, !portalSettings[setting.key as keyof PortalSettings])}
-                          className={`ml-4 p-2 rounded-lg transition-all ${
-                            portalSettings[setting.key as keyof PortalSettings]
-                              ? 'bg-orange-500 text-white'
-                              : 'bg-white/10 text-white/40'
-                          }`}
-                        >
-                          {portalSettings[setting.key as keyof PortalSettings] ? (
-                            <ToggleRight size={24} />
-                          ) : (
-                            <ToggleLeft size={24} />
-                          )}
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* File Upload Settings */}
-                <div className="bg-[#0a1514]/80 backdrop-blur-sm border border-orange-500/20 rounded-lg p-6">
-                  <h3 className="text-white text-xl font-semibold mb-6 flex items-center gap-2">
-                    <Upload className="text-orange-500" size={24} />
-                    File Upload Settings
-                  </h3>
-                  <div>
-                    <label className="block text-white/80 text-sm font-medium mb-2">
-                      Maximum File Upload Size (MB)
-                    </label>
-                    <input
-                      type="number"
-                      value={portalSettings.maxFileUploadSize}
-                      onChange={(e) => updatePortalSetting('maxFileUploadSize', parseInt(e.target.value))}
-                      className="w-full md:w-64 bg-[#1a3332] border border-orange-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500/40"
-                      min="1"
-                      max="100"
-                    />
-                    <p className="text-white/40 text-xs mt-2">Recommended: 10MB for optimal performance</p>
-                  </div>
-                </div>
               </motion.div>
             )}
 
@@ -449,7 +626,7 @@ export function UserPortalConfig() {
                             </div>
 
                             <button 
-                              onClick={() => navigate('/admin/config/pages')}
+                              onClick={() => navigate(`/admin/config/pages/edit/${page.id}`)}
                               className="p-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-lg transition-all"
                               title="Manage page settings"
                             >
@@ -460,69 +637,59 @@ export function UserPortalConfig() {
                       </div>
                     ))}
                 </div>
-              </motion.div>
-            )}
 
-            {/* Navigation Menu Tab */}
-            {activeTab === 'navigation' && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4 }}
-                className="bg-[#0a1514]/80 backdrop-blur-sm border border-orange-500/20 rounded-lg p-6"
-              >
-                <h3 className="text-white text-xl font-semibold mb-6 flex items-center gap-2">
-                  <Menu className="text-orange-500" size={24} />
-                  Navigation Menu Configuration
-                </h3>
-                <p className="text-white/60 mb-6">Customize the main navigation menu structure and order</p>
-
-                <div className="space-y-4">
-                  {pagesConfig
-                    .filter(page => page.visible)
-                    .sort((a, b) => a.order - b.order)
-                    .map((page, index) => (
-                      <div
-                        key={page.id}
-                        className="flex items-center gap-4 p-4 bg-[#1a3332]/50 border border-orange-500/10 rounded-lg"
-                      >
-                        <div className="flex items-center gap-2 text-white/40">
-                          <span className="text-sm font-mono">#{page.order}</span>
-                        </div>
-                        
-                        <div className="w-8 h-8 rounded-lg bg-orange-500/20 text-orange-500 flex items-center justify-center">
-                          <page.icon size={18} />
-                        </div>
-
-                        <div className="flex-1">
-                          <p className="text-white font-medium">{page.name}</p>
-                          <p className="text-white/60 text-sm">{page.path}</p>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => {
-                              const newOrder = Math.max(1, page.order - 1);
-                              updatePageConfig(page.id, 'order', newOrder);
-                            }}
-                            className="p-2 bg-white/5 hover:bg-white/10 text-white rounded-lg transition-all"
-                            disabled={index === 0}
+                {/* Featured Portfolio Configuration */}
+                <div className="mt-10 border-t border-white/10 pt-6">
+                  <h4 className="text-white text-lg font-semibold mb-2">
+                    Home Portfolio Featured Projects
+                  </h4>
+                  <p className="text-white/60 text-sm mb-4">
+                    Choose up to 4 projects to highlight in the "Our Portfolio" section on the home page.
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                    {[
+                      { id: 'manhattan-penthouse', label: 'Manhattan Penthouse' },
+                      { id: 'corporate-tower-mumbai', label: 'Corporate Tower' },
+                      { id: 'luxury-villa-delhi', label: 'Modern Villa' },
+                      { id: 'heritage-hotel-jaipur', label: 'Heritage Building' },
+                    ].map((item) => {
+                      const selectedIds = portalSettings.homePortfolioProjectIds || [];
+                      const isSelected = selectedIds.includes(item.id);
+                      const selectedCount = selectedIds.length;
+                      const disabled = !isSelected && selectedCount >= 4;
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => {
+                            const current = portalSettings.homePortfolioProjectIds || [];
+                            const next = isSelected
+                              ? current.filter((pid) => pid !== item.id)
+                              : [...current, item.id];
+                            updatePortalSetting('homePortfolioProjectIds', next);
+                          }}
+                          disabled={disabled}
+                          className={`flex items-center justify-between px-4 py-3 rounded-lg border text-sm transition-all ${
+                            isSelected
+                              ? 'border-orange-500 bg-orange-500/20 text-white'
+                              : 'border-white/10 bg-white/5 text-white/70 hover:border-orange-500/40'
+                          } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        >
+                          <span>{item.label}</span>
+                          <span
+                            className={`w-5 h-5 rounded-full border flex items-center justify-center ${
+                              isSelected ? 'border-orange-400 bg-orange-500' : 'border-white/30'
+                            }`}
                           >
-                            ↑
-                          </button>
-                          <button
-                            onClick={() => {
-                              const newOrder = page.order + 1;
-                              updatePageConfig(page.id, 'order', newOrder);
-                            }}
-                            className="p-2 bg-white/5 hover:bg-white/10 text-white rounded-lg transition-all"
-                            disabled={index === pagesConfig.filter(p => p.visible).length - 1}
-                          >
-                            ↓
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                            {isSelected && <span className="w-2.5 h-2.5 rounded-full bg-white" />}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <p className="text-white/40 text-xs mt-2">
+                    Selected: {portalSettings.homePortfolioProjectIds?.length ?? 0} / 4
+                  </p>
                 </div>
               </motion.div>
             )}
@@ -634,60 +801,6 @@ export function UserPortalConfig() {
                       </div>
                     </div>
                   </div>
-                </div>
-              </motion.div>
-            )}
-
-            {/* Features Control Tab */}
-            {activeTab === 'features' && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4 }}
-                className="bg-[#0a1514]/80 backdrop-blur-sm border border-orange-500/20 rounded-lg p-6"
-              >
-                <h3 className="text-white text-xl font-semibold mb-6 flex items-center gap-2">
-                  <ToggleRight className="text-orange-500" size={24} />
-                  Portal Features Control
-                </h3>
-                <p className="text-white/60 mb-6">Enable or disable specific features for the user portal</p>
-
-                <div className="space-y-4">
-                  {[
-                    { key: 'enableChat', label: 'Live Chat Support', description: 'Enable real-time chat widget for customer support', icon: MessageSquare },
-                    { key: 'enableNotifications', label: 'Push Notifications', description: 'Allow browser notifications for updates and alerts', icon: AlertCircle },
-                    { key: 'allowGuestCheckout', label: 'Guest Checkout', description: 'Let users complete purchases without registration', icon: ShoppingBag },
-                    { key: 'enableSocialLogin', label: 'Social Media Login', description: 'Enable login via social platforms', icon: Users }
-                  ].map((feature) => (
-                    <div
-                      key={feature.key}
-                      className="flex items-start gap-4 p-5 bg-[#1a3332]/50 border border-orange-500/10 rounded-lg hover:border-orange-500/20 transition-all"
-                    >
-                      <div className={`w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                        portalSettings[feature.key as keyof PortalSettings]
-                          ? 'bg-orange-500/20 text-orange-500'
-                          : 'bg-white/5 text-white/40'
-                      }`}>
-                        <feature.icon size={24} />
-                      </div>
-                      
-                      <div className="flex-1">
-                        <h4 className="text-white font-medium mb-1">{feature.label}</h4>
-                        <p className="text-white/60 text-sm">{feature.description}</p>
-                      </div>
-
-                      <button
-                        onClick={() => updatePortalSetting(feature.key as keyof PortalSettings, !portalSettings[feature.key as keyof PortalSettings])}
-                        className={`ml-4 px-6 py-2 rounded-lg transition-all font-medium ${
-                          portalSettings[feature.key as keyof PortalSettings]
-                            ? 'bg-orange-500 text-white'
-                            : 'bg-white/10 text-white/60'
-                        }`}
-                      >
-                        {portalSettings[feature.key as keyof PortalSettings] ? 'Enabled' : 'Disabled'}
-                      </button>
-                    </div>
-                  ))}
                 </div>
               </motion.div>
             )}

@@ -5,140 +5,78 @@ import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { motion } from 'motion/react';
 import { ChevronRight, Filter } from 'lucide-react';
 import { useNavigate } from 'react-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
-const allProjects = [
-  {
-    id: 'phoenix-mall-indore',
-    title: 'Phoenix Mall, Indore',
-    category: 'COMMERCIAL',
-    year: '2023',
-    location: 'Indore, MP',
-    description: 'Premium mall featuring cutting-edge vertical lifts',
-    image: 'https://images.unsplash.com/photo-1621293954908-907159247fc8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsdXh1cnklMjBtb2Rlcm4lMjBlbGV2YXRvciUyMGludGVyaW9yfGVufDF8fHx8MTc3MzIzNTI2MHww&ixlib=rb-4.1.0&q=80&w=1080',
-    featured: true,
-  },
-  {
-    id: 'sayaji-hotels',
-    title: 'Sayaji Hotels',
-    category: 'HOSPITALITY',
-    year: '2023',
-    location: 'Multiple Locations',
-    description: 'Elegant lift solutions for premium hospitality',
-    image: 'https://images.unsplash.com/photo-1758194090785-8e09b7288199?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxob3RlbCUyMGVsZXZhdG9yJTIwbG9iYnklMjBlbGVnYW50fGVufDF8fHx8MTc3MzIzNTI2MHww&ixlib=rb-4.1.0&q=80&w=1080',
-    featured: true,
-  },
-  {
-    id: 'radisson-blu',
-    title: 'Radisson Blu',
-    category: 'HOSPITALITY',
-    year: '2023',
-    location: 'Indore, MP',
-    description: 'Sophisticated vertical transport for luxury hotels',
-    image: 'https://images.unsplash.com/photo-1763046472163-32c74523903e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb21tZXJjaWFsJTIwYnVpbGRpbmclMjBnbGFzcyUyMGZhY2FkZXxlbnwxfHx8fDE3NzMxNzIwMTB8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    featured: true,
-  },
-  {
-    id: 'corporate-tower-mumbai',
-    title: 'Corporate Tower, Mumbai',
-    category: 'COMMERCIAL',
-    year: '2023',
-    location: 'Mumbai, MH',
-    description: 'High-speed executive elevator systems',
-    image: 'https://images.unsplash.com/photo-1772721559246-286e6d986d73?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBjb21tZXJjaWFsJTIwZWxldmF0b3IlMjBsb2JieXxlbnwxfHx8fDE3NzMzMDM0ODZ8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    featured: false,
-  },
-  {
-    id: 'luxury-villa-delhi',
-    title: 'Luxury Villa, Delhi',
-    category: 'RESIDENTIAL',
-    year: '2022',
-    location: 'New Delhi',
-    description: 'Bespoke home elevator with smart integration',
-    image: 'https://images.unsplash.com/photo-1758448511533-e1502259fff6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsdXh1cnklMjByZXNpZGVudGlhbCUyMGVsZXZhdG9yJTIwaW50ZXJpb3J8ZW58MXx8fHwxNzczMzAzNDg2fDA&ixlib=rb-4.1.0&q=80&w=1080',
-    featured: false,
-  },
-  {
-    id: 'heritage-hotel-jaipur',
-    title: 'Heritage Hotel, Jaipur',
-    category: 'HOSPITALITY',
-    year: '2022',
-    location: 'Jaipur, RJ',
-    description: 'Restoration-grade lift preserving architectural integrity',
-    image: 'https://images.unsplash.com/photo-1621293954908-907159247fc8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsdXh1cnklMjBtb2Rlcm4lMjBlbGV2YXRvciUyMGludGVyaW9yfGVufDF8fHx8MTc3MzIzNTI2MHww&ixlib=rb-4.1.0&q=80&w=1080',
-    featured: false,
-  },
-  {
-    id: 'it-park-bangalore',
-    title: 'IT Park, Bangalore',
-    category: 'COMMERCIAL',
-    year: '2022',
-    location: 'Bangalore, KA',
-    description: 'Smart building integrated elevator systems',
-    image: 'https://images.unsplash.com/photo-1619155631589-89db583e0bcb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBnbGFzcyUyMGVsZXZhdG9yfGVufDF8fHx8MTc3MzIzMjUyNXww&ixlib=rb-4.1.0&q=80&w=1080',
-    featured: false,
-  },
-  {
-    id: 'penthouse-pune',
-    title: 'Penthouse, Pune',
-    category: 'RESIDENTIAL',
-    year: '2022',
-    location: 'Pune, MH',
-    description: 'Glass elevator with panoramic city views',
-    image: 'https://images.unsplash.com/photo-1672753782907-d58990efbdc3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxnbGFzcyUyMGVsZXZhdG9yJTIwZXh0ZXJpb3IlMjBob3RlbHxlbnwxfHx8fDE3NzMzMDM0ODZ8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    featured: false,
-  },
-  {
-    id: 'shopping-complex-ahmedabad',
-    title: 'Shopping Complex, Ahmedabad',
-    category: 'COMMERCIAL',
-    year: '2021',
-    location: 'Ahmedabad, GJ',
-    description: 'High-capacity passenger lift system',
-    image: 'https://images.unsplash.com/photo-1763046472163-32c74523903e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb21tZXJjaWFsJTIwYnVpbGRpbmclMjBnbGFzcyUyMGZhY2FkZXxlbnwxfHx8fDE3NzMxNzIwMTB8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    featured: false,
-  },
-  {
-    id: 'residential-towers-gurgaon',
-    title: 'Residential Towers, Gurgaon',
-    category: 'RESIDENTIAL',
-    year: '2021',
-    location: 'Gurgaon, HR',
-    description: 'Multiple elevator installations for high-rise living',
-    image: 'https://images.unsplash.com/photo-1770821030454-5e3ccb2d96dc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyZXNpZGVudGlhbCUyMGhvbWUlMjBlbGV2YXRvcnxlbnwxfHx8fDE3NzMyMzM0MDN8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    featured: false,
-  },
-  {
-    id: 'boutique-hotel-udaipur',
-    title: 'Boutique Hotel, Udaipur',
-    category: 'HOSPITALITY',
-    year: '2021',
-    location: 'Udaipur, RJ',
-    description: 'Luxury elevator with traditional design elements',
-    image: 'https://images.unsplash.com/photo-1758194090785-8e09b7288199?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxob3RlbCUyMGVsZXZhdG9yJTIwbG9iYnklMjBlbGVnYW50fGVufDF8fHx8MTc3MzIzNTI2MHww&ixlib=rb-4.1.0&q=80&w=1080',
-    featured: false,
-  },
-  {
-    id: 'medical-center-chennai',
-    title: 'Medical Center, Chennai',
-    category: 'COMMERCIAL',
-    year: '2021',
-    location: 'Chennai, TN',
-    description: 'Hospital-grade lifts with stretcher capacity',
-    image: 'https://images.unsplash.com/photo-1772721559246-286e6d986d73?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBjb21tZXJjaWFsJTIwZWxldmF0b3IlMjBsb2JieXxlbnwxfHx8fDE3NzMzMDM0ODZ8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    featured: false,
-  },
-];
+interface ProjectCardItem {
+  id: string;
+  slug?: string;
+  title: string;
+  category: string;
+  description?: string;
+  image?: string;
+  featured?: boolean;
+}
 
 const categories = ['ALL', 'COMMERCIAL', 'RESIDENTIAL', 'HOSPITALITY'];
 
 export function AllProjectsPage() {
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState('ALL');
+  const [items, setItems] = useState<ProjectCardItem[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  const filteredProjects = selectedCategory === 'ALL' 
-    ? allProjects 
-    : allProjects.filter(p => p.category === selectedCategory);
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setIsLoading(true);
+        setLoadError(null);
+        // Reuse the same products that power the Collection page
+        const res = await fetch('http://localhost:8000/api/products/public');
+        if (!res.ok) {
+          const data = await res.json().catch(() => null);
+          setLoadError(data?.message || 'Failed to load products.');
+          return;
+        }
+        const data = await res.json().catch(() => null);
+        const list = Array.isArray(data?.items) ? data.items : [];
+        const mapped: ProjectCardItem[] = list.map((p: any) => {
+          const rawImage = p.heroImage || (Array.isArray(p.images) ? p.images[0] : '');
+          const image =
+            typeof rawImage === 'string' && rawImage.startsWith('/uploads')
+              ? `http://localhost:8000${rawImage}`
+              : rawImage;
+
+          const rawCategory = (p.category || '').toString().toLowerCase();
+          let category: string;
+          if (rawCategory === 'residential') category = 'RESIDENTIAL';
+          else if (rawCategory === 'hotel' || rawCategory === 'hospitality') category = 'HOSPITALITY';
+          else category = 'COMMERCIAL';
+
+          return {
+            id: p._id,
+            slug: p.slug,
+            title: p.name || 'Lift',
+            category,
+            description: p.shortDescription,
+            image,
+            featured: true,
+          };
+        });
+        setItems(mapped);
+      } catch {
+        setLoadError('Unable to load products. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  const filteredProjects =
+    selectedCategory === 'ALL'
+      ? items
+      : items.filter((p) => p.category === selectedCategory);
 
   return (
     <div className="bg-[#1a3332] min-h-screen">
@@ -207,9 +145,23 @@ export function AllProjectsPage() {
       {/* Projects Count */}
       <section className="py-6 bg-[#1a3332]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-white/60 text-sm">
-            Showing <span className="text-orange-500 font-semibold">{filteredProjects.length}</span> {selectedCategory === 'ALL' ? 'total' : selectedCategory.toLowerCase()} projects
-          </p>
+          {loadError ? (
+            <p className="text-red-400 text-sm">{loadError}</p>
+          ) : (
+                  <p className="text-white/60 text-sm">
+              {isLoading
+                ? 'Loading lifts...'
+                : filteredProjects.length > 0
+                ? <>
+                    Showing{' '}
+                    <span className="text-orange-500 font-semibold">
+                      {filteredProjects.length}
+                    </span>{' '}
+                    {selectedCategory === 'ALL' ? 'total' : selectedCategory.toLowerCase()} products
+                  </>
+                : 'No products found yet.'}
+            </p>
+          )}
         </div>
       </section>
 
@@ -224,7 +176,9 @@ export function AllProjectsPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.05 }}
-                onClick={() => navigate(`/project/${project.id}`)}
+                onClick={() =>
+                  project.slug ? navigate(`/product/${project.slug}`) : undefined
+                }
                 className="relative group overflow-hidden rounded-3xl shadow-2xl cursor-pointer"
               >
                 <div className="relative h-[400px]">
@@ -250,12 +204,14 @@ export function AllProjectsPage() {
                         {project.category}
                       </span>
                       <span className="text-white/40">•</span>
-                      <span className="text-white/60 text-xs">{project.year}</span>
+                      {/* Year is optional for products; hide if not present */}
+                      {project.description && (
+                        <span className="text-white/60 text-xs">Featured</span>
+                      )}
                     </div>
                     <h3 className="text-2xl text-white mb-2 font-['Playfair_Display'] group-hover:text-orange-400 transition-colors">
                       {project.title}
                     </h3>
-                    <p className="text-white/60 text-sm mb-1">{project.location}</p>
                     <p className="text-white/70 text-sm mb-4">
                       {project.description}
                     </p>

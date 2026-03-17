@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { Navigation } from '../components/Navigation';
 import { Footer } from '../components/Footer';
@@ -7,12 +7,33 @@ import { CheckCircle, Award, Package, Gauge, Zap, Shield } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { useCart } from '../context/CartContext';
 
+interface ProductSpec {
+  label: string;
+  value: string;
+}
+
+interface Product {
+  id: string;
+  slug: string;
+  name: string;
+  category?: string;
+  price?: number;
+  shortDescription?: string;
+  heroImage?: string;
+  images: string[];
+  features: string[];
+  specifications: ProductSpec[];
+}
+
 export function ProductDetailPage() {
-  const { id } = useParams();
+  const { slug } = useParams();
   const navigate = useNavigate();
   const { addToCart } = useCart();
   
   const [selectedImage, setSelectedImage] = useState(0);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -35,12 +56,72 @@ export function ProductDetailPage() {
     alert('Thank you! We will contact you soon for a consultation.');
   };
 
-  // Product images
-  const productImages = [
-    'https://images.unsplash.com/photo-1663186867803-bd547d4bd5ba?w=800',
-    'https://images.unsplash.com/photo-1562184552-681ff5dff8b0?w=800',
-    'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800',
-    'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800'
+  useEffect(() => {
+    const loadProduct = async () => {
+      if (!slug) return;
+      try {
+        setIsLoading(true);
+        setLoadError(null);
+        const res = await fetch(`http://localhost:8000/api/products/slug/${slug}`);
+        if (!res.ok) {
+          const data = await res.json().catch(() => null);
+          setLoadError(data?.message || 'Failed to load product.');
+          return;
+        }
+        const data = await res.json().catch(() => null);
+        const p = data?.product;
+        if (!p) {
+          setLoadError('Product not found.');
+          return;
+        }
+
+        const rawHero = p.heroImage || (Array.isArray(p.images) ? p.images[0] : undefined);
+        const heroImage =
+          typeof rawHero === 'string' && rawHero.startsWith('/uploads')
+            ? `http://localhost:8000${rawHero}`
+            : rawHero;
+
+        const galleryImages: string[] = [];
+        if (heroImage) galleryImages.push(heroImage);
+        if (Array.isArray(p.images)) {
+          p.images.forEach((img: string) => {
+            if (img && !galleryImages.includes(img)) {
+              const normalized =
+                typeof img === 'string' && img.startsWith('/uploads')
+                  ? `http://localhost:8000${img}`
+                  : img;
+              galleryImages.push(normalized);
+            }
+          });
+        }
+
+        const mapped: Product = {
+          id: p._id,
+          slug: p.slug,
+          name: p.name,
+          category: p.category,
+          price: typeof p.price === 'number' ? p.price : undefined,
+          shortDescription: p.shortDescription,
+          heroImage: heroImage,
+          images: galleryImages,
+          features: Array.isArray(p.features) ? p.features : [],
+          specifications: Array.isArray(p.specifications) ? p.specifications : []
+        };
+
+        setProduct(mapped);
+        setSelectedImage(0);
+      } catch {
+        setLoadError('Unable to load product. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadProduct();
+  }, [slug]);
+
+  const productImages = product?.images?.length ? product.images : [
+    'https://images.unsplash.com/photo-1663186867803-bd547d4bd5ba?w=800'
   ];
 
   return (
@@ -59,15 +140,24 @@ export function ProductDetailPage() {
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {loadError && (
+            <p className="text-red-400 text-center text-sm mb-6">{loadError}</p>
+          )}
+          {isLoading && !product && (
+            <p className="text-white/70 text-center text-sm mb-6">Loading product details...</p>
+          )}
+          {product && (
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             className="text-center mb-12"
           >
-            <p className="text-orange-500 text-xs uppercase tracking-widest mb-4">RESIDENTIAL • PREMIUM COLLECTION</p>
+            <p className="text-orange-500 text-xs uppercase tracking-widest mb-4">
+              {product?.category ? product.category.toUpperCase() : 'LIFT COLLECTION'}
+            </p>
             <h1 className="font-['Great_Vibes'] text-6xl md:text-7xl lg:text-8xl text-white mb-6">
-              Sovereign MRL Elevator
+              {product?.name || 'Lift'}
             </h1>
             <div className="flex items-center justify-center gap-4 flex-wrap">
               <div className="flex items-center gap-2 bg-green-500/10 border border-green-500/30 px-4 py-2 rounded-full">
@@ -80,6 +170,7 @@ export function ProductDetailPage() {
               </div>
             </div>
           </motion.div>
+          )}
         </div>
       </section>
 
@@ -138,10 +229,15 @@ export function ProductDetailPage() {
               <div className="bg-[#1a3332] border-2 border-orange-500/30 rounded-2xl p-8">
                 <p className="text-orange-500/80 text-xs uppercase tracking-widest mb-3">Investment Quote</p>
                 <div className="flex items-baseline gap-4 mb-6">
-                  <p className="font-['Great_Vibes'] text-5xl md:text-6xl text-orange-500">₹1,99,00,000</p>
+                  <p className="font-['Great_Vibes'] text-5xl md:text-6xl text-orange-500">
+                    {product?.price
+                      ? `₹${product.price.toLocaleString('en-IN')}`
+                      : 'Price on request'}
+                  </p>
                 </div>
                 <p className="text-white/70 text-sm leading-relaxed italic border-l-2 border-orange-500/30 pl-4">
-                  "The peak of modern vertical technology. Designed for premium residential spaces with near-silent operation and elevated fine aesthetics."
+                  {product?.shortDescription ||
+                    'Premium bespoke lift solution tailored for your residence or commercial space.'}
                 </p>
               </div>
 
@@ -154,34 +250,26 @@ export function ProductDetailPage() {
                   Key Specifications
                 </h3>
                 <div className="grid grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Zap size={14} className="text-orange-500" />
-                      <p className="text-white/40 text-xs uppercase">Drive System</p>
+                  {(product?.specifications && product.specifications.length > 0
+                    ? product.specifications.slice(0, 4)
+                    : [
+                        { label: 'Drive System', value: 'Electronic' },
+                        { label: 'Technology', value: 'Premium' },
+                        { label: 'Speed', value: '1.0 m/s' },
+                        { label: 'Warranty', value: '24 Months' }
+                      ]
+                  ).map((spec, index) => (
+                    <div key={index} className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        {index === 0 && <Zap size={14} className="text-orange-500" />}
+                        {index === 1 && <Shield size={14} className="text-orange-500" />}
+                        {index === 2 && <Gauge size={14} className="text-orange-500" />}
+                        {index === 3 && <Award size={14} className="text-orange-500" />}
+                        <p className="text-white/40 text-xs uppercase">{spec.label}</p>
+                      </div>
+                      <p className="text-white pl-6">{spec.value}</p>
                     </div>
-                    <p className="text-white pl-6">Electronic</p>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Shield size={14} className="text-orange-500" />
-                      <p className="text-white/40 text-xs uppercase">Technology</p>
-                    </div>
-                    <p className="text-white pl-6">Level A3</p>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Gauge size={14} className="text-orange-500" />
-                      <p className="text-white/40 text-xs uppercase">Speed</p>
-                    </div>
-                    <p className="text-white pl-6">1.0 m/s</p>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Award size={14} className="text-orange-500" />
-                      <p className="text-white/40 text-xs uppercase">Warranty</p>
-                    </div>
-                    <p className="text-white pl-6">24 Months</p>
-                  </div>
+                  ))}
                 </div>
               </div>
 
@@ -190,14 +278,14 @@ export function ProductDetailPage() {
                 <button
                   className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-4 rounded-full hover:from-orange-600 hover:to-orange-700 transition-all shadow-lg hover:shadow-orange-500/30 uppercase tracking-wider text-sm font-semibold"
                   onClick={async () => {
-                    const productId = id || '1';
+                    if (!product) return;
                     await addToCart({
-                      id: productId,
-                      name: 'Sovereign MRL Elevator',
-                      category: 'RESIDENTIAL • PREMIUM COLLECTION',
-                      price: 19900000,
+                      id: product.id,
+                      name: product.name,
+                      category: product.category || 'Lift',
+                      price: product.price || 0,
                       image: productImages[0],
-                      specifications: '6-10 persons, VVVF Drive, Gearless Traction'
+                      specifications: product.shortDescription || ''
                     });
                     navigate('/cart');
                   }}

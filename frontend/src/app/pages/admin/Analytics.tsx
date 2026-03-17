@@ -33,7 +33,6 @@ import {
 
 export function Analytics() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [timeRange, setTimeRange] = useState('6months');
   const [projects, setProjects] = useState<any[]>([]);
   const [clients, setClients] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -90,22 +89,10 @@ export function Analytics() {
     loadData();
   }, []);
 
-  const filteredProjects = useMemo(() => {
-    if (!projects.length) return [];
-    const now = new Date();
-    const monthsBack =
-      timeRange === '1month' ? 1 : timeRange === '3months' ? 3 : timeRange === '6months' ? 6 : 12;
-    const cutoff = new Date(now.getFullYear(), now.getMonth() - monthsBack, now.getDate());
-    return projects.filter((p) => {
-      const createdAt = p.createdAt ? new Date(p.createdAt) : null;
-      return createdAt && createdAt >= cutoff;
-    });
-  }, [projects, timeRange]);
-
   const revenueData = useMemo(() => {
     const byMonth: Record<string, { month: string; id: string; revenue: number; expenses: number }> =
       {};
-    for (const p of filteredProjects) {
+    for (const p of projects) {
       const createdAt = p.createdAt ? new Date(p.createdAt) : null;
       const monthKey = createdAt
         ? createdAt.toLocaleString('default', { month: 'short' })
@@ -122,7 +109,7 @@ export function Analytics() {
       (a, b) =>
         new Date(`1 ${a.month} 2000`).getMonth() - new Date(`1 ${b.month} 2000`).getMonth()
     );
-  }, [filteredProjects]);
+  }, [projects]);
 
   const projectTypeData = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -235,16 +222,6 @@ export function Analytics() {
               </div>
 
               <div className="flex items-center justify-center gap-3 mb-6">
-                <select
-                  value={timeRange}
-                  onChange={(e) => setTimeRange(e.target.value)}
-                  className="bg-[#0a1514]/80 backdrop-blur-sm border border-orange-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500/40"
-                >
-                  <option value="1month">Last Month</option>
-                  <option value="3months">Last 3 Months</option>
-                  <option value="6months">Last 6 Months</option>
-                  <option value="1year">Last Year</option>
-                </select>
                 <button className="px-4 py-2 bg-orange-500/10 hover:bg-orange-500/20 text-orange-500 rounded-lg transition-all flex items-center gap-2">
                   <Download size={16} />
                   <span className="text-sm">Export Report</span>
