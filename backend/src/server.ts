@@ -1,4 +1,5 @@
 import express from "express";
+import path from "path";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
@@ -12,6 +13,8 @@ import inquiryRoutes from "./routes/inquiry.routes.js";
 import projectRoutes from "./routes/project.routes.js";
 import documentRoutes from "./routes/document.routes.js";
 import cartRoutes from "./routes/cart.routes.js";
+import portalConfigRoutes from "./routes/portalConfig.routes.js";
+import productRoutes from "./routes/product.routes.js";
 
 const app = express();
 
@@ -25,6 +28,11 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(morgan("dev"));
 
+app.use(
+  "/uploads",
+  express.static(path.join(process.cwd(), "backend", "uploads"))
+);
+
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
 });
@@ -35,6 +43,8 @@ app.use("/api/inquiries", inquiryRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/documents", documentRoutes);
 app.use("/api/cart", cartRoutes);
+app.use("/api/portal-config", portalConfigRoutes);
+app.use("/api/products", productRoutes);
 
 app.use((_req, _res, next) => {
   next(createHttpError(404, "Not found"));

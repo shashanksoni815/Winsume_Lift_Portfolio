@@ -5,11 +5,15 @@ import {
   getProject,
   listProjects,
   listProjectsForUser,
+  listPublicProjects,
   updateProject
 } from "../controllers/projectController.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 
 const router = Router();
+
+// Public portfolio listing
+router.get("/public", listPublicProjects);
 
 // Admin CRUD
 router.get("/", requireAuth, requireRole("admin"), listProjects);

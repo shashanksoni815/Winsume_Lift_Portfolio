@@ -19,7 +19,12 @@ const projectSchema = z.object({
   progress: z.number().min(0).max(100).optional(),
   teamSize: z.number().optional(),
   type: z.string().optional(),
-  image: z.string().optional()
+  image: z.string().optional(),
+  // public portfolio fields
+  title: z.string().optional(),
+  category: z.string().optional(),
+  year: z.number().optional(),
+  description: z.string().optional()
 });
 
 export const createProject = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -43,7 +48,11 @@ export const createProject = async (req: Request, res: Response, next: NextFunct
       progress: data.progress,
       teamSize: data.teamSize,
       type: data.type,
-      image: data.image
+      image: data.image,
+      title: data.title ?? data.name,
+      category: data.category,
+      year: data.year,
+      description: data.description
     });
 
     res.status(201).json({ project });
@@ -58,6 +67,17 @@ export const createProject = async (req: Request, res: Response, next: NextFunct
 export const listProjects = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const projects = await Project.find().sort({ createdAt: -1 });
+    res.json({ items: projects });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const listPublicProjects = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const projects = await Project.find()
+      .select("externalId name title category year description location image status createdAt")
+      .sort({ year: -1, createdAt: -1 });
     res.json({ items: projects });
   } catch (err) {
     next(err);
