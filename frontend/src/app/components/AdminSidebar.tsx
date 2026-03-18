@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
 import {
@@ -17,6 +17,7 @@ import {
   ChevronDown,
   ChevronUp
 } from 'lucide-react';
+import { apiUrl } from '../api';
 
 interface AdminSidebarProps {
   isCollapsed: boolean;
@@ -51,9 +52,9 @@ export function AdminSidebar({ isCollapsed, onToggle }: AdminSidebarProps) {
     const loadCounts = async () => {
       try {
         const [projectsRes, inquiriesRes, notificationsRes] = await Promise.all([
-          adminFetch('https://winsume-lift-portfolio-backend.onrender.com/api/projects'),
-          adminFetch('https://winsume-lift-portfolio-backend.onrender.com/api/inquiries'),
-          adminFetch('https://winsume-lift-portfolio-backend.onrender.com/api/notifications?filter=unread&limit=1&offset=0')
+          adminFetch(apiUrl('/api/projects')),
+          adminFetch(apiUrl('/api/inquiries')),
+          adminFetch(apiUrl('/api/notifications?filter=unread&limit=1&offset=0'))
         ]);
 
         if (projectsRes) {
@@ -84,7 +85,7 @@ export function AdminSidebar({ isCollapsed, onToggle }: AdminSidebarProps) {
   useEffect(() => {
     const loadAdminProfile = async () => {
       try {
-        const res = await adminFetch('https://winsume-lift-portfolio-backend.onrender.com/api/users/me/profile');
+        const res = await adminFetch(apiUrl('/api/users/me/profile'));
         if (!res) return;
         const data = await res.json().catch(() => null);
         const user = data?.user;

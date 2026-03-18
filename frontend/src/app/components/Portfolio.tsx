@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { motion } from 'motion/react';
 import { useNavigate } from 'react-router';
+import { apiUrl, assetUrl } from '../api';
 
 interface PortfolioItem {
   id: string;
@@ -20,8 +21,8 @@ export function Portfolio() {
     const load = async () => {
       try {
         const [configRes, productsRes] = await Promise.all([
-          fetch('https://winsume-lift-portfolio-backend.onrender.com/api/portal-config'),
-          fetch('https://winsume-lift-portfolio-backend.onrender.com/api/products/public')
+          fetch(apiUrl('/api/portal-config')),
+          fetch(apiUrl('/api/products/public'))
         ]);
 
         if (!configRes.ok || !productsRes.ok) return;
@@ -43,10 +44,7 @@ export function Portfolio() {
 
         const allItems: PortfolioItem[] = products.map((p: any) => {
           const rawImage = p.heroImage || (Array.isArray(p.images) ? p.images[0] : '');
-          const image =
-            typeof rawImage === 'string' && rawImage.startsWith('/uploads')
-              ? `https://winsume-lift-portfolio-backend.onrender.com${rawImage}`
-              : rawImage;
+          const image = assetUrl(rawImage);
           const category = (p.category || '').toString().toUpperCase();
 
           return {
