@@ -74,22 +74,22 @@ export function UserPortal() {
       try {
         setIsLoading(true);
         const [profileRes, inquiriesRes, projectsRes, documentsRes] = await Promise.all([
-          fetch('http://localhost:8000/api/users/me/profile', {
+          fetch('https://winsume-lift-portfolio-backend.onrender.com/api/users/me/profile', {
             headers: {
               Authorization: `Bearer ${accessToken}`,
             },
           }),
-          fetch('http://localhost:8000/api/inquiries/user', {
+          fetch('https://winsume-lift-portfolio-backend.onrender.com/api/inquiries/user', {
             headers: {
               Authorization: `Bearer ${accessToken}`,
             },
           }),
-          fetch('http://localhost:8000/api/projects/user/me', {
+          fetch('https://winsume-lift-portfolio-backend.onrender.com/api/projects/user/me', {
             headers: {
               Authorization: `Bearer ${accessToken}`,
             },
           }),
-          fetch('http://localhost:8000/api/documents/user/me', {
+          fetch('https://winsume-lift-portfolio-backend.onrender.com/api/documents/user/me', {
             headers: {
               Authorization: `Bearer ${accessToken}`,
             },

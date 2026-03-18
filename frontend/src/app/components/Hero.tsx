@@ -27,7 +27,7 @@ export function Hero() {
   useEffect(() => {
     const loadConfig = async () => {
       try {
-        const res = await fetch('http://localhost:8000/api/portal-config');
+        const res = await fetch('https://winsume-lift-portfolio-backend.onrender.com/api/portal-config');
         if (!res.ok) return;
         const data = await res.json().catch(() => null);
         if (!data) return;

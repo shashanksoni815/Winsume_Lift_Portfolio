@@ -51,9 +51,9 @@ export function AdminSidebar({ isCollapsed, onToggle }: AdminSidebarProps) {
     const loadCounts = async () => {
       try {
         const [projectsRes, inquiriesRes, notificationsRes] = await Promise.all([
-          adminFetch('http://localhost:8000/api/projects'),
-          adminFetch('http://localhost:8000/api/inquiries'),
-          adminFetch('http://localhost:8000/api/notifications?filter=unread&limit=1&offset=0')
+          adminFetch('https://winsume-lift-portfolio-backend.onrender.com/api/projects'),
+          adminFetch('https://winsume-lift-portfolio-backend.onrender.com/api/inquiries'),
+          adminFetch('https://winsume-lift-portfolio-backend.onrender.com/api/notifications?filter=unread&limit=1&offset=0')
         ]);
 
         if (projectsRes) {
@@ -84,7 +84,7 @@ export function AdminSidebar({ isCollapsed, onToggle }: AdminSidebarProps) {
   useEffect(() => {
     const loadAdminProfile = async () => {
       try {
-        const res = await adminFetch('http://localhost:8000/api/users/me/profile');
+        const res = await adminFetch('https://winsume-lift-portfolio-backend.onrender.com/api/users/me/profile');
         if (!res) return;
         const data = await res.json().catch(() => null);
         const user = data?.user;

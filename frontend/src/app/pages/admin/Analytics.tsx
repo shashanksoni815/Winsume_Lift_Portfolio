@@ -70,8 +70,8 @@ export function Analytics() {
         setIsLoading(true);
         setLoadError(null);
         const [projectsRes, clientsRes] = await Promise.all([
-          adminFetch('http://localhost:8000/api/projects'),
-          adminFetch('http://localhost:8000/api/users?role=user&status=active&pageSize=500')
+          adminFetch('https://winsume-lift-portfolio-backend.onrender.com/api/projects'),
+          adminFetch('https://winsume-lift-portfolio-backend.onrender.com/api/users?role=user&status=active&pageSize=500')
         ]);
 
         const projectsJson = projectsRes.ok ? await projectsRes.json().catch(() => null) : null;

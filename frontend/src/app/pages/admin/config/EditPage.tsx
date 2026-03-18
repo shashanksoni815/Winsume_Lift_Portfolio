@@ -181,7 +181,7 @@ export function EditPage() {
       try {
         setProductLoading(true);
         setProductError(null);
-        const data = await adminFetch('http://localhost:8000/api/products', {
+        const data = await adminFetch('https://winsume-lift-portfolio-backend.onrender.com/api/products', {
           method: 'GET'
         });
         setProducts(Array.isArray((data as any).items) ? (data as any).items : []);
@@ -202,7 +202,7 @@ export function EditPage() {
 
     const loadConfig = async () => {
       try {
-        const data = await adminFetch('http://localhost:8000/api/portal-config', {
+        const data = await adminFetch('https://winsume-lift-portfolio-backend.onrender.com/api/portal-config', {
           method: 'GET'
         });
         const ids = data?.portalSettings?.ourWorkFeaturedProductIds;
@@ -221,7 +221,7 @@ export function EditPage() {
 
     const loadConfig = async () => {
       try {
-        const data = await adminFetch('http://localhost:8000/api/portal-config', {
+        const data = await adminFetch('https://winsume-lift-portfolio-backend.onrender.com/api/portal-config', {
           method: 'GET'
         });
         const portfolioIds = data?.portalSettings?.homePortfolioProjectIds;
@@ -347,13 +347,13 @@ export function EditPage() {
       let updatedProducts: Product[];
 
       if (editingProductId) {
-        const updated: any = await adminFetch(`http://localhost:8000/api/products/${editingProductId}`, {
+        const updated: any = await adminFetch(`https://winsume-lift-portfolio-backend.onrender.com/api/products/${editingProductId}`, {
           method: 'PATCH',
           body: formData
         });
         updatedProducts = products.map(p => (p._id === editingProductId ? updated.product : p));
       } else {
-        const created: any = await adminFetch('http://localhost:8000/api/products', {
+        const created: any = await adminFetch('https://winsume-lift-portfolio-backend.onrender.com/api/products', {
           method: 'POST',
           body: formData
         });
@@ -388,7 +388,7 @@ export function EditPage() {
     try {
       setProductLoading(true);
       setProductError(null);
-      await adminFetch(`http://localhost:8000/api/products/${productId}`, {
+      await adminFetch(`https://winsume-lift-portfolio-backend.onrender.com/api/products/${productId}`, {
         method: 'DELETE'
       });
       setProducts(products.filter(p => p._id !== productId));
@@ -405,7 +405,7 @@ export function EditPage() {
     try {
       setProductLoading(true);
       setProductError(null);
-      await adminFetch('http://localhost:8000/api/portal-config', {
+      await adminFetch('https://winsume-lift-portfolio-backend.onrender.com/api/portal-config', {
         method: 'PATCH',
         body: JSON.stringify({
           portalSettings: {
@@ -429,7 +429,7 @@ export function EditPage() {
     try {
       setProductLoading(true);
       setProductError(null);
-      await adminFetch('http://localhost:8000/api/portal-config', {
+      await adminFetch('https://winsume-lift-portfolio-backend.onrender.com/api/portal-config', {
         method: 'PATCH',
         body: JSON.stringify({
           portalSettings: {

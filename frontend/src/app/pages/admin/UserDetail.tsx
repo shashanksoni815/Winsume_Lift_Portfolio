@@ -94,7 +94,7 @@ export function UserDetail() {
       try {
         setIsLoading(true);
         setLoadError(null);
-        const res = await adminFetch(`http://localhost:8000/api/users/${id}`);
+        const res = await adminFetch(`https://winsume-lift-portfolio-backend.onrender.com/api/users/${id}`);
         if (!res.ok) {
           const data = await res.json().catch(() => null);
           setLoadError(data?.message || 'Failed to load user.');

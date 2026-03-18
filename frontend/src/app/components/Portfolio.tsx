@@ -20,8 +20,8 @@ export function Portfolio() {
     const load = async () => {
       try {
         const [configRes, productsRes] = await Promise.all([
-          fetch('http://localhost:8000/api/portal-config'),
-          fetch('http://localhost:8000/api/products/public')
+          fetch('https://winsume-lift-portfolio-backend.onrender.com/api/portal-config'),
+          fetch('https://winsume-lift-portfolio-backend.onrender.com/api/products/public')
         ]);
 
         if (!configRes.ok || !productsRes.ok) return;
@@ -45,7 +45,7 @@ export function Portfolio() {
           const rawImage = p.heroImage || (Array.isArray(p.images) ? p.images[0] : '');
           const image =
             typeof rawImage === 'string' && rawImage.startsWith('/uploads')
-              ? `http://localhost:8000${rawImage}`
+              ? `https://winsume-lift-portfolio-backend.onrender.com${rawImage}`
               : rawImage;
           const category = (p.category || '').toString().toUpperCase();
 

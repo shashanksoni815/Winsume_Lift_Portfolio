@@ -34,7 +34,7 @@ export function ContactPage() {
     try {
       setIsSubmitting(true);
 
-      const response = await fetch('http://localhost:8000/api/inquiries/user', {
+      const response = await fetch('https://winsume-lift-portfolio-backend.onrender.com/api/inquiries/user', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

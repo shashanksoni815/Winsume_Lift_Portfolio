@@ -18,7 +18,7 @@ export function ForgotPasswordPage() {
     try {
       setIsSubmitting(true);
 
-      const response = await fetch('http://localhost:8000/api/auth/forgot-password', {
+      const response = await fetch('https://winsume-lift-portfolio-backend.onrender.com/api/auth/forgot-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

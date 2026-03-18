@@ -86,9 +86,9 @@ export function AdminDashboard() {
         setLoadError(null);
 
         const [projectsRes, inquiriesRes, clientsRes] = await Promise.all([
-          adminFetch('http://localhost:8000/api/projects'),
-          adminFetch('http://localhost:8000/api/inquiries'),
-          adminFetch('http://localhost:8000/api/users?role=user&status=active&pageSize=100'),
+          adminFetch('https://winsume-lift-portfolio-backend.onrender.com/api/projects'),
+          adminFetch('https://winsume-lift-portfolio-backend.onrender.com/api/inquiries'),
+          adminFetch('https://winsume-lift-portfolio-backend.onrender.com/api/users?role=user&status=active&pageSize=100'),
         ]);
 
         const projectsJson = projectsRes.ok ? await projectsRes.json().catch(() => null) : null;

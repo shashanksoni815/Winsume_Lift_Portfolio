@@ -76,7 +76,7 @@ export function CollectionPage() {
       try {
         setIsLoading(true);
         setLoadError(null);
-        const res = await fetch('http://localhost:8000/api/products/public');
+        const res = await fetch('https://winsume-lift-portfolio-backend.onrender.com/api/products/public');
         if (!res.ok) {
           const data = await res.json().catch(() => null);
           setLoadError(data?.message || 'Failed to load products.');
@@ -89,7 +89,7 @@ export function CollectionPage() {
             p.heroImage || (Array.isArray(p.images) ? p.images[0] : undefined);
           const heroImage =
             typeof rawHero === 'string' && rawHero.startsWith('/uploads')
-              ? `http://localhost:8000${rawHero}`
+              ? `https://winsume-lift-portfolio-backend.onrender.com${rawHero}`
               : rawHero;
 
           return {

@@ -32,7 +32,7 @@ export function MyEngagementsPage() {
 
       try {
         setIsLoading(true);
-        const res = await fetch('http://localhost:8000/api/projects/user/me', {
+        const res = await fetch('https://winsume-lift-portfolio-backend.onrender.com/api/projects/user/me', {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },

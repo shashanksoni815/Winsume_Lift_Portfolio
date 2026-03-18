@@ -46,7 +46,7 @@ export function ResetPasswordPage() {
 
     try {
       setIsSubmitting(true);
-      const response = await fetch('http://localhost:8000/api/auth/reset-password', {
+      const response = await fetch('https://winsume-lift-portfolio-backend.onrender.com/api/auth/reset-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
