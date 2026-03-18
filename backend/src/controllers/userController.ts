@@ -3,6 +3,7 @@ import createHttpError from "http-errors";
 import { z } from "zod";
 import { User } from "../models/User.js";
 import { hashPassword, verifyPassword } from "../utils/hash.js";
+import { notifyAdmin } from "../utils/notify.js";
 
 const listUsersQuerySchema = z.object({
   search: z.string().optional(),
@@ -75,6 +76,14 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
       company: data.company
     });
 
+    await notifyAdmin({
+      title: "User created",
+      message: `User ${user.email} was created.`,
+      type: "success",
+      category: "Users",
+      meta: { entityType: "user", entityId: user.id, action: "create", actorUserId: req.user?.sub }
+    });
+
     res.status(201).json({
       user: {
         id: user._id,
@@ -126,6 +135,14 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
     if (!user) {
       throw createHttpError(404, "User not found");
     }
+
+    await notifyAdmin({
+      title: "User updated",
+      message: `User ${user.email} was updated.`,
+      type: "info",
+      category: "Users",
+      meta: { entityType: "user", entityId: user.id, action: "update", actorUserId: req.user?.sub }
+    });
     res.json({ user });
   } catch (err) {
     if (err instanceof z.ZodError) {
@@ -137,11 +154,24 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
 
 export const deleteUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const user = await User.findByIdAndDelete(req.params.id);
+    // Soft delete: suspend user instead of permanent delete
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { $set: { status: "suspended" } },
+      { new: true }
+    ).select("-passwordHash");
     if (!user) {
       throw createHttpError(404, "User not found");
     }
-    res.status(204).send();
+
+    await notifyAdmin({
+      title: "User suspended",
+      message: `User ${user.email} was suspended.`,
+      type: "warning",
+      category: "Users",
+      meta: { entityType: "user", entityId: user.id, action: "suspend", actorUserId: req.user?.sub }
+    });
+    res.json({ user });
   } catch (err) {
     next(err);
   }

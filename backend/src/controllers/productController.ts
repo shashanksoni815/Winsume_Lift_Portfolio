@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import createHttpError from "http-errors";
 import { z } from "zod";
 import { Product } from "../models/Product.js";
+import { notifyAdmin } from "../utils/notify.js";
 
 const specSchema = z.object({
   label: z.string(),
@@ -81,6 +82,14 @@ export const createProduct = async (req: Request, res: Response, next: NextFunct
       available: data.available ?? true
     });
 
+    await notifyAdmin({
+      title: "Product created",
+      message: `Product "${product.name}" was created.`,
+      type: "success",
+      category: "Products",
+      meta: { entityType: "product", entityId: product.id, action: "create", actorUserId: req.user?.sub }
+    });
+
     res.status(201).json({ product });
   } catch (err) {
     if (err instanceof z.ZodError) {
@@ -114,6 +123,13 @@ export const getProduct = async (req: Request, res: Response, next: NextFunction
     if (!product) {
       throw createHttpError(404, "Product not found");
     }
+    await notifyAdmin({
+      title: "Product updated",
+      message: `Product "${product.name}" was updated.`,
+      type: "info",
+      category: "Products",
+      meta: { entityType: "product", entityId: product.id, action: "update", actorUserId: req.user?.sub }
+    });
     res.json({ product });
   } catch (err) {
     next(err);
@@ -170,6 +186,13 @@ export const deleteProduct = async (req: Request, res: Response, next: NextFunct
     if (!product) {
       throw createHttpError(404, "Product not found");
     }
+    await notifyAdmin({
+      title: "Product deleted",
+      message: `Product "${product.name}" was deleted.`,
+      type: "warning",
+      category: "Products",
+      meta: { entityType: "product", entityId: product.id, action: "delete", actorUserId: req.user?.sub }
+    });
     res.status(204).send();
   } catch (err) {
     next(err);

@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import createHttpError from "http-errors";
 import { PortalConfig, PortalSettings, ThemeSettings, PageConfig } from "../models/PortalConfig.js";
+import { notifyAdmin } from "../utils/notify.js";
 
 const DEFAULT_PORTAL_SETTINGS: PortalSettings = {
   siteName: "WINSUME LIFT INDIA",
@@ -95,6 +96,14 @@ export const updatePortalConfig = async (req: Request, res: Response, next: Next
 
     await config.save();
 
+    await notifyAdmin({
+      title: "Portal config updated",
+      message: "Portal configuration was updated.",
+      type: "info",
+      category: "Portal Config",
+      meta: { entityType: "portalConfig", entityId: config.id, action: "update", actorUserId: req.user?.sub }
+    });
+
     res.json({
       id: config.id,
       portalSettings: config.portalSettings,
@@ -106,13 +115,21 @@ export const updatePortalConfig = async (req: Request, res: Response, next: Next
   }
 };
 
-export const resetPortalConfig = async (_req: Request, res: Response, next: NextFunction) => {
+export const resetPortalConfig = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const config = await getOrCreateConfig();
     config.portalSettings = DEFAULT_PORTAL_SETTINGS;
     config.themeSettings = DEFAULT_THEME_SETTINGS;
     config.pagesConfig = DEFAULT_PAGES_CONFIG;
     await config.save();
+
+    await notifyAdmin({
+      title: "Portal config reset",
+      message: "Portal configuration was reset to defaults.",
+      type: "warning",
+      category: "Portal Config",
+      meta: { entityType: "portalConfig", entityId: config.id, action: "reset", actorUserId: req.user?.sub }
+    });
 
     res.json({
       id: config.id,

@@ -3,6 +3,7 @@ import createHttpError from "http-errors";
 import { z } from "zod";
 import { Project } from "../models/Project.js";
 import { generateProjectId } from "../utils/idGenerator.js";
+import { notifyAdmin } from "../utils/notify.js";
 
 const projectSchema = z.object({
   name: z.string().min(1),
@@ -55,6 +56,14 @@ export const createProject = async (req: Request, res: Response, next: NextFunct
       description: data.description
     });
 
+    await notifyAdmin({
+      title: "Project created",
+      message: `Project ${project.externalId} (${project.name}) was created.`,
+      type: "success",
+      category: "Projects",
+      meta: { entityType: "project", entityId: project.id, action: "create", actorUserId: req.user?.sub }
+    });
+
     res.status(201).json({ project });
   } catch (err) {
     if (err instanceof z.ZodError) {
@@ -102,6 +111,13 @@ export const getProject = async (req: Request, res: Response, next: NextFunction
     if (!project) {
       throw createHttpError(404, "Project not found");
     }
+    await notifyAdmin({
+      title: "Project updated",
+      message: `Project ${project.externalId} (${project.name}) was updated.`,
+      type: "info",
+      category: "Projects",
+      meta: { entityType: "project", entityId: project.id, action: "update", actorUserId: req.user?.sub }
+    });
     res.json({ project });
   } catch (err) {
     next(err);
@@ -136,6 +152,13 @@ export const deleteProject = async (req: Request, res: Response, next: NextFunct
     if (!project) {
       throw createHttpError(404, "Project not found");
     }
+    await notifyAdmin({
+      title: "Project deleted",
+      message: `Project ${project.externalId} (${project.name}) was deleted.`,
+      type: "warning",
+      category: "Projects",
+      meta: { entityType: "project", entityId: project.id, action: "delete", actorUserId: req.user?.sub }
+    });
     res.status(204).send();
   } catch (err) {
     next(err);

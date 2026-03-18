@@ -16,28 +16,18 @@ import cartRoutes from "./routes/cart.routes.js";
 import portalConfigRoutes from "./routes/portalConfig.routes.js";
 import productRoutes from "./routes/product.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
-
 const app = express();
-
-app.use(
-  cors({
+app.use(cors({
     origin: env.frontendOrigin,
     credentials: true
-  })
-);
+}));
 app.use(express.json());
 app.use(cookieParser());
 app.use(morgan("dev"));
-
-app.use(
-  "/uploads",
-  express.static(path.join(process.cwd(), "backend", "uploads"))
-);
-
+app.use("/uploads", express.static(path.join(process.cwd(), "backend", "uploads")));
 app.get("/health", (_req, res) => {
-  res.json({ status: "ok" });
+    res.json({ status: "ok" });
 });
-
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/inquiries", inquiryRoutes);
@@ -47,24 +37,19 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/portal-config", portalConfigRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/notifications", notificationRoutes);
-
 app.use((_req, _res, next) => {
-  next(createHttpError(404, "Not found"));
+    next(createHttpError(404, "Not found"));
 });
-
 app.use(errorHandler);
-
-const start = async (): Promise<void> => {
-  await connectDb();
-  app.listen(env.port, () => {
-    // eslint-disable-next-line no-console
-    console.log(`API server listening on port ${env.port}`);
-  });
+const start = async () => {
+    await connectDb();
+    app.listen(env.port, () => {
+        // eslint-disable-next-line no-console
+        console.log(`API server listening on port ${env.port}`);
+    });
 };
-
 start().catch((err) => {
-  // eslint-disable-next-line no-console
-  console.error("Failed to start server", err);
-  process.exit(1);
+    // eslint-disable-next-line no-console
+    console.error("Failed to start server", err);
+    process.exit(1);
 });
-

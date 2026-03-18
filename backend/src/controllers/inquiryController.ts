@@ -3,6 +3,7 @@ import createHttpError from "http-errors";
 import { z } from "zod";
 import { Inquiry } from "../models/Inquiry.js";
 import { generateInquiryId } from "../utils/idGenerator.js";
+import { notifyAdmin } from "../utils/notify.js";
 
 const createInquirySchema = z.object({
   name: z.string().min(1),
@@ -23,6 +24,14 @@ export const createInquiry = async (req: Request, res: Response, next: NextFunct
     const inquiry = await Inquiry.create({
       externalId,
       ...data
+    });
+
+    await notifyAdmin({
+      title: "New inquiry received",
+      message: `New inquiry from ${inquiry.name} (${inquiry.email}).`,
+      type: "info",
+      category: "Inquiries",
+      meta: { entityType: "inquiry", entityId: inquiry.id, action: "create" }
     });
 
     res.status(201).json({ inquiry });
@@ -47,6 +56,14 @@ export const createInquiryForUser = async (req: Request, res: Response, next: Ne
       externalId,
       ...data,
       userId: req.user.sub
+    });
+
+    await notifyAdmin({
+      title: "New user inquiry received",
+      message: `New inquiry from ${inquiry.name} (${inquiry.email}).`,
+      type: "info",
+      category: "Inquiries",
+      meta: { entityType: "inquiry", entityId: inquiry.id, action: "create", actorUserId: req.user.sub }
     });
 
     res.status(201).json({ inquiry });
@@ -105,6 +122,14 @@ export const getInquiry = async (req: Request, res: Response, next: NextFunction
     if (!inquiry) {
       throw createHttpError(404, "Inquiry not found");
     }
+
+    await notifyAdmin({
+      title: "Inquiry updated",
+      message: `Inquiry ${inquiry.externalId} was updated.`,
+      type: "info",
+      category: "Inquiries",
+      meta: { entityType: "inquiry", entityId: inquiry.id, action: "update", actorUserId: req.user?.sub }
+    });
     res.json({ inquiry });
   } catch (err) {
     next(err);
@@ -145,6 +170,13 @@ export const deleteInquiry = async (req: Request, res: Response, next: NextFunct
     if (!inquiry) {
       throw createHttpError(404, "Inquiry not found");
     }
+    await notifyAdmin({
+      title: "Inquiry deleted",
+      message: `Inquiry ${inquiry.externalId} was deleted.`,
+      type: "warning",
+      category: "Inquiries",
+      meta: { entityType: "inquiry", entityId: inquiry.id, action: "delete", actorUserId: req.user?.sub }
+    });
     res.status(204).send();
   } catch (err) {
     next(err);
