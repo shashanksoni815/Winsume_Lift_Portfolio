@@ -21,7 +21,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: env.frontendOrigin,
+    origin: "https://winsume-lift-portfolio-m4174p2mc-shashanksoni815s-projects.vercel.app",
     credentials: true
   })
 );
