@@ -29,7 +29,9 @@ export function AdminSidebar({ isCollapsed, onToggle }: AdminSidebarProps) {
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [projectCount, setProjectCount] = useState<number | null>(null);
   const [inquiryCount, setInquiryCount] = useState<number | null>(null);
-  const [notificationCount] = useState<number | null>(null);
+  const [notificationCount, setNotificationCount] = useState<number | null>(null);
+  const [adminName, setAdminName] = useState<string>('Admin');
+  const [adminEmail, setAdminEmail] = useState<string>(localStorage.getItem('userEmail') || '');
 
   const adminFetch = async (input: RequestInfo | URL) => {
     const accessToken = localStorage.getItem('accessToken');
@@ -48,9 +50,10 @@ export function AdminSidebar({ isCollapsed, onToggle }: AdminSidebarProps) {
   useEffect(() => {
     const loadCounts = async () => {
       try {
-        const [projectsRes, inquiriesRes] = await Promise.all([
+        const [projectsRes, inquiriesRes, notificationsRes] = await Promise.all([
           adminFetch('http://localhost:8000/api/projects'),
-          adminFetch('http://localhost:8000/api/inquiries')
+          adminFetch('http://localhost:8000/api/inquiries'),
+          adminFetch('http://localhost:8000/api/notifications?filter=unread&limit=1&offset=0')
         ]);
 
         if (projectsRes) {
@@ -64,12 +67,35 @@ export function AdminSidebar({ isCollapsed, onToggle }: AdminSidebarProps) {
           const items = Array.isArray(data?.items) ? data.items : [];
           setInquiryCount(items.length);
         }
+
+        if (notificationsRes) {
+          const data = await notificationsRes.json().catch(() => null);
+          const unreadCount = typeof data?.unreadCount === 'number' ? data.unreadCount : null;
+          setNotificationCount(unreadCount);
+        }
       } catch {
         // ignore sidebar count errors
       }
     };
 
     loadCounts();
+  }, []);
+
+  useEffect(() => {
+    const loadAdminProfile = async () => {
+      try {
+        const res = await adminFetch('http://localhost:8000/api/users/me/profile');
+        if (!res) return;
+        const data = await res.json().catch(() => null);
+        const user = data?.user;
+        if (user?.email) setAdminEmail(String(user.email));
+        if (user?.fullName) setAdminName(String(user.fullName));
+        else if (user?.email) setAdminName(String(user.email).split('@')[0]);
+      } catch {
+        // keep fallback values
+      }
+    };
+    loadAdminProfile();
   }, []);
 
   const menuItems = [
@@ -176,8 +202,8 @@ export function AdminSidebar({ isCollapsed, onToggle }: AdminSidebarProps) {
                 <User size={20} className="text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-white text-sm font-medium truncate">Admin User</p>
-                <p className="text-white/40 text-xs truncate">admin@winsume.com</p>
+                <p className="text-white text-sm font-medium truncate">{adminName || 'Admin'}</p>
+                <p className="text-white/40 text-xs truncate">{adminEmail || ''}</p>
               </div>
               {showUserDropdown ? (
                 <ChevronUp size={16} className="text-white/60" />

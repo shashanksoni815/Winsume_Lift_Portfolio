@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
 import {
   Bell,
@@ -8,109 +8,89 @@ import {
   Clock,
   Trash2,
   CheckCheck,
-  Filter,
   Search
 } from 'lucide-react';
 import { ImageWithFallback } from '../../components/figma/ImageWithFallback';
 import { AdminSidebar } from '../../components/AdminSidebar';
 
 interface Notification {
-  id: string;
+  _id: string;
   title: string;
   message: string;
   type: 'success' | 'warning' | 'info' | 'error';
-  time: string;
   read: boolean;
   category: string;
+  createdAt: string;
 }
 
 export function Notifications() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [filter, setFilter] = useState<'all' | 'unread' | 'read'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [unreadCount, setUnreadCount] = useState(0);
 
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: 'NOT001',
-      title: 'New Project Assigned',
-      message: 'You have been assigned to the Mumbai Villa project. Review the details and requirements.',
-      type: 'info',
-      time: '5 minutes ago',
-      read: false,
-      category: 'Projects'
-    },
-    {
-      id: 'NOT002',
-      title: 'Payment Received',
-      message: 'Payment of ₹25,00,000 received from Prestige Builders for Project PRJ002.',
-      type: 'success',
-      time: '1 hour ago',
-      read: false,
-      category: 'Payments'
-    },
-    {
-      id: 'NOT003',
-      title: 'Deadline Approaching',
-      message: 'Project PRJ005 deadline is in 3 days. Ensure all tasks are on track.',
-      type: 'warning',
-      time: '2 hours ago',
-      read: false,
-      category: 'Deadlines'
-    },
-    {
-      id: 'NOT004',
-      title: 'New Inquiry Received',
-      message: 'New inquiry from Kavita Singh regarding hospital lift system installation.',
-      type: 'info',
-      time: '3 hours ago',
-      read: true,
-      category: 'Inquiries'
-    },
-    {
-      id: 'NOT005',
-      title: 'System Maintenance',
-      message: 'Scheduled system maintenance will occur tonight at 11 PM IST.',
-      type: 'warning',
-      time: '5 hours ago',
-      read: true,
-      category: 'System'
-    },
-    {
-      id: 'NOT006',
-      title: 'Document Uploaded',
-      message: 'Safety compliance certificate has been uploaded for Project PRJ003.',
-      type: 'success',
-      time: '1 day ago',
-      read: true,
-      category: 'Documents'
-    },
-    {
-      id: 'NOT007',
-      title: 'Payment Overdue',
-      message: 'Payment for Invoice INV-045 is overdue. Please follow up with the client.',
-      type: 'error',
-      time: '1 day ago',
-      read: false,
-      category: 'Payments'
-    },
-    {
-      id: 'NOT008',
-      title: 'Team Member Added',
-      message: 'John Doe has been added to your team for Project PRJ001.',
-      type: 'info',
-      time: '2 days ago',
-      read: true,
-      category: 'Team'
+  const adminFetch = async (input: RequestInfo | URL, init: RequestInit = {}) => {
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) throw new Error('Authentication required');
+    const res = await fetch(input, {
+      ...init,
+      headers: {
+        ...(init.headers || {}),
+        Authorization: `Bearer ${accessToken}`
+      }
+    });
+    if (res.status === 401 || res.status === 403) {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('isLoggedIn');
+      window.location.href = '/admin-login';
+      throw new Error('Unauthorized');
     }
-  ]);
+    return res;
+  };
 
-  const filteredNotifications = notifications.filter((notif) => {
-    const matchesFilter = filter === 'all' || (filter === 'read' ? notif.read : !notif.read);
-    const matchesSearch = 
-      notif.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      notif.message.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesFilter && matchesSearch;
-  });
+  const load = async () => {
+    try {
+      setIsLoading(true);
+      setLoadError(null);
+      const url = new URL('http://localhost:8000/api/notifications');
+      url.searchParams.set('filter', filter);
+      if (searchQuery.trim()) url.searchParams.set('search', searchQuery.trim());
+      url.searchParams.set('limit', '200');
+      url.searchParams.set('offset', '0');
+
+      const res = await adminFetch(url.toString());
+      const data = await res.json().catch(() => null);
+      const items = Array.isArray(data?.items) ? data.items : [];
+      setNotifications(items);
+      setUnreadCount(typeof data?.unreadCount === 'number' ? data.unreadCount : 0);
+    } catch (e: any) {
+      setLoadError(e?.message || 'Failed to load notifications');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter]);
+
+  const filteredNotifications = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return notifications;
+    return notifications.filter((n) => {
+      return (
+        n.title.toLowerCase().includes(q) ||
+        n.message.toLowerCase().includes(q) ||
+        n.category.toLowerCase().includes(q)
+      );
+    });
+  }, [notifications, searchQuery]);
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -138,19 +118,32 @@ export function Notifications() {
     }
   };
 
-  const markAsRead = (id: string) => {
-    setNotifications(notifications.map(n => n.id === id ? { ...n, read: true } : n));
+  const markAsRead = async (id: string) => {
+    try {
+      await adminFetch(`http://localhost:8000/api/notifications/${id}/read`, { method: 'PATCH' });
+      await load();
+    } catch (e) {
+      // ignore
+    }
   };
 
-  const markAllAsRead = () => {
-    setNotifications(notifications.map(n => ({ ...n, read: true })));
+  const markAllAsRead = async () => {
+    try {
+      await adminFetch('http://localhost:8000/api/notifications/mark-all-read', { method: 'POST' });
+      await load();
+    } catch (e) {
+      // ignore
+    }
   };
 
-  const deleteNotification = (id: string) => {
-    setNotifications(notifications.filter(n => n.id !== id));
+  const deleteNotification = async (id: string) => {
+    try {
+      await adminFetch(`http://localhost:8000/api/notifications/${id}`, { method: 'DELETE' });
+      await load();
+    } catch (e) {
+      // ignore
+    }
   };
-
-  const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
     <div className="min-h-screen bg-[#1a3332]">
@@ -219,12 +212,25 @@ export function Notifications() {
               </div>
             </motion.div>
 
+            {loadError && (
+              <div className="bg-red-500/10 border border-red-500/30 text-red-300 rounded-lg p-4 mb-4">
+                {loadError}
+              </div>
+            )}
+
+            {isLoading && notifications.length === 0 && (
+              <div className="text-white/60 text-sm">Loading notifications…</div>
+            )}
+
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }} className="space-y-3">
               {filteredNotifications.map((notification, index) => {
                 const Icon = getNotificationIcon(notification.type);
+                const timeLabel = notification.createdAt
+                  ? new Date(notification.createdAt).toLocaleString()
+                  : '';
                 return (
                   <motion.div
-                    key={notification.id}
+                    key={notification._id}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.3, delay: index * 0.05 }}
@@ -255,20 +261,20 @@ export function Notifications() {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2 text-white/40 text-xs">
                             <Clock size={12} />
-                            <span>{notification.time}</span>
+                            <span>{timeLabel}</span>
                           </div>
                           
                           <div className="flex items-center gap-2">
                             {!notification.read && (
                               <button
-                                onClick={() => markAsRead(notification.id)}
+                                onClick={() => markAsRead(notification._id)}
                                 className="px-3 py-1 bg-green-500/10 hover:bg-green-500/20 text-green-400 rounded text-xs transition-all"
                               >
                                 Mark as Read
                               </button>
                             )}
                             <button
-                              onClick={() => deleteNotification(notification.id)}
+                              onClick={() => deleteNotification(notification._id)}
                               className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded transition-all"
                             >
                               <Trash2 size={14} />
@@ -282,7 +288,7 @@ export function Notifications() {
               })}
             </motion.div>
 
-            {filteredNotifications.length === 0 && (
+            {!isLoading && filteredNotifications.length === 0 && (
               <div className="text-center py-12">
                 <Bell className="mx-auto mb-4 text-white/20" size={48} />
                 <p className="text-white/40">No notifications found</p>
