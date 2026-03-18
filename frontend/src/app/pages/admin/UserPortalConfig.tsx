@@ -9,7 +9,6 @@ import {
   Eye,
   EyeOff,
   Save,
-  RotateCcw,
   AlertCircle,
   CheckCircle2,
   Upload,
@@ -27,11 +26,6 @@ import {
   Home,
   ShoppingBag,
   Briefcase,
-  Phone,
-  Users,
-  FileCheck,
-  MessageSquare,
-  User,
   X,
   Plus,
   Edit3,
@@ -126,15 +120,11 @@ export function UserPortalConfig() {
   });
 
   // Pages Configuration
+  const ALLOWED_PAGE_IDS = ['home', 'collection', 'our-work'] as const;
   const [pagesConfig, setPagesConfig] = useState<PageConfig[]>([
     { id: 'home', name: 'Home', path: '/', icon: Home, enabled: true, visible: true, order: 1, requiredAuth: false },
     { id: 'collection', name: 'Collection', path: '/collection', icon: ShoppingBag, enabled: true, visible: true, order: 2, requiredAuth: false },
-    { id: 'our-work', name: 'Our Work', path: '/our-work', icon: Briefcase, enabled: true, visible: true, order: 3, requiredAuth: false },
-    { id: 'services', name: 'Services', path: '/services', icon: FileCheck, enabled: true, visible: true, order: 4, requiredAuth: false },
-    { id: 'about', name: 'About', path: '/about', icon: Users, enabled: true, visible: true, order: 5, requiredAuth: false },
-    { id: 'contact', name: 'Contact', path: '/contact', icon: Phone, enabled: true, visible: true, order: 6, requiredAuth: false },
-    { id: 'inquiry', name: 'Inquiry Form', path: '/inquiry', icon: MessageSquare, enabled: true, visible: false, order: 7, requiredAuth: false },
-    { id: 'my-engagements', name: 'My Engagements', path: '/my-engagements', icon: User, enabled: true, visible: false, order: 8, requiredAuth: true }
+    { id: 'our-work', name: 'Our Work', path: '/our-work', icon: Briefcase, enabled: true, visible: true, order: 3, requiredAuth: false }
   ]);
 
   const toggleSection = (sectionId: string) => {
@@ -196,27 +186,24 @@ export function UserPortalConfig() {
         if (data.themeSettings) setThemeSettings((prev) => ({ ...prev, ...data.themeSettings }));
         if (Array.isArray(data.pagesConfig)) {
           setPagesConfig((prev) =>
-            data.pagesConfig.map((p: any) => {
-              const local = prev.find((lp) => lp.id === p.id);
-              const icon =
-                local?.icon ??
-                ({
-                  home: Home,
-                  collection: ShoppingBag,
-                  'our-work': Briefcase,
-                  services: FileCheck,
-                  about: Users,
-                  contact: Phone,
-                  inquiry: MessageSquare,
-                  'my-engagements': User
-                } as Record<string, any>)[p.id] ??
-                Home;
-              return {
-                ...local,
-                ...p,
-                icon
-              };
-            })
+            data.pagesConfig
+              .filter((p: any) => ALLOWED_PAGE_IDS.includes(p?.id))
+              .map((p: any) => {
+                const local = prev.find((lp) => lp.id === p.id);
+                const icon =
+                  local?.icon ??
+                  ({
+                    home: Home,
+                    collection: ShoppingBag,
+                    'our-work': Briefcase
+                  } as Record<string, any>)[p.id] ??
+                  Home;
+                return {
+                  ...local,
+                  ...p,
+                  icon
+                };
+              })
           );
         }
       } catch {
@@ -231,7 +218,9 @@ export function UserPortalConfig() {
       const body = {
         portalSettings,
         themeSettings,
-        pagesConfig: pagesConfig.map((p) => ({
+        pagesConfig: pagesConfig
+          .filter((p) => ALLOWED_PAGE_IDS.includes(p.id))
+          .map((p) => ({
           id: p.id,
           name: p.name,
           path: p.path,
@@ -275,27 +264,24 @@ export function UserPortalConfig() {
       if (data?.themeSettings) setThemeSettings(data.themeSettings);
       if (Array.isArray(data?.pagesConfig)) {
         setPagesConfig((prev) =>
-          data.pagesConfig.map((p: any) => {
-            const local = prev.find((lp) => lp.id === p.id);
-            const icon =
-              local?.icon ??
-              ({
-                home: Home,
-                collection: ShoppingBag,
-                'our-work': Briefcase,
-                services: FileCheck,
-                about: Users,
-                contact: Phone,
-                inquiry: MessageSquare,
-                'my-engagements': User
-              } as Record<string, any>)[p.id] ??
-              Home;
-            return {
-              ...local,
-              ...p,
-              icon
-            };
-          })
+          data.pagesConfig
+            .filter((p: any) => ALLOWED_PAGE_IDS.includes(p?.id))
+            .map((p: any) => {
+              const local = prev.find((lp) => lp.id === p.id);
+              const icon =
+                local?.icon ??
+                ({
+                  home: Home,
+                  collection: ShoppingBag,
+                  'our-work': Briefcase
+                } as Record<string, any>)[p.id] ??
+                Home;
+              return {
+                ...local,
+                ...p,
+                icon
+              };
+            })
         );
       }
       setShowSaveConfirm(true);
@@ -359,13 +345,6 @@ export function UserPortalConfig() {
                 >
                   <Save size={18} />
                   <span>Save All Changes</span>
-                </button>
-                <button
-                  onClick={handleResetToDefaults}
-                  className="px-6 py-3 bg-orange-500/10 hover:bg-orange-500/20 text-orange-500 rounded-lg transition-all flex items-center gap-2"
-                >
-                  <RotateCcw size={18} />
-                  <span>Reset to Defaults</span>
                 </button>
                 <button
                   onClick={() => navigate('/')}

@@ -122,7 +122,6 @@ export function EditPage() {
   const { id } = useParams();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Products state (for Collection page)
   const [products, setProducts] = useState<Product[]>([]);
@@ -169,7 +168,7 @@ export function EditPage() {
         setFormData(pageData);
       } else {
         // Page not found, redirect
-        navigate('/admin/config/pages');
+        navigate('/admin/portal-config');
       }
     }
   }, [id, navigate]);
@@ -272,24 +271,14 @@ export function EditPage() {
       console.log('Saving page:', formData);
       setShowSaveConfirm(true);
       setTimeout(() => {
-        navigate('/admin/config/pages');
+        navigate('/admin/portal-config');
       }, 1500);
     }
   };
 
-  const handleDelete = () => {
-    setShowDeleteConfirm(true);
-  };
-
-  const confirmDelete = () => {
-    // Delete logic here
-    console.log('Deleting page:', id);
-    navigate('/admin/config/pages');
-  };
-
   const handleCancel = () => {
     if (confirm('Are you sure you want to cancel? Any unsaved changes will be lost.')) {
-      navigate('/admin/config/pages');
+      navigate('/admin/portal-config');
     }
   };
 
@@ -489,11 +478,11 @@ export function EditPage() {
             >
               {/* Back Button */}
               <button
-                onClick={() => navigate('/admin/config/pages')}
+                onClick={() => navigate('/admin/portal-config')}
                 className="flex items-center gap-2 text-white/60 hover:text-white mb-6 transition-all"
               >
                 <ArrowLeft size={20} />
-                <span>Back to Pages Management</span>
+                <span>Back to Portal Config</span>
               </button>
 
               <div className="text-center mb-6">
@@ -517,13 +506,6 @@ export function EditPage() {
                 >
                   <Save size={18} />
                   <span>Save Changes</span>
-                </button>
-                <button
-                  onClick={handleDelete}
-                  className="px-6 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg transition-all flex items-center gap-2"
-                >
-                  <Trash2 size={18} />
-                  <span>Delete Page</span>
                 </button>
                 <button
                   onClick={handleCancel}
@@ -677,155 +659,7 @@ export function EditPage() {
                 </div>
               </div>
 
-              {/* Page Settings */}
-              <div className="bg-[#0a1514]/80 backdrop-blur-sm border border-orange-500/20 rounded-lg p-6">
-                <h3 className="text-white text-xl font-semibold mb-6 flex items-center gap-2">
-                  <Settings className="text-orange-500" size={24} />
-                  Page Settings
-                </h3>
-
-                <div className="space-y-4">
-                  {/* Enabled */}
-                  <div className="flex items-center justify-between p-4 bg-[#1a3332]/50 border border-orange-500/10 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                        formData.enabled ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
-                      }`}>
-                        {formData.enabled ? <Eye size={20} /> : <EyeOff size={20} />}
-                      </div>
-                      <div>
-                        <p className="text-white font-medium">Enable Page</p>
-                        <p className="text-white/60 text-sm">Make this page accessible to users</p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => updateFormData('enabled', !formData.enabled)}
-                      className={`px-6 py-2 rounded-lg transition-all font-medium ${
-                        formData.enabled
-                          ? 'bg-green-500 text-white'
-                          : 'bg-white/10 text-white/60'
-                      }`}
-                    >
-                      {formData.enabled ? 'Enabled' : 'Disabled'}
-                    </button>
-                  </div>
-
-                  {/* Visible in Menu */}
-                  <div className="flex items-center justify-between p-4 bg-[#1a3332]/50 border border-orange-500/10 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                        formData.visible ? 'bg-blue-500/20 text-blue-400' : 'bg-gray-500/20 text-gray-400'
-                      }`}>
-                        <Layout size={20} />
-                      </div>
-                      <div>
-                        <p className="text-white font-medium">Show in Navigation Menu</p>
-                        <p className="text-white/60 text-sm">Display this page in the main navigation</p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => updateFormData('visible', !formData.visible)}
-                      className={`px-6 py-2 rounded-lg transition-all font-medium ${
-                        formData.visible
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-white/10 text-white/60'
-                      }`}
-                    >
-                      {formData.visible ? 'Visible' : 'Hidden'}
-                    </button>
-                  </div>
-
-                  {/* Authentication Required */}
-                  <div className="flex items-center justify-between p-4 bg-[#1a3332]/50 border border-orange-500/10 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                        formData.requiredAuth ? 'bg-purple-500/20 text-purple-400' : 'bg-gray-500/20 text-gray-400'
-                      }`}>
-                        <Lock size={20} />
-                      </div>
-                      <div>
-                        <p className="text-white font-medium">Require Authentication</p>
-                        <p className="text-white/60 text-sm">Only logged-in users can access this page</p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => updateFormData('requiredAuth', !formData.requiredAuth)}
-                      className={`px-6 py-2 rounded-lg transition-all font-medium ${
-                        formData.requiredAuth
-                          ? 'bg-purple-500 text-white'
-                          : 'bg-white/10 text-white/60'
-                      }`}
-                    >
-                      {formData.requiredAuth ? 'Required' : 'Public'}
-                    </button>
-                  </div>
-
-                  {/* Show in Footer */}
-                  <div className="flex items-center justify-between p-4 bg-[#1a3332]/50 border border-orange-500/10 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                        formData.showInFooter ? 'bg-orange-500/20 text-orange-400' : 'bg-gray-500/20 text-gray-400'
-                      }`}>
-                        <Globe size={20} />
-                      </div>
-                      <div>
-                        <p className="text-white font-medium">Show in Footer Links</p>
-                        <p className="text-white/60 text-sm">Display this page link in the footer section</p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => updateFormData('showInFooter', !formData.showInFooter)}
-                      className={`px-6 py-2 rounded-lg transition-all font-medium ${
-                        formData.showInFooter
-                          ? 'bg-orange-500 text-white'
-                          : 'bg-white/10 text-white/60'
-                      }`}
-                    >
-                      {formData.showInFooter ? 'Yes' : 'No'}
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* SEO Settings */}
-              <div className="bg-[#0a1514]/80 backdrop-blur-sm border border-orange-500/20 rounded-lg p-6">
-                <h3 className="text-white text-xl font-semibold mb-6 flex items-center gap-2">
-                  <TrendingUp className="text-orange-500" size={24} />
-                  SEO Settings (Optional)
-                </h3>
-
-                <div className="space-y-4">
-                  {/* Meta Title */}
-                  <div>
-                    <label className="block text-white/80 text-sm font-medium mb-2">
-                      Meta Title
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.metaTitle}
-                      onChange={(e) => updateFormData('metaTitle', e.target.value)}
-                      className="w-full bg-[#1a3332] border border-orange-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500/40"
-                      placeholder="SEO title for search engines"
-                    />
-                    <p className="text-white/40 text-xs mt-1">Recommended: 50-60 characters</p>
-                  </div>
-
-                  {/* Meta Description */}
-                  <div>
-                    <label className="block text-white/80 text-sm font-medium mb-2">
-                      Meta Description
-                    </label>
-                    <textarea
-                      value={formData.metaDescription}
-                      onChange={(e) => updateFormData('metaDescription', e.target.value)}
-                      className="w-full bg-[#1a3332] border border-orange-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500/40 resize-none"
-                      rows={3}
-                      placeholder="Brief description for search engine results"
-                    />
-                    <p className="text-white/40 text-xs mt-1">Recommended: 150-160 characters</p>
-                  </div>
-                </div>
-              </div>
+              {/* Page Settings + SEO Settings removed as requested */}
 
               {/* Preview Card */}
               <div className="bg-[#0a1514]/80 backdrop-blur-sm border border-orange-500/20 rounded-lg p-6">
@@ -1458,44 +1292,6 @@ export function EditPage() {
         </div>
       </div>
 
-      {/* Delete Confirmation Modal */}
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-6">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-[#0a1514] border border-red-500/30 rounded-lg p-8 max-w-md w-full"
-          >
-            <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-4">
-              <Trash2 className="text-red-500" size={32} />
-            </div>
-            
-            <h3 className="text-white text-2xl font-semibold text-center mb-3">
-              Delete Page?
-            </h3>
-            
-            <p className="text-white/60 text-center mb-6">
-              Are you sure you want to delete <strong className="text-white">"{formData.name}"</strong>? This action cannot be undone.
-            </p>
-
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowDeleteConfirm(false)}
-                className="flex-1 px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmDelete}
-                className="flex-1 px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all flex items-center justify-center gap-2"
-              >
-                <Trash2 size={18} />
-                Delete
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      )}
     </div>
   );
 }

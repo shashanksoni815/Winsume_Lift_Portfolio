@@ -7,8 +7,7 @@ import { ServicesPage } from './pages/ServicesPage';
 import { AboutPage } from './pages/AboutPage';
 import { ContactPage } from './pages/ContactPage';
 import { InquiryPage } from './pages/InquiryPage';
-import { LoginPage } from './pages/LoginPage';
-import { AdminLoginPage } from './pages/AdminLoginPage';
+import { CombinedLoginPage } from './pages/CombinedLoginPage';
 import { CreateIdentityPage } from './pages/CreateIdentityPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { AdminForgotPasswordPage } from './pages/AdminForgotPasswordPage';
@@ -35,8 +34,6 @@ import { Notifications } from "./pages/admin/Notifications";
 import { AdminProfile } from "./pages/admin/AdminProfile";
 import { AdminAccountSettings } from "./pages/admin/AdminAccountSettings";
 import { TasksManagement } from "./pages/admin/TasksManagement";
-import { PagesManagement } from "./pages/admin/config/PagesManagement";
-import { AddNewPage } from "./pages/admin/config/AddNewPage";
 import { EditPage } from "./pages/admin/config/EditPage";
 
 export const router = createBrowserRouter([
@@ -74,11 +71,11 @@ export const router = createBrowserRouter([
       },
       {
         path: "login",
-        Component: LoginPage,
+        Component: CombinedLoginPage,
       },
       {
         path: "admin-login",
-        Component: AdminLoginPage,
+        Component: CombinedLoginPage,
       },
       {
         path: "create-identity",
@@ -183,14 +180,6 @@ export const router = createBrowserRouter([
       {
         path: "admin/tasks",
         Component: TasksManagement,
-      },
-      {
-        path: "admin/config/pages",
-        Component: PagesManagement,
-      },
-      {
-        path: "admin/config/pages/add",
-        Component: AddNewPage,
       },
       {
         path: "admin/config/pages/edit/:id",
