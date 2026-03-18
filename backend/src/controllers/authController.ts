@@ -171,7 +171,8 @@ export const forgotPassword = async (req: Request, res: Response, next: NextFunc
     const user = await User.findOne({ email: data.email });
     if (!user) {
       // Do not reveal whether the email exists
-      return res.json({ message: "If that email exists, you can now reset your password." });
+      res.json({ message: "If that email exists, you can now reset your password." });
+      return;
     }
 
     // In this flow we immediately allow reset after email verification on the client.

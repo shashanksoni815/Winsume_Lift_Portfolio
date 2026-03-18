@@ -89,7 +89,7 @@ export const updateCartItemQuantity = async (req: Request, res: Response, next: 
       throw createHttpError(404, "Cart not found");
     }
 
-    const item = cart.items.id(itemId);
+    const item = cart.items.find((i: any) => String(i?._id) === itemId) as any;
     if (!item) {
       throw createHttpError(404, "Cart item not found");
     }
@@ -116,12 +116,16 @@ export const removeCartItem = async (req: Request, res: Response, next: NextFunc
       throw createHttpError(404, "Cart not found");
     }
 
-    const item = cart.items.id(itemId);
+    const item = cart.items.find((i: any) => String(i?._id) === itemId) as any;
     if (!item) {
       throw createHttpError(404, "Cart item not found");
     }
 
-    item.deleteOne();
+    if (typeof item.deleteOne === "function") {
+      item.deleteOne();
+    } else {
+      cart.items = cart.items.filter((i: any) => String(i?._id) !== itemId);
+    }
     await cart.save();
 
     res.status(204).send();
