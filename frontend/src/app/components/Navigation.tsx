@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Menu, X, Phone, User, ShoppingCart, FolderKanban, LogOut } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router';
 import { useCart } from '../context/CartContext';
@@ -294,7 +294,16 @@ export function Navigation() {
         {/* Profile Menu */}
         {isProfileMenuOpen && (
           <div className="absolute right-6 top-20 bg-[#1a3332]/95 backdrop-blur-md border border-orange-500/20 rounded-lg shadow-2xl p-2 w-64">
-            <div className="text-center py-3 border-b border-white/10">
+            <div className="relative text-center py-3 border-b border-white/10">
+              <button
+                type="button"
+                onClick={() => setIsProfileMenuOpen(false)}
+                className="absolute right-2 top-2 w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-orange-500/30 flex items-center justify-center transition-all"
+                aria-label="Close"
+                title="Close"
+              >
+                <X size={16} className="text-white/70" />
+              </button>
               <p className="text-orange-500/80 text-xs uppercase tracking-widest">
                 {isLoggedIn ? (userRole === 'admin' ? 'Admin Portal' : 'User Portal') : 'Security Portal'}
               </p>
