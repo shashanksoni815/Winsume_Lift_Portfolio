@@ -18,5 +18,5 @@ export const env = {
   jwtRefreshSecret: getEnv("JWT_REFRESH_SECRET", "dev_refresh_secret_change_me"),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? "15m",
   jwtRefreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN ?? "7d",
-  frontendOrigin: "https://winsume-lift-portfolio.vercel.app/"
+  frontendOrigin: "https://winsume-lift-portfolio.vercel.app"
 };
