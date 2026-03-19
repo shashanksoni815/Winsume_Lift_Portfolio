@@ -18,7 +18,7 @@ import productRoutes from "./routes/product.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
 const app = express();
 app.use(cors({
-    origin: "https://winsume-lift-portfolio-m4174p2mc-shashanksoni815s-projects.vercel.app",
+    origin: "https://winsume-lift-portfolio-frontend.onrender.com" || "*",
     credentials: true
 }));
 app.use(express.json());
