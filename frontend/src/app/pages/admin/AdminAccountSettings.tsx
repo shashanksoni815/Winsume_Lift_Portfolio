@@ -41,7 +41,7 @@ export function AdminAccountSettings() {
         return;
       }
 
-      const res = await fetch('https://winsume-lift-portfolio-backend.onrender.com/api/users/me/password', {
+      const res = await fetch('https://winsume-lift-backend01.onrender.com/api/users/me/password', {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

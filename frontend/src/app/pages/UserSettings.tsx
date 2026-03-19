@@ -60,7 +60,7 @@ export function UserSettings() {
       }
 
       try {
-        const res = await fetch('https://winsume-lift-portfolio-backend.onrender.com/api/users/me/profile', {
+        const res = await fetch('https://winsume-lift-backend01.onrender.com/api/users/me/profile', {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
@@ -102,7 +102,7 @@ export function UserSettings() {
 
     try {
       setIsSavingProfile(true);
-      const res = await fetch('https://winsume-lift-portfolio-backend.onrender.com/api/users/me/profile', {
+      const res = await fetch('https://winsume-lift-backend01.onrender.com/api/users/me/profile', {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -149,7 +149,7 @@ export function UserSettings() {
 
     try {
       setIsChangingPassword(true);
-      const res = await fetch('https://winsume-lift-portfolio-backend.onrender.com/api/users/me/password', {
+      const res = await fetch('https://winsume-lift-backend01.onrender.com/api/users/me/password', {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

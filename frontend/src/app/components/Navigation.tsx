@@ -26,7 +26,7 @@ export function Navigation() {
   useEffect(() => {
     const loadConfig = async () => {
       try {
-        const res = await fetch('https://winsume-lift-portfolio-backend.onrender.com/api/portal-config');
+        const res = await fetch('https://winsume-lift-backend01.onrender.com/api/portal-config');
         if (!res.ok) return;
         const data = await res.json().catch(() => null);
         if (data?.portalSettings?.siteName) {

@@ -29,7 +29,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const accessToken = localStorage.getItem('accessToken');
       if (!accessToken) return;
       try {
-        const res = await fetch('https://winsume-lift-portfolio-backend.onrender.com/api/cart/me', {
+        const res = await fetch('https://winsume-lift-backend01.onrender.com/api/cart/me', {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
@@ -50,7 +50,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           const rawImage = item.image ?? '';
           const image =
             typeof rawImage === 'string' && rawImage.startsWith('/uploads')
-              ? `https://winsume-lift-portfolio-backend.onrender.com${rawImage}`
+              ? `https://winsume-lift-backend01.onrender.com${rawImage}`
               : rawImage;
           return {
             id: item._id,
@@ -78,7 +78,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const res = await fetch('https://winsume-lift-portfolio-backend.onrender.com/api/cart/items', {
+      const res = await fetch('https://winsume-lift-backend01.onrender.com/api/cart/items', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -99,7 +99,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         const rawImage = ci.image ?? '';
         const image =
           typeof rawImage === 'string' && rawImage.startsWith('/uploads')
-            ? `https://winsume-lift-portfolio-backend.onrender.com${rawImage}`
+            ? `https://winsume-lift-backend01.onrender.com${rawImage}`
             : rawImage;
         return {
           id: ci._id,
@@ -125,7 +125,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      await fetch(`https://winsume-lift-portfolio-backend.onrender.com/api/cart/items/${id}`, {
+      await fetch(`https://winsume-lift-backend01.onrender.com/api/cart/items/${id}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -157,7 +157,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (!accessToken) return;
 
     try {
-      await fetch(`https://winsume-lift-portfolio-backend.onrender.com/api/cart/items/${id}`, {
+      await fetch(`https://winsume-lift-backend01.onrender.com/api/cart/items/${id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -174,7 +174,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const accessToken = localStorage.getItem('accessToken');
     if (accessToken) {
       try {
-        await fetch('https://winsume-lift-portfolio-backend.onrender.com/api/cart/me', {
+        await fetch('https://winsume-lift-backend01.onrender.com/api/cart/me', {
           method: 'DELETE',
           headers: {
             Authorization: `Bearer ${accessToken}`,

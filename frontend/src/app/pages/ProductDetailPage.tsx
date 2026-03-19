@@ -62,7 +62,7 @@ export function ProductDetailPage() {
       try {
         setIsLoading(true);
         setLoadError(null);
-        const res = await fetch(`https://winsume-lift-portfolio-backend.onrender.com/api/products/slug/${slug}`);
+        const res = await fetch(`https://winsume-lift-backend01.onrender.com/api/products/slug/${slug}`);
         if (!res.ok) {
           const data = await res.json().catch(() => null);
           setLoadError(data?.message || 'Failed to load product.');
@@ -78,7 +78,7 @@ export function ProductDetailPage() {
         const rawHero = p.heroImage || (Array.isArray(p.images) ? p.images[0] : undefined);
         const heroImage =
           typeof rawHero === 'string' && rawHero.startsWith('/uploads')
-            ? `https://winsume-lift-portfolio-backend.onrender.com${rawHero}`
+            ? `https://winsume-lift-backend01.onrender.com${rawHero}`
             : rawHero;
 
         const galleryImages: string[] = [];
@@ -88,7 +88,7 @@ export function ProductDetailPage() {
             if (img && !galleryImages.includes(img)) {
               const normalized =
                 typeof img === 'string' && img.startsWith('/uploads')
-                  ? `https://winsume-lift-portfolio-backend.onrender.com${img}`
+                  ? `https://winsume-lift-backend01.onrender.com${img}`
                   : img;
               galleryImages.push(normalized);
             }

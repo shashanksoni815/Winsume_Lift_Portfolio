@@ -22,7 +22,7 @@ export function AdminLoginPage() {
     try {
       setIsSubmitting(true);
 
-      const response = await fetch('https://winsume-lift-portfolio-backend.onrender.com/api/auth/admin/login', {
+      const response = await fetch('https://winsume-lift-backend01.onrender.com/api/auth/admin/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

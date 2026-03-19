@@ -32,7 +32,7 @@ export function AllProjectsPage() {
         setIsLoading(true);
         setLoadError(null);
         // Reuse the same products that power the Collection page
-        const res = await fetch('https://winsume-lift-portfolio-backend.onrender.com/api/products/public');
+        const res = await fetch('https://winsume-lift-backend01.onrender.com/api/products/public');
         if (!res.ok) {
           const data = await res.json().catch(() => null);
           setLoadError(data?.message || 'Failed to load products.');
@@ -44,7 +44,7 @@ export function AllProjectsPage() {
           const rawImage = p.heroImage || (Array.isArray(p.images) ? p.images[0] : '');
           const image =
             typeof rawImage === 'string' && rawImage.startsWith('/uploads')
-              ? `https://winsume-lift-portfolio-backend.onrender.com${rawImage}`
+              ? `https://winsume-lift-backend01.onrender.com${rawImage}`
               : rawImage;
 
           const rawCategory = (p.category || '').toString().toLowerCase();

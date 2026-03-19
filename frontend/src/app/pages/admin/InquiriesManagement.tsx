@@ -66,7 +66,7 @@ export function InquiriesManagement() {
       try {
         setIsLoading(true);
         setLoadError(null);
-        const res = await fetch('https://winsume-lift-portfolio-backend.onrender.com/api/inquiries', {
+        const res = await fetch('https://winsume-lift-backend01.onrender.com/api/inquiries', {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
@@ -174,7 +174,7 @@ export function InquiriesManagement() {
     }
 
     try {
-      const res = await fetch(`https://winsume-lift-portfolio-backend.onrender.com/api/inquiries/${inquiry.id}`, {
+      const res = await fetch(`https://winsume-lift-backend01.onrender.com/api/inquiries/${inquiry.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

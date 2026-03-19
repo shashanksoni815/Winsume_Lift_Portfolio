@@ -1,6 +1,6 @@
 export const API_BASE_URL =
   (import.meta as any).env?.VITE_API_BASE_URL ||
-  'https://winsume-lift-portfolio-backend.onrender.com';
+  'https://winsume-lift-backend01.onrender.com';
 
 export function apiUrl(path: string) {
   if (!path) return API_BASE_URL;

@@ -67,7 +67,7 @@ export function AdminProfile() {
       try {
         setIsLoading(true);
         setLoadError(null);
-        const res = await adminFetch('hhttps://winsume-lift-portfolio-backend.onrender.com/api/users/me/profile');
+        const res = await adminFetch('https://winsume-lift-backend01.onrender.com/api/users/me/profile');
         if (!res.ok) {
           const data = await res.json().catch(() => null);
           setLoadError(data?.message || 'Failed to load admin profile.');
@@ -113,7 +113,7 @@ export function AdminProfile() {
             ? formData.location.split(',').slice(1).join(',').trim()
             : undefined,
       };
-      const res = await adminFetch('hhttps://winsume-lift-portfolio-backend.onrender.com/api/users/me/profile', {
+      const res = await adminFetch('https://winsume-lift-backend01.onrender.com/api/users/me/profile', {
         method: 'PATCH',
         body: JSON.stringify(payload),
       });

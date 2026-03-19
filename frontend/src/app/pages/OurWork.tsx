@@ -29,8 +29,8 @@ export function OurWork() {
         setLoadError(null);
 
         const [configRes, productsRes] = await Promise.all([
-          fetch('https://winsume-lift-portfolio-backend.onrender.com/api/portal-config'),
-          fetch('https://winsume-lift-portfolio-backend.onrender.com/api/products/public')
+          fetch('https://winsume-lift-backend01.onrender.com/api/portal-config'),
+          fetch('https://winsume-lift-backend01.onrender.com/api/products/public')
         ]);
 
         const configData = await configRes.json().catch(() => null);
@@ -50,7 +50,7 @@ export function OurWork() {
             const rawImage = p.heroImage || (Array.isArray(p.images) ? p.images[0] : '');
             const image =
               typeof rawImage === 'string' && rawImage.startsWith('/uploads')
-                ? `https://winsume-lift-portfolio-backend.onrender.com${rawImage}`
+                ? `https://winsume-lift-backend01.onrender.com${rawImage}`
                 : rawImage;
             const categoryLabel = (p.category || '').toString().toUpperCase();
 
