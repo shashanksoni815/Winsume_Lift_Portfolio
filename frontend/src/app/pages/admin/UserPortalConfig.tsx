@@ -294,7 +294,7 @@ export function UserPortalConfig() {
   const tabs = [
     { id: 'general', label: 'General Settings', icon: Settings },
     { id: 'pages', label: 'Pages Management', icon: Layout },
-    { id: 'theme', label: 'Theme & Branding', icon: Palette }
+    // { id: 'theme', label: 'Theme & Branding', icon: Palette }
   ];
 
   return (
@@ -618,7 +618,7 @@ export function UserPortalConfig() {
                 </div>
 
                 {/* Featured Portfolio Configuration */}
-                <div className="mt-10 border-t border-white/10 pt-6">
+                {/* <div className="mt-10 border-t border-white/10 pt-6">
                   <h4 className="text-white text-lg font-semibold mb-2">
                     Home Portfolio Featured Projects
                   </h4>
@@ -669,12 +669,12 @@ export function UserPortalConfig() {
                   <p className="text-white/40 text-xs mt-2">
                     Selected: {portalSettings.homePortfolioProjectIds?.length ?? 0} / 4
                   </p>
-                </div>
+                </div> */}
               </motion.div>
             )}
 
             {/* Theme & Branding Tab */}
-            {activeTab === 'theme' && (
+            {/* {activeTab === 'theme' && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -682,7 +682,7 @@ export function UserPortalConfig() {
                 className="space-y-6"
               >
                 {/* Color Scheme */}
-                <div className="bg-[#0a1514]/80 backdrop-blur-sm border border-orange-500/20 rounded-lg p-6">
+                {/* <div className="bg-[#0a1514]/80 backdrop-blur-sm border border-orange-500/20 rounded-lg p-6">
                   <h3 className="text-white text-xl font-semibold mb-6 flex items-center gap-2">
                     <Palette className="text-orange-500" size={24} />
                     Color Scheme
@@ -714,10 +714,10 @@ export function UserPortalConfig() {
                       </div>
                     ))}
                   </div>
-                </div>
+                </div> */}
 
                 {/* Typography */}
-                <div className="bg-[#0a1514]/80 backdrop-blur-sm border border-orange-500/20 rounded-lg p-6">
+                {/* <div className="bg-[#0a1514]/80 backdrop-blur-sm border border-orange-500/20 rounded-lg p-6">
                   <h3 className="text-white text-xl font-semibold mb-6 flex items-center gap-2">
                     <FileText className="text-orange-500" size={24} />
                     Typography
@@ -738,10 +738,10 @@ export function UserPortalConfig() {
                       <option value="Times New Roman">Times New Roman</option>
                     </select>
                   </div>
-                </div>
+                </div> */}
 
                 {/* Branding Assets */}
-                <div className="bg-[#0a1514]/80 backdrop-blur-sm border border-orange-500/20 rounded-lg p-6">
+               {/* <div className="bg-[#0a1514]/80 backdrop-blur-sm border border-orange-500/20 rounded-lg p-6">
                   <h3 className="text-white text-xl font-semibold mb-6 flex items-center gap-2">
                     <ImageIcon className="text-orange-500" size={24} />
                     Branding Assets
@@ -782,7 +782,7 @@ export function UserPortalConfig() {
                   </div>
                 </div>
               </motion.div>
-            )}
+            )} */}
           </div>
         </div>
       </div>

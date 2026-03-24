@@ -360,14 +360,14 @@ export function UserManagement() {
                   <Plus size={16} />
                   <span className="text-sm">Add New User</span>
                 </button>
-                <button className="px-4 py-2 bg-orange-500/10 hover:bg-orange-500/20 text-orange-500 rounded-lg transition-all flex items-center gap-2">
+                {/* <button className="px-4 py-2 bg-orange-500/10 hover:bg-orange-500/20 text-orange-500 rounded-lg transition-all flex items-center gap-2">
                   <Download size={16} />
                   <span className="text-sm">Export CSV</span>
                 </button>
                 <button className="px-4 py-2 bg-orange-500/10 hover:bg-orange-500/20 text-orange-500 rounded-lg transition-all flex items-center gap-2">
                   <Upload size={16} />
                   <span className="text-sm">Import Users</span>
-                </button>
+                </button> */}
               </div>
 
               {/* Search and Filter Bar */}
