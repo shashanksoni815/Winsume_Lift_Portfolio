@@ -292,9 +292,9 @@ export function ProductDetailPage() {
                 >
                   ADD TO CONSULTATION →
                 </button>
-                <button className="w-full bg-transparent border-2 border-white/20 text-white py-4 rounded-full hover:border-orange-500/50 hover:bg-orange-500/5 transition-all uppercase tracking-wider text-sm font-semibold">
+                {/* <button className="w-full bg-transparent border-2 border-white/20 text-white py-4 rounded-full hover:border-orange-500/50 hover:bg-orange-500/5 transition-all uppercase tracking-wider text-sm font-semibold">
                   GET A CUSTOM QUOTE
-                </button>
+                </button> */}
               </div>
 
               <p className="text-white/30 text-xs text-center leading-relaxed pt-4">

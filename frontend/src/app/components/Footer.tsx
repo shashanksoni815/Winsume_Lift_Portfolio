@@ -32,18 +32,18 @@ export function Footer() {
               Service Provider and Manufacturer of Lift Installation Services, Passenger Lifts, and Maintenance Services Since 2018 in Indore, Madhya Pradesh.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="w-10 h-10 bg-[#2a4544] hover:bg-orange-500/20 border border-[#3a5554] hover:border-orange-500/50 rounded-lg flex items-center justify-center transition-all">
+              <a href="https://www.facebook.com/winsome.lift" className="w-10 h-10 bg-[#2a4544] hover:bg-orange-500/20 border border-[#3a5554] hover:border-orange-500/50 rounded-lg flex items-center justify-center transition-all">
                 <Facebook size={18} className="text-white/70 hover:text-orange-500" />
               </a>
-              <a href="#" className="w-10 h-10 bg-[#2a4544] hover:bg-orange-500/20 border border-[#3a5554] hover:border-orange-500/50 rounded-lg flex items-center justify-center transition-all">
+              <a href="https://www.instagram.com/winsumeliftindia?igsh=MW4zMm45ZWpqYjU3bA==" className="w-10 h-10 bg-[#2a4544] hover:bg-orange-500/20 border border-[#3a5554] hover:border-orange-500/50 rounded-lg flex items-center justify-center transition-all">
                 <Instagram size={18} className="text-white/70 hover:text-orange-500" />
               </a>
-              <a href="#" className="w-10 h-10 bg-[#2a4544] hover:bg-orange-500/20 border border-[#3a5554] hover:border-orange-500/50 rounded-lg flex items-center justify-center transition-all">
+              {/* <a href="#" className="w-10 h-10 bg-[#2a4544] hover:bg-orange-500/20 border border-[#3a5554] hover:border-orange-500/50 rounded-lg flex items-center justify-center transition-all">
                 <Linkedin size={18} className="text-white/70 hover:text-orange-500" />
               </a>
               <a href="#" className="w-10 h-10 bg-[#2a4544] hover:bg-orange-500/20 border border-[#3a5554] hover:border-orange-500/50 rounded-lg flex items-center justify-center transition-all">
                 <Twitter size={18} className="text-white/70 hover:text-orange-500" />
-              </a>
+              </a> */}
             </div>
           </div>
 

@@ -12,7 +12,7 @@ import { CreateIdentityPage } from './pages/CreateIdentityPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { AdminForgotPasswordPage } from './pages/AdminForgotPasswordPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
-import { BespokeProposalPage } from './pages/BespokeProposalPage';
+// import { BespokeProposalPage } from './pages/BespokeProposalPage';
 import { InquiryListPage } from './pages/InquiryListPage';
 import { ProductDetailPage } from './pages/ProductDetailPage';
 import { ProjectDetailPage } from './pages/ProjectDetailPage';
@@ -93,10 +93,10 @@ export const router = createBrowserRouter([
         path: "reset-password",
         Component: ResetPasswordPage,
       },
-      {
-        path: "bespoke-proposal",
-        Component: BespokeProposalPage,
-      },
+      // {
+      //   path: "bespoke-proposal",
+      //   Component: BespokeProposalPage,
+      // },
       {
         path: "inquiry-list",
         Component: InquiryListPage,
