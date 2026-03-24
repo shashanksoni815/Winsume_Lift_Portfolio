@@ -309,7 +309,7 @@ export function UserPortal() {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="bg-[#1a3332]/80 backdrop-blur-md border border-orange-500/20 rounded-xl p-2 mb-8 flex gap-2 overflow-x-auto"
           >
-            <button
+            {/* <button
               onClick={() => setActiveTab('overview')}
               className={`px-6 py-3 rounded-lg transition-all whitespace-nowrap ${
                 activeTab === 'overview' 
@@ -318,7 +318,7 @@ export function UserPortal() {
               }`}
             >
               Overview
-            </button>
+            </button> */}
             <button
               onClick={() => setActiveTab('projects')}
               className={`px-6 py-3 rounded-lg transition-all whitespace-nowrap ${
@@ -329,7 +329,7 @@ export function UserPortal() {
             >
               My Projects
             </button>
-            <button
+            {/* <button
               onClick={() => setActiveTab('documents')}
               className={`px-6 py-3 rounded-lg transition-all whitespace-nowrap ${
                 activeTab === 'documents' 
@@ -338,7 +338,7 @@ export function UserPortal() {
               }`}
             >
               Documents
-            </button>
+            </button> */}
             <button
               onClick={() => setActiveTab('messages')}
               className={`px-6 py-3 rounded-lg transition-all whitespace-nowrap ${
