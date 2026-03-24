@@ -19,7 +19,7 @@ const createInquirySchema = z.object({
 export const createInquiry = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const data = createInquirySchema.parse(req.body);
-    const externalId = generateInquiryId();
+    const externalId = await generateInquiryId();
 
     const inquiry = await Inquiry.create({
       externalId,

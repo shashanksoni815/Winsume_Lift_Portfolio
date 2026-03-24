@@ -423,12 +423,12 @@ export function AdminDashboard() {
               </div>
 
               {/* Action Button */}
-              <div className="flex items-center justify-center gap-3 mb-6">
+              {/* <div className="flex items-center justify-center gap-3 mb-6">
                 <button className="px-4 py-2 bg-orange-500/10 hover:bg-orange-500/20 text-orange-500 rounded-lg transition-all flex items-center gap-2">
                   <Download size={16} />
                   <span className="text-sm">Export Report</span>
                 </button>
-              </div>
+              </div> */}
 
               {/* Search Bar */}
               <div className="relative">
