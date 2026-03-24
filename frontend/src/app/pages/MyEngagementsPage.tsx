@@ -5,6 +5,7 @@ import { Footer } from '../components/Footer';
 import { Medal, Phone } from 'lucide-react';
 import { motion } from 'motion/react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
+import React from 'react';
 
 interface Engagement {
   id: string;

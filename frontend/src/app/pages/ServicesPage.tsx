@@ -4,6 +4,7 @@ import { Footer } from '../components/Footer';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { motion } from 'motion/react';
 import { Settings, Wrench, Shield, Zap } from 'lucide-react';
+import React from 'react';
 
 const services = [
   {

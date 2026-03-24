@@ -272,7 +272,7 @@
 //   );
 // }
 
-
+import React from 'react';
 import { useState } from 'react';
 import { Send, Phone, Mail, MapPin, MessageCircle } from 'lucide-react';
 import { motion } from 'motion/react';

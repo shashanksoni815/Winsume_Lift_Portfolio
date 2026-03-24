@@ -6,6 +6,7 @@ import { motion } from 'motion/react';
 import { useState, useEffect, useRef } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router';
+import React from 'react';
 
 interface Product {
   id: string;

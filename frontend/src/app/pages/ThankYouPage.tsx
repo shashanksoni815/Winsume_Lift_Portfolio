@@ -5,6 +5,7 @@ import { CheckCircle } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router';
 import { useEffect } from 'react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
+import React from 'react';
 
 export function ThankYouPage() {
   const navigate = useNavigate();

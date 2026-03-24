@@ -5,6 +5,7 @@ import { Footer } from '../components/Footer';
 import { Lock, Shield, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'motion/react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
+import React from 'react';
 
 interface ResetState {
   email?: string;

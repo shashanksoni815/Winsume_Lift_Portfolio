@@ -1,6 +1,7 @@
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { Award, Target, Heart } from 'lucide-react';
 import { motion } from 'motion/react';
+import React from 'react';
 
 export function About() {
   return (

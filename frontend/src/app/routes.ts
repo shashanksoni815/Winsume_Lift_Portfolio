@@ -35,6 +35,7 @@ import { AdminProfile } from "./pages/admin/AdminProfile";
 import { AdminAccountSettings } from "./pages/admin/AdminAccountSettings";
 import { TasksManagement } from "./pages/admin/TasksManagement";
 import { EditPage } from "./pages/admin/config/EditPage";
+import { CheckoutPage } from './pages/CheckoutPage';
 
 export const router = createBrowserRouter([
   {
@@ -120,6 +121,10 @@ export const router = createBrowserRouter([
       {
         path: "cart",
         Component: CartPage,
+      },
+      {
+        path: "Checkout",
+        Component: CheckoutPage,
       },
       {
         path: "my-engagements",

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
+import React from 'react';
 import {
   Bell,
   CheckCircle2,

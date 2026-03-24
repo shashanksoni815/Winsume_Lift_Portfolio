@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { motion } from 'motion/react';
+import React from 'react';
 import {
   ArrowLeft,
   Mail,

@@ -6,6 +6,7 @@ import { motion } from 'motion/react';
 import { CheckCircle, Award, Package, Gauge, Zap, Shield } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { useCart } from '../context/CartContext';
+import React from 'react';
 
 interface ProductSpec {
   label: string;

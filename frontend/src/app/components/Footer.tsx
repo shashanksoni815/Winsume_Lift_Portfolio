@@ -1,6 +1,7 @@
 import { Facebook, Instagram, Linkedin, Twitter } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useNavigate } from 'react-router';
+import React from 'react';
 
 export function Footer() {
   const navigate = useNavigate();
@@ -103,7 +104,7 @@ export function Footer() {
             <p className="text-white/50 text-sm mb-4 md:mb-0">
               © 2026 Winsume Lift India Private Limited. All rights reserved.
             </p>
-            <div className="flex space-x-6">
+            {/* <div className="flex space-x-6">
               <a href="#" className="text-white/50 hover:text-orange-500 text-sm transition-colors">
                 Privacy Policy
               </a>
@@ -113,7 +114,7 @@ export function Footer() {
               <a href="#" className="text-white/50 hover:text-orange-500 text-sm transition-colors">
                 Cookie Policy
               </a>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>

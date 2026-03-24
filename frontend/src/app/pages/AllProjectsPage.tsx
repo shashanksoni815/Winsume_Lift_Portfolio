@@ -1,4 +1,5 @@
 import { Navigation } from '../components/Navigation';
+import React from 'react';
 import { InquiryForm } from '../components/InquiryForm';
 import { Footer } from '../components/Footer';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';

@@ -6,6 +6,7 @@ import { motion } from 'motion/react';
 import { ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { useEffect, useState } from 'react';
+import React from 'react';
 
 interface FeaturedItem {
   id: string;

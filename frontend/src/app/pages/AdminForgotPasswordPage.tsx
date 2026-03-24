@@ -5,6 +5,7 @@ import { Mail, Shield, ArrowLeft } from 'lucide-react';
 import { motion } from 'motion/react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { useNavigate } from 'react-router';
+import React from 'react';
 
 export function AdminForgotPasswordPage() {
   const navigate = useNavigate();

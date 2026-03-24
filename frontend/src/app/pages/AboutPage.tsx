@@ -3,6 +3,7 @@ import { InquiryForm } from '../components/InquiryForm';
 import { Footer } from '../components/Footer';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { motion } from 'motion/react';
+import React from 'react';
 
 const companyStats = [
   {

@@ -5,6 +5,7 @@ import { motion } from 'motion/react';
 import { useNavigate } from 'react-router';
 import { Minus, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import React from 'react';
 
 interface CartItem {
   id: string;

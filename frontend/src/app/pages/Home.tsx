@@ -6,6 +6,7 @@ import { Services } from '../components/Services';
 import { About } from '../components/About';
 import { InquiryForm } from '../components/InquiryForm';
 import { Footer } from '../components/Footer';
+import React from 'react';
 
 export function Home() {
   return (

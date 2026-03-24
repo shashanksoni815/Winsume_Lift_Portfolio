@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from 'react-router';
+import React from 'react';
 import { Navigation } from '../components/Navigation';
 import { InquiryForm } from '../components/InquiryForm';
 import { Footer } from '../components/Footer';

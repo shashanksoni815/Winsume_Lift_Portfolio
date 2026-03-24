@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
+import React from 'react';
 import { motion } from 'motion/react';
 import {
   User,

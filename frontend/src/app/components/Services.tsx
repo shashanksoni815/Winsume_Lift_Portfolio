@@ -1,6 +1,7 @@
 import { Ruler, Wrench, Shield, Sparkles, Users, Clock } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useNavigate } from 'react-router';
+import React from 'react';
 
 const services = [
   {

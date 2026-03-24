@@ -5,6 +5,7 @@ import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { Send, Phone, Mail, MapPin, MessageCircle } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useNavigate } from 'react-router';
+import React from 'react';
 
 export function ContactPage() {
   const navigate = useNavigate();

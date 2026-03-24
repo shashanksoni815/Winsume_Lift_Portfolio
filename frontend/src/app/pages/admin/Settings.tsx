@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
+import React from 'react';
 import {
   Settings as SettingsIcon,
   User,
