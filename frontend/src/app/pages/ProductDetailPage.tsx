@@ -31,6 +31,18 @@ interface Product {
   badges: { label: string; color: string }[];
 }
 
+const getStatIcon = (name: string) => {
+  const iconMap: Record<string, any> = {
+    package: Package,
+    gauge: Gauge,
+    zap: Zap,
+    shield: Shield,
+    award: Award,
+    checkcircle: CheckCircle,
+  };
+  return iconMap[name.toLowerCase()] || Package;
+};
+
 export function ProductDetailPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -108,10 +120,11 @@ export function ProductDetailPage() {
           category: p.category,
           price: typeof p.price === 'number' ? p.price : undefined,
           shortDescription: p.shortDescription,
+          longDescription: p.longDescription,
           heroImage: heroImage,
           images: galleryImages,
           features: Array.isArray(p.features) ? p.features : [],
-          // specifications: Array.isArray(p.specifications) ? p.specifications : []
+          specifications: Array.isArray(p.specifications) ? p.specifications : [],
           fullSpecifications: Array.isArray(p.fullSpecifications) ? p.fullSpecifications : [],
           highlightStats:     Array.isArray(p.highlightStats)     ? p.highlightStats     : [],
           detailedFeatures:   Array.isArray(p.detailedFeatures)   ? p.detailedFeatures   : [],
@@ -169,16 +182,16 @@ export function ProductDetailPage() {
             <h1 className="font-['Great_Vibes'] text-6xl md:text-7xl lg:text-8xl text-white mb-6">
               {product?.name || 'Lift'}
             </h1>
-            <div className="flex items-center justify-center gap-4 flex-wrap">
-              <div className="flex items-center gap-2 bg-green-500/10 border border-green-500/30 px-4 py-2 rounded-full">
-                <Award size={16} className="text-green-500" />
-                <span className="text-green-500 text-xs uppercase tracking-wider">ISO Certified</span>
+            {product.badges.length > 0 && (
+              <div className="flex items-center justify-center gap-4 flex-wrap">
+                {product.badges.map((badge, index) => (
+                  <div key={`${badge.label}-${index}`} className="flex items-center gap-2 bg-orange-500/10 border border-orange-500/30 px-4 py-2 rounded-full">
+                    <Award size={16} className="text-orange-500" />
+                    <span className="text-orange-500 text-xs uppercase tracking-wider">{badge.label}</span>
+                  </div>
+                ))}
               </div>
-              <div className="flex items-center gap-2 bg-orange-500/10 border border-orange-500/30 px-4 py-2 rounded-full">
-                <CheckCircle size={16} className="text-orange-500" />
-                <span className="text-orange-500 text-xs uppercase tracking-wider">Power Class A3</span>
-              </div>
-            </div>
+            )}
           </motion.div>
           )}
         </div>
@@ -330,70 +343,36 @@ export function ProductDetailPage() {
               Unrivaled Specifications
             </h2>
             <p className="text-white/60 text-sm max-w-2xl mx-auto leading-relaxed">
-              Engineered for those who desire the zenith of performance. Every specification is a testament to our unrelenting pursuit of perfection.
+              {product?.longDescription || 'Technical highlights configured by admin for this product.'}
             </p>
           </motion.div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="bg-[#2a4544] border border-orange-500/20 rounded-2xl p-8 text-center hover:border-orange-500/50 transition-all"
-            >
-              <div className="w-16 h-16 bg-orange-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Package size={28} className="text-orange-500" />
+            {(product?.highlightStats || []).map((stat, index) => {
+              const StatIcon = getStatIcon(stat.icon || 'Package');
+              return (
+                <motion.div
+                  key={`${stat.label}-${index}`}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  className="bg-[#2a4544] border border-orange-500/20 rounded-2xl p-8 text-center hover:border-orange-500/50 transition-all"
+                >
+                  <div className="w-16 h-16 bg-orange-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <StatIcon size={28} className="text-orange-500" />
+                  </div>
+                  <p className="text-white/40 text-xs uppercase tracking-wider mb-3">{stat.label}</p>
+                  <p className="font-['Great_Vibes'] text-4xl text-orange-500 mb-2">{stat.value}</p>
+                  <p className="text-white/60 text-sm">{stat.unit}</p>
+                </motion.div>
+              );
+            })}
+            {product?.highlightStats?.length ? null : (
+              <div className="md:col-span-2 lg:col-span-4 bg-[#2a4544] border border-orange-500/20 rounded-2xl p-8 text-center">
+                <p className="text-white/50 text-sm">No highlight stats configured by admin for this product yet.</p>
               </div>
-              <p className="text-white/40 text-xs uppercase tracking-wider mb-3">Capacity</p>
-              <p className="font-['Great_Vibes'] text-4xl text-orange-500 mb-2">6 - 10</p>
-              <p className="text-white/60 text-sm">Persons</p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="bg-[#2a4544] border border-orange-500/20 rounded-2xl p-8 text-center hover:border-orange-500/50 transition-all"
-            >
-              <div className="w-16 h-16 bg-orange-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Gauge size={28} className="text-orange-500" />
-              </div>
-              <p className="text-white/40 text-xs uppercase tracking-wider mb-3">Speed Range</p>
-              <p className="font-['Great_Vibes'] text-4xl text-orange-500 mb-2">1.0 - 1.75</p>
-              <p className="text-white/60 text-sm">m/s</p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="bg-[#2a4544] border border-orange-500/20 rounded-2xl p-8 text-center hover:border-orange-500/50 transition-all"
-            >
-              <div className="w-16 h-16 bg-orange-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Zap size={28} className="text-orange-500" />
-              </div>
-              <p className="text-white/40 text-xs uppercase tracking-wider mb-3">Drive System</p>
-              <p className="text-orange-500 text-xl mb-2">Gearless</p>
-              <p className="text-white/60 text-sm">Traction</p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="bg-[#2a4544] border border-orange-500/20 rounded-2xl p-8 text-center hover:border-orange-500/50 transition-all"
-            >
-              <div className="w-16 h-16 bg-orange-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Shield size={28} className="text-orange-500" />
-              </div>
-              <p className="text-white/40 text-xs uppercase tracking-wider mb-3">Design</p>
-              <p className="text-orange-500 text-xl mb-2">Artisan</p>
-              <p className="text-white/60 text-sm">Wood/Gold</p>
-            </motion.div>
+            )}
           </div>
         </div>
       </section>
@@ -413,22 +392,23 @@ export function ProductDetailPage() {
                 Crafted for Excellence
               </h3>
               <div className="space-y-6">
-                {[
-                  { icon: CheckCircle, title: 'Machine Room-Less Design', desc: 'Space-saving technology with zero machine room requirement' },
-                  { icon: CheckCircle, title: 'VVVF Drive System', desc: 'Variable voltage variable frequency for smooth operation' },
-                  { icon: CheckCircle, title: 'Premium Aesthetics', desc: 'Artisan wood finishes with gold accents' },
-                  { icon: CheckCircle, title: 'Silent Operation', desc: 'Near-silent performance for residential comfort' }
-                ].map((feature, index) => (
+                {(product?.detailedFeatures?.length
+                  ? product.detailedFeatures.map((f) => ({ title: f.title, description: f.description }))
+                  : (product?.features || []).map((f) => ({ title: f, description: '' }))
+                ).map((feature, index) => (
                   <div key={index} className="flex items-start gap-4 bg-[#1a3332] border border-white/10 rounded-xl p-6 hover:border-orange-500/30 transition-all">
                     <div className="w-10 h-10 bg-orange-500/10 rounded-full flex items-center justify-center flex-shrink-0">
-                      <feature.icon size={20} className="text-orange-500" />
+                      <CheckCircle size={20} className="text-orange-500" />
                     </div>
                     <div>
                       <h4 className="text-white mb-2">{feature.title}</h4>
-                      <p className="text-white/60 text-sm">{feature.desc}</p>
+                      {feature.description ? <p className="text-white/60 text-sm">{feature.description}</p> : null}
                     </div>
                   </div>
                 ))}
+                {(product?.detailedFeatures?.length || product?.features?.length) ? null : (
+                  <p className="text-white/50 text-sm">No features configured by admin for this product yet.</p>
+                )}
               </div>
             </motion.div>
 
@@ -442,21 +422,15 @@ export function ProductDetailPage() {
               <p className="text-orange-500/80 text-xs uppercase tracking-widest mb-4">TECHNICAL DETAILS</p>
               <h3 className="font-['Great_Vibes'] text-4xl text-white mb-8">Full Specifications</h3>
               <div className="space-y-6">
-                {[
-                  { label: 'Load Capacity', value: '544 - 680 kg' },
-                  { label: 'Persons', value: '6 - 10 Persons' },
-                  { label: 'Speed', value: '1.0 - 1.75 m/s' },
-                  { label: 'Door Type', value: 'Automatic Center Opening' },
-                  { label: 'Car Size', value: '1100 x 1400 mm' },
-                  { label: 'Door Width', value: '800 - 900 mm' },
-                  { label: 'Power Supply', value: '380V, 50Hz, 3-Phase' },
-                  { label: 'Control System', value: 'Microprocessor VVVF' }
-                ].map((spec, index) => (
+                {(product?.fullSpecifications || []).map((spec, index) => (
                   <div key={index} className="flex items-center justify-between py-3 border-b border-white/5 last:border-b-0">
                     <p className="text-white/50 text-sm">{spec.label}</p>
                     <p className="text-white font-medium">{spec.value}</p>
                   </div>
                 ))}
+                {product?.fullSpecifications?.length ? null : (
+                  <p className="text-white/50 text-sm">No full specifications configured by admin for this product yet.</p>
+                )}
               </div>
             </motion.div>
           </div>
