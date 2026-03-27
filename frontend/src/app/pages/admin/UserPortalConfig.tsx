@@ -191,25 +191,22 @@ export function UserPortalConfig() {
         if (data.themeSettings) setThemeSettings((prev) => ({ ...prev, ...data.themeSettings }));
         if (Array.isArray(data.pagesConfig)) {
           setPagesConfig((prev) =>
-            data.pagesConfig
-              .filter((p: any) => isAllowedPageId(p?.id))
-              .map((p: any) => {
-                const local = prev.find((lp) => lp.id === p.id);
-                const icon =
-                  local?.icon ??
-                  ({
-                    home: Home,
-                    collection: ShoppingBag,
-                    'our-work': Briefcase,
-                    blog: BookOpen
-                  } as Record<string, any>)[p.id] ??
-                  Home;
-                return {
-                  ...local,
-                  ...p,
-                  icon
-                };
-              })
+            prev.map((local) => {
+              const remote = data.pagesConfig.find((p: any) => p?.id === local.id);
+              if (!remote || !isAllowedPageId(remote.id)) return local;
+              const icon =
+                ({
+                  home: Home,
+                  collection: ShoppingBag,
+                  'our-work': Briefcase,
+                  blog: BookOpen
+                } as Record<string, any>)[remote.id] ?? local.icon;
+              return {
+                ...local,
+                ...remote,
+                icon
+              };
+            })
           );
         }
       } catch {
@@ -270,25 +267,22 @@ export function UserPortalConfig() {
       if (data?.themeSettings) setThemeSettings(data.themeSettings);
       if (Array.isArray(data?.pagesConfig)) {
         setPagesConfig((prev) =>
-          data.pagesConfig
-            .filter((p: any) => isAllowedPageId(p?.id))
-            .map((p: any) => {
-              const local = prev.find((lp) => lp.id === p.id);
-              const icon =
-                local?.icon ??
-                ({
-                  home: Home,
-                  collection: ShoppingBag,
-                  'our-work': Briefcase,
-                  blog: BookOpen
-                } as Record<string, any>)[p.id] ??
-                Home;
-              return {
-                ...local,
-                ...p,
-                icon
-              };
-            })
+          prev.map((local) => {
+            const remote = data.pagesConfig.find((p: any) => p?.id === local.id);
+            if (!remote || !isAllowedPageId(remote.id)) return local;
+            const icon =
+              ({
+                home: Home,
+                collection: ShoppingBag,
+                'our-work': Briefcase,
+                blog: BookOpen
+              } as Record<string, any>)[remote.id] ?? local.icon;
+            return {
+              ...local,
+              ...remote,
+              icon
+            };
+          })
         );
       }
       setShowSaveConfirm(true);
