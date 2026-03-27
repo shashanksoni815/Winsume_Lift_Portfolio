@@ -6,6 +6,19 @@ import { notifyAdmin } from "../utils/notify.js";
 
 // ─── Zod schemas ─────────────────────────────────────────────────────────────
 
+const stringArray = z.preprocess((value) => {
+  if (Array.isArray(value)) return value;
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) return parsed;
+    } catch {
+      return value.split(",").map((item) => item.trim()).filter(Boolean);
+    }
+  }
+  return [];
+}, z.array(z.string()).optional());
+
 const blogSchema = z.object({
   title:          z.string().min(1),
   slug:           z.string().optional(),
@@ -13,14 +26,14 @@ const blogSchema = z.object({
   excerpt:        z.string().min(1).max(300),
   content:        z.string().min(1),
   heroImage:      z.string().optional(),
-  tags:           z.array(z.string()).optional(),
+  tags:           stringArray,
   author:         z.string().optional(),
   authorBio:      z.string().optional(),
   authorImage:    z.string().optional(),
   status:         z.enum(["draft", "published"]).default("draft"),
   seoTitle:       z.string().optional(),
   seoDescription: z.string().max(160).optional(),
-  seoKeywords:    z.array(z.string()).optional(),
+  seoKeywords:    stringArray,
   featured:       z.boolean().optional()
 });
 
@@ -198,6 +211,9 @@ export const getBlog = async (req: Request, res: Response, next: NextFunction): 
 export const createBlog = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const data = blogSchema.parse(req.body);
+    const files = (req as any).files as Record<string, Express.Multer.File[]> | undefined;
+    const heroImagePath = files?.heroImage?.[0] ? `/uploads/${files.heroImage[0].filename}` : undefined;
+    const authorImagePath = files?.authorImage?.[0] ? `/uploads/${files.authorImage[0].filename}` : undefined;
 
     const baseSlug  = data.slug || buildSlug(data.title);
     const finalSlug = await ensureUniqueSlug(baseSlug);
@@ -208,11 +224,11 @@ export const createBlog = async (req: Request, res: Response, next: NextFunction
       category:       data.category,
       excerpt:        data.excerpt,
       content:        data.content,
-      heroImage:      data.heroImage      ?? "",
+      heroImage:      heroImagePath       ?? data.heroImage      ?? "",
       tags:           data.tags           ?? [],
       author:         data.author         ?? "Winsume Lift Team",
       authorBio:      data.authorBio      ?? "",
-      authorImage:    data.authorImage    ?? "",
+      authorImage:    authorImagePath     ?? data.authorImage    ?? "",
       status:         data.status,
       seoTitle:       data.seoTitle       ?? data.title,
       seoDescription: data.seoDescription ?? data.excerpt,
@@ -244,15 +260,22 @@ export const createBlog = async (req: Request, res: Response, next: NextFunction
 export const updateBlog = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const data = blogSchema.partial().parse(req.body);
+    const files = (req as any).files as Record<string, Express.Multer.File[]> | undefined;
+    const heroImagePath = files?.heroImage?.[0] ? `/uploads/${files.heroImage[0].filename}` : undefined;
+    const authorImagePath = files?.authorImage?.[0] ? `/uploads/${files.authorImage[0].filename}` : undefined;
 
     // If slug is changing, ensure uniqueness
     if (data.slug) {
       data.slug = await ensureUniqueSlug(data.slug, req.params.id);
     }
 
+    const setPayload: Record<string, any> = { ...data };
+    if (heroImagePath) setPayload.heroImage = heroImagePath;
+    if (authorImagePath) setPayload.authorImage = authorImagePath;
+
     const blog = await Blog.findByIdAndUpdate(
       req.params.id,
-      { $set: data },
+      { $set: setPayload },
       { new: true, runValidators: true }
     );
 

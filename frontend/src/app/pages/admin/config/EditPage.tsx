@@ -99,7 +99,7 @@ const EMPTY_BLOG_FORM = {
   author: 'Winsume Lift Team',
   authorBio: '',
   authorImage: '',
-  status: 'draft' as 'draft' | 'published',
+  status: 'published' as 'draft' | 'published',
   seoTitle: '',
   seoDescription: '',
   seoKeywords: '',
@@ -110,6 +110,13 @@ const BLOG_CATEGORIES = [
   'Home Lifts', 'Commercial', 'Maintenance',
   'Technology', 'Design', 'Safety', 'Industry News',
 ];
+
+const BACKEND_BASE_URL = 'https://winsume-lift-backend01.onrender.com';
+const resolveMediaUrl = (url?: string) => {
+  if (!url) return '';
+  if (url.startsWith('/uploads')) return `${BACKEND_BASE_URL}${url}`;
+  return url;
+};
 
 async function adminFetch(input: RequestInfo | URL, init: RequestInit = {}) {
   const token = localStorage.getItem('accessToken');
@@ -205,6 +212,8 @@ export function EditPage() {
   const [deleteBlogId, setDeleteBlogId] = useState<string | null>(null);
   const [deletingBlog, setDeletingBlog] = useState(false);
   const [blogFilterStatus, setBlogFilterStatus] = useState('');
+  const [blogHeroImageFile, setBlogHeroImageFile] = useState<File | null>(null);
+  const [blogAuthorImageFile, setBlogAuthorImageFile] = useState<File | null>(null);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -312,6 +321,8 @@ export function EditPage() {
   const openBlogCreate = () => {
     setEditingBlogId(null);
     setBlogForm({ ...EMPTY_BLOG_FORM });
+    setBlogHeroImageFile(null);
+    setBlogAuthorImageFile(null);
     setBlogFormError('');
     setShowBlogForm(true);
   };
@@ -341,6 +352,8 @@ export function EditPage() {
         seoKeywords:    (b.seoKeywords || []).join(', '),
         featured:       b.featured       || false,
       });
+      setBlogHeroImageFile(null);
+      setBlogAuthorImageFile(null);
       setShowBlogForm(true);
     } catch {
       alert('Failed to load blog post for editing.');
@@ -355,18 +368,41 @@ export function EditPage() {
     setBlogSaving(true);
     setBlogFormError('');
     try {
-      const payload = {
-        ...blogForm,
-        tags:        blogForm.tags.split(',').map((t) => t.trim()).filter(Boolean),
-        seoKeywords: blogForm.seoKeywords.split(',').map((k) => k.trim()).filter(Boolean),
-      };
+      const payload = new FormData();
+      payload.append('title', blogForm.title);
+      payload.append('slug', blogForm.slug);
+      payload.append('category', blogForm.category);
+      payload.append('excerpt', blogForm.excerpt);
+      payload.append('content', blogForm.content);
+      payload.append('author', blogForm.author);
+      payload.append('authorBio', blogForm.authorBio);
+      payload.append('status', blogForm.status);
+      payload.append('seoTitle', blogForm.seoTitle);
+      payload.append('seoDescription', blogForm.seoDescription);
+      payload.append('featured', String(blogForm.featured));
+      payload.append(
+        'tags',
+        JSON.stringify(blogForm.tags.split(',').map((t) => t.trim()).filter(Boolean))
+      );
+      payload.append(
+        'seoKeywords',
+        JSON.stringify(blogForm.seoKeywords.split(',').map((k) => k.trim()).filter(Boolean))
+      );
+
+      if (blogHeroImageFile) payload.append('heroImage', blogHeroImageFile);
+      else if (blogForm.heroImage) payload.append('heroImage', blogForm.heroImage);
+      if (blogAuthorImageFile) payload.append('authorImage', blogAuthorImageFile);
+      else if (blogForm.authorImage) payload.append('authorImage', blogForm.authorImage);
+
       const url    = editingBlogId
         ? `https://winsume-lift-backend01.onrender.com/api/blogs/${editingBlogId}`
         : 'https://winsume-lift-backend01.onrender.com/api/blogs';
       const method = editingBlogId ? 'PATCH' : 'POST';
 
-      await adminFetch(url, { method, body: JSON.stringify(payload) });
+      await adminFetch(url, { method, body: payload });
       setShowBlogForm(false);
+      setBlogHeroImageFile(null);
+      setBlogAuthorImageFile(null);
       loadBlogs(blogFilterStatus || undefined);
       loadBlogStats();
     } catch (error: any) {
@@ -849,7 +885,7 @@ export function EditPage() {
                           {/* Thumbnail */}
                           {blog.heroImage && (
                             <img
-                              src={blog.heroImage}
+                              src={resolveMediaUrl(blog.heroImage)}
                               alt={blog.title}
                               className="w-full md:w-16 h-16 object-cover rounded-lg flex-shrink-0 hidden md:block"
                             />
@@ -1593,9 +1629,20 @@ export function EditPage() {
 
               {/* Hero Image */}
               <div>
-                <label className="block text-white/50 text-xs uppercase tracking-wider mb-1.5">Hero Image URL</label>
-                <input type="url" value={blogForm.heroImage} onChange={(e) => setBlogForm(f=>({...f,heroImage:e.target.value}))} placeholder="https://…" className="w-full bg-[#2a4544] border border-orange-500/20 rounded-lg px-4 py-2.5 text-white placeholder:text-white/30 focus:outline-none focus:border-orange-500/50 text-sm transition-colors" />
-                {blogForm.heroImage && <img src={blogForm.heroImage} alt="preview" className="mt-2 h-24 w-full object-cover rounded-lg opacity-80" />}
+                <label className="block text-white/50 text-xs uppercase tracking-wider mb-1.5">Hero Image</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setBlogHeroImageFile(e.target.files?.[0] || null)}
+                  className="w-full text-sm text-white/80 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-orange-500/80 file:text-white hover:file:bg-orange-600/90"
+                />
+                {(blogHeroImageFile || blogForm.heroImage) && (
+                  <img
+                    src={blogHeroImageFile ? URL.createObjectURL(blogHeroImageFile) : resolveMediaUrl(blogForm.heroImage)}
+                    alt="hero preview"
+                    className="mt-2 h-24 w-full object-cover rounded-lg opacity-80"
+                  />
+                )}
               </div>
 
               {/* Excerpt */}
@@ -1607,8 +1654,8 @@ export function EditPage() {
 
               {/* Content */}
               <div>
-                <label className="block text-white/50 text-xs uppercase tracking-wider mb-1.5">Content * <span className="normal-case text-white/30">(HTML supported)</span></label>
-                <textarea value={blogForm.content} onChange={(e) => setBlogForm(f=>({...f,content:e.target.value}))} rows={12} placeholder="<h2>Introduction</h2><p>Your content here…</p>" className="w-full bg-[#2a4544] border border-orange-500/20 rounded-lg px-4 py-2.5 text-white placeholder:text-white/30 focus:outline-none focus:border-orange-500/50 text-sm font-mono resize-y transition-colors" />
+                <label className="block text-white/50 text-xs uppercase tracking-wider mb-1.5">Content * <span className="normal-case text-white/30">(plain text)</span></label>
+                <textarea value={blogForm.content} onChange={(e) => setBlogForm(f=>({...f,content:e.target.value}))} rows={12} placeholder="Write your blog content here..." className="w-full bg-[#2a4544] border border-orange-500/20 rounded-lg px-4 py-2.5 text-white placeholder:text-white/30 focus:outline-none focus:border-orange-500/50 text-sm resize-y transition-colors" />
               </div>
 
               {/* Author */}
@@ -1618,8 +1665,20 @@ export function EditPage() {
                   <input type="text" value={blogForm.author} onChange={(e) => setBlogForm(f=>({...f,author:e.target.value}))} className="w-full bg-[#2a4544] border border-orange-500/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-orange-500/50 text-sm transition-colors" />
                 </div>
                 <div>
-                  <label className="block text-white/50 text-xs uppercase tracking-wider mb-1.5">Author Image URL</label>
-                  <input type="url" value={blogForm.authorImage} onChange={(e) => setBlogForm(f=>({...f,authorImage:e.target.value}))} placeholder="https://…" className="w-full bg-[#2a4544] border border-orange-500/20 rounded-lg px-4 py-2.5 text-white placeholder:text-white/30 focus:outline-none focus:border-orange-500/50 text-sm transition-colors" />
+                  <label className="block text-white/50 text-xs uppercase tracking-wider mb-1.5">Author Image</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setBlogAuthorImageFile(e.target.files?.[0] || null)}
+                    className="w-full text-sm text-white/80 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-orange-500/80 file:text-white hover:file:bg-orange-600/90"
+                  />
+                  {(blogAuthorImageFile || blogForm.authorImage) && (
+                    <img
+                      src={blogAuthorImageFile ? URL.createObjectURL(blogAuthorImageFile) : resolveMediaUrl(blogForm.authorImage)}
+                      alt="author preview"
+                      className="mt-2 h-20 w-20 object-cover rounded-full border border-orange-500/20"
+                    />
+                  )}
                 </div>
               </div>
               <div>

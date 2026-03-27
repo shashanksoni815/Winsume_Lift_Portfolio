@@ -8,6 +8,12 @@ import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { InquiryForm } from '../components/InquiryForm';
 
 const API = 'https://winsume-lift-backend01.onrender.com/api/blogs';
+const BACKEND_BASE_URL = 'https://winsume-lift-backend01.onrender.com';
+const resolveMediaUrl = (url?: string) => {
+  if (!url) return '';
+  if (url.startsWith('/uploads')) return `${BACKEND_BASE_URL}${url}`;
+  return url;
+};
 
 interface Blog {
   _id: string;
@@ -184,7 +190,7 @@ export function BlogDetailPage() {
       <section className="relative pt-20 overflow-hidden">
         <div className="relative h-[50vh] md:h-[65vh]">
           <ImageWithFallback
-            src={blog.heroImage || 'https://images.unsplash.com/photo-1772721559246-286e6d986d73?q=80&w=1080'}
+            src={resolveMediaUrl(blog.heroImage) || 'https://images.unsplash.com/photo-1772721559246-286e6d986d73?q=80&w=1080'}
             alt={blog.title}
             className="w-full h-full object-cover"
           />
@@ -257,9 +263,10 @@ export function BlogDetailPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.8 }}
-          className="prose-blog"
-          dangerouslySetInnerHTML={{ __html: blog.content }}
-        />
+          className="text-white/75 text-[1.0625rem] leading-[1.85] whitespace-pre-line"
+        >
+          {blog.content}
+        </motion.div>
 
         {/* Tags */}
         {blog.tags.length > 0 && (
@@ -280,7 +287,7 @@ export function BlogDetailPage() {
         <div className="mt-12 bg-[#2a4544] border border-orange-500/20 rounded-2xl p-6 flex items-start gap-5">
           <div className="w-16 h-16 rounded-full bg-orange-500/20 border border-orange-500/30 overflow-hidden flex-shrink-0">
             {blog.authorImage ? (
-              <ImageWithFallback src={blog.authorImage} alt={blog.author} className="w-full h-full object-cover" />
+              <ImageWithFallback src={resolveMediaUrl(blog.authorImage)} alt={blog.author} className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-orange-500 font-bold text-xl">
                 {blog.author?.[0] || 'W'}
@@ -319,7 +326,7 @@ export function BlogDetailPage() {
                 >
                   <div className="relative h-44 overflow-hidden">
                     <ImageWithFallback
-                      src={post.heroImage || ''}
+                      src={resolveMediaUrl(post.heroImage) || ''}
                       alt={post.title}
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />

@@ -7,6 +7,12 @@ import { ChevronRight, Clock, Tag, ArrowRight, Star, Shield, Wrench, Award, Buil
 import { useNavigate } from 'react-router';
 
 const API = 'https://winsume-lift-backend01.onrender.com/api/blogs';
+const BACKEND_BASE_URL = 'https://winsume-lift-backend01.onrender.com';
+const resolveMediaUrl = (url?: string) => {
+  if (!url) return '';
+  if (url.startsWith('/uploads')) return `${BACKEND_BASE_URL}${url}`;
+  return url;
+};
 
 interface BlogPost {
   _id: string;
@@ -217,7 +223,7 @@ export function BlogPage() {
             >
               <div className="relative h-[400px] md:h-[520px]">
                 <ImageWithFallback
-                  src={featuredPost.heroImage || 'https://images.unsplash.com/photo-1621293954908-907159247fc8?w=1080'}
+                  src={resolveMediaUrl(featuredPost.heroImage) || 'https://images.unsplash.com/photo-1621293954908-907159247fc8?w=1080'}
                   alt={featuredPost.title}
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
@@ -261,7 +267,7 @@ export function BlogPage() {
                   className="group bg-[#2a4544] rounded-2xl overflow-hidden border border-orange-500/10 hover:border-orange-500/40 transition-all duration-300 cursor-pointer hover:shadow-xl hover:shadow-orange-500/10 hover:-translate-y-1"
                 >
                   <div className="relative h-52 overflow-hidden">
-                    <ImageWithFallback src={post.heroImage || ''} alt={post.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                    <ImageWithFallback src={resolveMediaUrl(post.heroImage) || ''} alt={post.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#2a4544]/80 to-transparent" />
                     <span className="absolute top-4 left-4 bg-[#1a3332]/80 backdrop-blur-sm text-orange-500 text-xs uppercase tracking-wider px-3 py-1 rounded-full border border-orange-500/30">
                       {post.category}
@@ -323,13 +329,19 @@ export function BlogPage() {
               </div>
             )}
 
-            {/* Empty state */}
-            {!loading && posts.length === 0 && !loadError && (
-              <div className="text-center py-20">
-                <p className="font-['Great_Vibes'] text-5xl text-orange-500/40 mb-4">No Articles Yet</p>
-                <p className="text-white/40 text-sm">Check back soon for expert elevator insights.</p>
-              </div>
-            )}
+          </div>
+        </section>
+      )}
+
+      {/* Empty state */}
+      {!loading && posts.length === 0 && !loadError && (
+        <section className="py-12 md:py-20 bg-[#1a3332]">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center py-20 border border-orange-500/10 rounded-2xl bg-[#2a4544]/30">
+              <p className="font-['Great_Vibes'] text-5xl text-orange-500/40 mb-4">No Articles Yet</p>
+              <p className="text-white/40 text-sm mb-5">No published blog posts are available right now.</p>
+              <p className="text-white/30 text-xs">If you are admin, create or publish posts from Portal Config → Blog.</p>
+            </div>
           </div>
         </section>
       )}
