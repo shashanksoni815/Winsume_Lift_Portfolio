@@ -14,7 +14,7 @@ export function Navigation() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { cartCount } = useCart();
+  const { cartCount, logout } = useCart();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -55,17 +55,36 @@ export function Navigation() {
     }
   }, [location]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('isLoggedIn');
-    localStorage.removeItem('userEmail');
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('userRole');
-    setIsLoggedIn(false);
-    setUserRole(null);
-    setIsProfileMenuOpen(false);
-    navigate('/');
-  };
+  // const handleLogout = () => {
+  //   localStorage.removeItem('isLoggedIn');
+  //   localStorage.removeItem('userEmail');
+  //   localStorage.removeItem('accessToken');
+  //   localStorage.removeItem('refreshToken');
+  //   localStorage.removeItem('userRole');
+  //   setIsLoggedIn(false);
+  //   setUserRole(null);
+  //   setIsProfileMenuOpen(false);
+  //   navigate('/');
+  // };
+
+// const { logout } = useCart();
+
+const handleLogout = async () => {
+  // Clear auth state (your existing logic)
+  localStorage.removeItem('isLoggedIn');
+  localStorage.removeItem('userEmail');
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
+  localStorage.removeItem('userRole');
+  setIsLoggedIn(false);
+  setUserRole(null);
+  setIsProfileMenuOpen(false);
+
+  // Zero out the cart in context
+  await logout();
+
+  navigate('/');
+};
 
   const handleCartClick = () => {
     if (!isLoggedIn) {

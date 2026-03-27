@@ -49,6 +49,39 @@ export function AdminSidebar({ isCollapsed, onToggle }: AdminSidebarProps) {
   };
 
   useEffect(() => {
+    const handleScroll = () => {
+      if (!isCollapsed) {
+        onToggle(true);
+      }
+    };
+  
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [isCollapsed, onToggle]);
+
+  // useEffect(() => {
+  //   let scrollTimer: ReturnType<typeof setTimeout>;
+
+  //   const handleScroll = () => {
+  //     if (!isCollapsed) {
+  //       onToggle(true); // collapse immediately on scroll
+  //     }
+
+  //     // Re-expand after user stops scrolling for 800ms
+  //     clearTimeout(scrollTimer);
+  //     scrollTimer = setTimeout(() => {
+  //       onToggle(false);
+  //     }, 800);
+  //   };
+
+  //   window.addEventListener('scroll', handleScroll, { passive: true });
+  //   return () => {
+  //     window.removeEventListener('scroll', handleScroll);
+  //     clearTimeout(scrollTimer);
+  //   };
+  // }, [isCollapsed, onToggle]);
+
+  useEffect(() => {
     const loadCounts = async () => {
       try {
         const [projectsRes, inquiriesRes, notificationsRes] = await Promise.all([

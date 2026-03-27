@@ -353,14 +353,14 @@ export function UserManagement() {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center justify-center gap-3 mb-6 flex-wrap">
+              {/* <div className="flex items-center justify-center gap-3 mb-6 flex-wrap">
                 <button 
                   onClick={() => setShowAddUserModal(true)}
                   className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-all flex items-center gap-2"
                 >
                   <Plus size={16} />
                   <span className="text-sm">Add New User</span>
-                </button>
+                </button> */}
                 {/* <button className="px-4 py-2 bg-orange-500/10 hover:bg-orange-500/20 text-orange-500 rounded-lg transition-all flex items-center gap-2">
                   <Download size={16} />
                   <span className="text-sm">Export CSV</span>
@@ -368,8 +368,8 @@ export function UserManagement() {
                 <button className="px-4 py-2 bg-orange-500/10 hover:bg-orange-500/20 text-orange-500 rounded-lg transition-all flex items-center gap-2">
                   <Upload size={16} />
                   <span className="text-sm">Import Users</span>
-                </button> */}
-              </div>
+                </button> 
+              </div> */}
 
               {/* Search and Filter Bar */}
               <div className="flex items-center gap-3 flex-wrap">
@@ -574,7 +574,7 @@ export function UserManagement() {
       </div>
 
       {/* Add User Modal */}
-      {showAddUserModal && (
+      {/* {showAddUserModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -689,7 +689,7 @@ export function UserManagement() {
             </div>
           </motion.div>
         </div>
-      )}
+      )} */}
 
       {/* Edit User Modal */}
       {showEditUserModal && selectedUser && (
