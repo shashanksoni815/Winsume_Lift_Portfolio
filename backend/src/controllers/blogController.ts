@@ -34,7 +34,7 @@ const blogSchema = z.object({
   seoTitle:       z.string().optional(),
   seoDescription: z.string().max(160).optional(),
   seoKeywords:    stringArray,
-  featured:       z.boolean().optional()
+  featured:       z.coerce.boolean().optional()
 });
 
 const statusSchema = z.object({
