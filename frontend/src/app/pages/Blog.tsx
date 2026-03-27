@@ -132,7 +132,7 @@ export function BlogPage() {
             Expert insights on luxury elevator installation, home lift design, maintenance best practices and vertical transportation trends across India.
           </motion.p>
 
-          {/* Search bar */}
+          {/* Search bar
           <motion.form
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.3 }}
             onSubmit={handleSearch}
@@ -153,7 +153,7 @@ export function BlogPage() {
             </button>
           </motion.form>
 
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }} className="w-24 h-1 bg-orange-500 mx-auto mt-8" />
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }} className="w-24 h-1 bg-orange-500 mx-auto mt-8" /> */}
         </div>
       </section>
 
