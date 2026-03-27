@@ -118,6 +118,14 @@ const resolveMediaUrl = (url?: string) => {
   return url;
 };
 
+const fileToDataUrl = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onerror = () => reject(new Error('Failed to read image file.'));
+    reader.readAsDataURL(file);
+  });
+
 async function adminFetch(input: RequestInfo | URL, init: RequestInit = {}) {
   const token = localStorage.getItem('accessToken');
   const headers: HeadersInit = { ...(init.headers || {}) };
@@ -389,10 +397,18 @@ export function EditPage() {
         JSON.stringify(blogForm.seoKeywords.split(',').map((k) => k.trim()).filter(Boolean))
       );
 
-      if (blogHeroImageFile) payload.append('heroImage', blogHeroImageFile);
-      else if (blogForm.heroImage) payload.append('heroImage', blogForm.heroImage);
-      if (blogAuthorImageFile) payload.append('authorImage', blogAuthorImageFile);
-      else if (blogForm.authorImage) payload.append('authorImage', blogForm.authorImage);
+      if (blogHeroImageFile) {
+        const heroDataUrl = await fileToDataUrl(blogHeroImageFile);
+        payload.append('heroImage', heroDataUrl);
+      } else if (blogForm.heroImage) {
+        payload.append('heroImage', blogForm.heroImage);
+      }
+      if (blogAuthorImageFile) {
+        const authorDataUrl = await fileToDataUrl(blogAuthorImageFile);
+        payload.append('authorImage', authorDataUrl);
+      } else if (blogForm.authorImage) {
+        payload.append('authorImage', blogForm.authorImage);
+      }
 
       const url    = editingBlogId
         ? `https://winsume-lift-backend01.onrender.com/api/blogs/${editingBlogId}`
