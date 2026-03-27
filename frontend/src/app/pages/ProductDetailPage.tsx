@@ -20,10 +20,15 @@ interface Product {
   category?: string;
   price?: number;
   shortDescription?: string;
+  longDescription?: string;
   heroImage?: string;
   images: string[];
   features: string[];
   specifications: ProductSpec[];
+  fullSpecifications: ProductSpec[];
+  highlightStats: { icon: string; label: string; value: string; unit: string }[];
+  detailedFeatures: { title: string; description: string }[];
+  badges: { label: string; color: string }[];
 }
 
 export function ProductDetailPage() {
@@ -106,7 +111,11 @@ export function ProductDetailPage() {
           heroImage: heroImage,
           images: galleryImages,
           features: Array.isArray(p.features) ? p.features : [],
-          specifications: Array.isArray(p.specifications) ? p.specifications : []
+          // specifications: Array.isArray(p.specifications) ? p.specifications : []
+          fullSpecifications: Array.isArray(p.fullSpecifications) ? p.fullSpecifications : [],
+          highlightStats:     Array.isArray(p.highlightStats)     ? p.highlightStats     : [],
+          detailedFeatures:   Array.isArray(p.detailedFeatures)   ? p.detailedFeatures   : [],
+          badges:             Array.isArray(p.badges)             ? p.badges             : [],
         };
 
         setProduct(mapped);

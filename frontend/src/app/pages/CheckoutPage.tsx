@@ -5,7 +5,7 @@ import { Footer } from '../components/Footer';
 import { motion } from 'motion/react';
 import { CreditCard, Smartphone, Shield } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
-import { useNavigate } from 'react-router';
+import { useNavigate, useLocation } from 'react-router';
 
 export function CheckoutPage() {
   const navigate = useNavigate();
@@ -240,11 +240,11 @@ export function CheckoutPage() {
                 className="bg-[#1a3332] border border-orange-500/20 rounded-2xl p-8 sticky top-32 shadow-xl"
               >
                 {/* Payment Commitment */}
-                <div className="mb-8">
+                {/* <div className="mb-8">
                   <p className="text-white/50 text-xs uppercase tracking-wider mb-6">Payment Commitment</p>
                   
                   <div className="space-y-4">
-                    {/* Secure Card */}
+                    {/* Secure Card 
                     <button
                       type="button"
                       onClick={() => setPaymentMethod('card')}
@@ -266,7 +266,7 @@ export function CheckoutPage() {
                     </button>
 
                     {/* Insta-Pay */}
-                    <button
+                    {/* <button
                       type="button"
                       onClick={() => setPaymentMethod('insta')}
                       className={`w-full p-4 rounded-lg border transition-all text-left ${ 
@@ -284,9 +284,9 @@ export function CheckoutPage() {
                           <p className="text-white/40 text-xs">UPI / Net Banking</p>
                         </div>
                       </div>
-                    </button>
+                    </button>  */}
 
-                    {/* Reserve Consultation */}
+                    {/* Reserve Consultation 
                     <button
                       type="button"
                       onClick={() => setPaymentMethod('reserve')}
@@ -307,7 +307,7 @@ export function CheckoutPage() {
                       </div>
                     </button>
                   </div>
-                </div>
+                </div> */}
 
                 {/* Proposal Summary */}
                 <div className="mb-8 pt-8 border-t border-white/10">

@@ -121,11 +121,12 @@ export function UserPortalConfig() {
   });
 
   // Pages Configuration
-  const ALLOWED_PAGE_IDS = ['home', 'collection', 'our-work'] as const;
+  const ALLOWED_PAGE_IDS = ['home', 'collection', 'our-work', 'blog'] as const;
   const [pagesConfig, setPagesConfig] = useState<PageConfig[]>([
     { id: 'home', name: 'Home', path: '/', icon: Home, enabled: true, visible: true, order: 1, requiredAuth: false },
     { id: 'collection', name: 'Collection', path: '/collection', icon: ShoppingBag, enabled: true, visible: true, order: 2, requiredAuth: false },
     { id: 'our-work', name: 'Our Work', path: '/our-work', icon: Briefcase, enabled: true, visible: true, order: 3, requiredAuth: false }
+    // { id: 'blog', name: 'blog', path: '/blog', icon: Briefcase, enabled: true, visible: true, order: 4, requiredAuth: false }
   ]);
 
   const toggleSection = (sectionId: string) => {
