@@ -28,7 +28,7 @@ const projectSchema = z.object({
 export const createProject = async (req, res, next) => {
     try {
         const data = projectSchema.parse(req.body);
-        const externalId = generateProjectId();
+        const externalId = await generateProjectId();
         const project = await Project.create({
             externalId,
             name: data.name,

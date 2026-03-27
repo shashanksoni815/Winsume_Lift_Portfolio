@@ -27,6 +27,7 @@ import {
   Home,
   ShoppingBag,
   Briefcase,
+  BookOpen,
   X,
   Plus,
   Edit3,
@@ -122,11 +123,13 @@ export function UserPortalConfig() {
 
   // Pages Configuration
   const ALLOWED_PAGE_IDS = ['home', 'collection', 'our-work', 'blog'] as const;
+  const isAllowedPageId = (id: string): id is (typeof ALLOWED_PAGE_IDS)[number] =>
+    ALLOWED_PAGE_IDS.includes(id as (typeof ALLOWED_PAGE_IDS)[number]);
   const [pagesConfig, setPagesConfig] = useState<PageConfig[]>([
     { id: 'home', name: 'Home', path: '/', icon: Home, enabled: true, visible: true, order: 1, requiredAuth: false },
     { id: 'collection', name: 'Collection', path: '/collection', icon: ShoppingBag, enabled: true, visible: true, order: 2, requiredAuth: false },
-    { id: 'our-work', name: 'Our Work', path: '/our-work', icon: Briefcase, enabled: true, visible: true, order: 3, requiredAuth: false }
-    // { id: 'blog', name: 'blog', path: '/blog', icon: Briefcase, enabled: true, visible: true, order: 4, requiredAuth: false }
+    { id: 'our-work', name: 'Our Work', path: '/our-work', icon: Briefcase, enabled: true, visible: true, order: 3, requiredAuth: false },
+    { id: 'blog', name: 'Blog', path: '/blog', icon: BookOpen, enabled: true, visible: true, order: 4, requiredAuth: false }
   ]);
 
   const toggleSection = (sectionId: string) => {
@@ -189,7 +192,7 @@ export function UserPortalConfig() {
         if (Array.isArray(data.pagesConfig)) {
           setPagesConfig((prev) =>
             data.pagesConfig
-              .filter((p: any) => ALLOWED_PAGE_IDS.includes(p?.id))
+              .filter((p: any) => isAllowedPageId(p?.id))
               .map((p: any) => {
                 const local = prev.find((lp) => lp.id === p.id);
                 const icon =
@@ -197,7 +200,8 @@ export function UserPortalConfig() {
                   ({
                     home: Home,
                     collection: ShoppingBag,
-                    'our-work': Briefcase
+                    'our-work': Briefcase,
+                    blog: BookOpen
                   } as Record<string, any>)[p.id] ??
                   Home;
                 return {
@@ -221,7 +225,7 @@ export function UserPortalConfig() {
         portalSettings,
         themeSettings,
         pagesConfig: pagesConfig
-          .filter((p) => ALLOWED_PAGE_IDS.includes(p.id))
+          .filter((p) => isAllowedPageId(p.id))
           .map((p) => ({
           id: p.id,
           name: p.name,
@@ -267,7 +271,7 @@ export function UserPortalConfig() {
       if (Array.isArray(data?.pagesConfig)) {
         setPagesConfig((prev) =>
           data.pagesConfig
-            .filter((p: any) => ALLOWED_PAGE_IDS.includes(p?.id))
+            .filter((p: any) => isAllowedPageId(p?.id))
             .map((p: any) => {
               const local = prev.find((lp) => lp.id === p.id);
               const icon =
@@ -275,7 +279,8 @@ export function UserPortalConfig() {
                 ({
                   home: Home,
                   collection: ShoppingBag,
-                  'our-work': Briefcase
+                  'our-work': Briefcase,
+                  blog: BookOpen
                 } as Record<string, any>)[p.id] ??
                 Home;
               return {
@@ -618,173 +623,9 @@ export function UserPortalConfig() {
                       </div>
                     ))}
                 </div>
-
-                {/* Featured Portfolio Configuration */}
-                {/* <div className="mt-10 border-t border-white/10 pt-6">
-                  <h4 className="text-white text-lg font-semibold mb-2">
-                    Home Portfolio Featured Projects
-                  </h4>
-                  <p className="text-white/60 text-sm mb-4">
-                    Choose up to 4 projects to highlight in the "Our Portfolio" section on the home page.
-                  </p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                    {[
-                      { id: 'manhattan-penthouse', label: 'Manhattan Penthouse' },
-                      { id: 'corporate-tower-mumbai', label: 'Corporate Tower' },
-                      { id: 'luxury-villa-delhi', label: 'Modern Villa' },
-                      { id: 'heritage-hotel-jaipur', label: 'Heritage Building' },
-                    ].map((item) => {
-                      const selectedIds = portalSettings.homePortfolioProjectIds || [];
-                      const isSelected = selectedIds.includes(item.id);
-                      const selectedCount = selectedIds.length;
-                      const disabled = !isSelected && selectedCount >= 4;
-                      return (
-                        <button
-                          key={item.id}
-                          type="button"
-                          onClick={() => {
-                            const current = portalSettings.homePortfolioProjectIds || [];
-                            const next = isSelected
-                              ? current.filter((pid) => pid !== item.id)
-                              : [...current, item.id];
-                            updatePortalSetting('homePortfolioProjectIds', next);
-                          }}
-                          disabled={disabled}
-                          className={`flex items-center justify-between px-4 py-3 rounded-lg border text-sm transition-all ${
-                            isSelected
-                              ? 'border-orange-500 bg-orange-500/20 text-white'
-                              : 'border-white/10 bg-white/5 text-white/70 hover:border-orange-500/40'
-                          } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        >
-                          <span>{item.label}</span>
-                          <span
-                            className={`w-5 h-5 rounded-full border flex items-center justify-center ${
-                              isSelected ? 'border-orange-400 bg-orange-500' : 'border-white/30'
-                            }`}
-                          >
-                            {isSelected && <span className="w-2.5 h-2.5 rounded-full bg-white" />}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <p className="text-white/40 text-xs mt-2">
-                    Selected: {portalSettings.homePortfolioProjectIds?.length ?? 0} / 4
-                  </p>
-                </div> */}
               </motion.div>
             )}
-
-            {/* Theme & Branding Tab */}
-            {/* {activeTab === 'theme' && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4 }}
-                className="space-y-6"
-              >
-                {/* Color Scheme */}
-                {/* <div className="bg-[#0a1514]/80 backdrop-blur-sm border border-orange-500/20 rounded-lg p-6">
-                  <h3 className="text-white text-xl font-semibold mb-6 flex items-center gap-2">
-                    <Palette className="text-orange-500" size={24} />
-                    Color Scheme
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {[
-                      { key: 'primaryColor', label: 'Primary Color', default: '#1a3332' },
-                      { key: 'secondaryColor', label: 'Secondary Color', default: '#2a4544' },
-                      { key: 'accentColor', label: 'Accent Color', default: '#f97316' },
-                      { key: 'backgroundColor', label: 'Background Color', default: '#ffffff' },
-                      { key: 'textColor', label: 'Text Color', default: '#1a1a1a' }
-                    ].map((color) => (
-                      <div key={color.key}>
-                        <label className="block text-white/80 text-sm font-medium mb-2">{color.label}</label>
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="color"
-                            value={themeSettings[color.key as keyof ThemeSettings] as string}
-                            onChange={(e) => updateThemeSetting(color.key as keyof ThemeSettings, e.target.value)}
-                            className="w-16 h-12 rounded-lg border-2 border-orange-500/20 cursor-pointer"
-                          />
-                          <input
-                            type="text"
-                            value={themeSettings[color.key as keyof ThemeSettings] as string}
-                            onChange={(e) => updateThemeSetting(color.key as keyof ThemeSettings, e.target.value)}
-                            className="flex-1 bg-[#1a3332] border border-orange-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500/40 font-mono text-sm"
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div> */}
-
-                {/* Typography */}
-                {/* <div className="bg-[#0a1514]/80 backdrop-blur-sm border border-orange-500/20 rounded-lg p-6">
-                  <h3 className="text-white text-xl font-semibold mb-6 flex items-center gap-2">
-                    <FileText className="text-orange-500" size={24} />
-                    Typography
-                  </h3>
-                  <div>
-                    <label className="block text-white/80 text-sm font-medium mb-2">Primary Font Family</label>
-                    <select
-                      value={themeSettings.fontFamily}
-                      onChange={(e) => updateThemeSetting('fontFamily', e.target.value)}
-                      className="w-full md:w-96 bg-[#1a3332] border border-orange-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500/40"
-                    >
-                      <option value="Inter">Inter</option>
-                      <option value="Playfair Display">Playfair Display</option>
-                      <option value="Great Vibes">Great Vibes</option>
-                      <option value="Arial">Arial</option>
-                      <option value="Helvetica">Helvetica</option>
-                      <option value="Georgia">Georgia</option>
-                      <option value="Times New Roman">Times New Roman</option>
-                    </select>
-                  </div>
-                </div> */}
-
-                {/* Branding Assets */}
-               {/* <div className="bg-[#0a1514]/80 backdrop-blur-sm border border-orange-500/20 rounded-lg p-6">
-                  <h3 className="text-white text-xl font-semibold mb-6 flex items-center gap-2">
-                    <ImageIcon className="text-orange-500" size={24} />
-                    Branding Assets
-                  </h3>
-                  <div className="space-y-6">
-                    <div>
-                      <label className="block text-white/80 text-sm font-medium mb-2">Logo URL</label>
-                      <div className="flex items-center gap-3">
-                        <input
-                          type="text"
-                          value={themeSettings.logoUrl}
-                          onChange={(e) => updateThemeSetting('logoUrl', e.target.value)}
-                          className="flex-1 bg-[#1a3332] border border-orange-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500/40"
-                          placeholder="https://example.com/logo.png"
-                        />
-                        <button className="px-4 py-3 bg-orange-500/10 hover:bg-orange-500/20 text-orange-500 rounded-lg transition-all flex items-center gap-2">
-                          <Upload size={18} />
-                          <span>Upload</span>
-                        </button>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-white/80 text-sm font-medium mb-2">Favicon URL</label>
-                      <div className="flex items-center gap-3">
-                        <input
-                          type="text"
-                          value={themeSettings.faviconUrl}
-                          onChange={(e) => updateThemeSetting('faviconUrl', e.target.value)}
-                          className="flex-1 bg-[#1a3332] border border-orange-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500/40"
-                          placeholder="https://example.com/favicon.ico"
-                        />
-                        <button className="px-4 py-3 bg-orange-500/10 hover:bg-orange-500/20 text-orange-500 rounded-lg transition-all flex items-center gap-2">
-                          <Upload size={18} />
-                          <span>Upload</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            )} */}
+          
           </div>
         </div>
       </div>

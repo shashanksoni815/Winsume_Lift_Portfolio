@@ -37,6 +37,7 @@ import { TasksManagement } from "./pages/admin/TasksManagement";
 import { EditPage } from "./pages/admin/config/EditPage";
 // import { CheckoutPage } from './pages/CheckoutPage';
 import { BlogPage } from './pages/Blog';
+import { BlogDetailPage } from './pages/BlogDetailPage';
 
 
 export const router = createBrowserRouter([
@@ -67,6 +68,10 @@ export const router = createBrowserRouter([
       {
         path: "blog",
         Component: BlogPage,
+      },
+      {
+        path: "blog/:slug",
+        Component: BlogDetailPage,
       },
       {
         path: "contact",

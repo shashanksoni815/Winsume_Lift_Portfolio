@@ -16,7 +16,7 @@ const createInquirySchema = z.object({
 export const createInquiry = async (req, res, next) => {
     try {
         const data = createInquirySchema.parse(req.body);
-        const externalId = generateInquiryId();
+        const externalId = await generateInquiryId();
         const inquiry = await Inquiry.create({
             externalId,
             ...data
@@ -37,13 +37,40 @@ export const createInquiry = async (req, res, next) => {
         next(err);
     }
 };
+// export const createInquiryForUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+//   try {
+//     if (!req.user) {
+//       throw createHttpError(401, "Authentication required");
+//     }
+//     const data = createInquirySchema.parse(req.body);
+//     const externalId = await generateInquiryId();
+//     const inquiry = await Inquiry.create({
+//       externalId,
+//       ...data,
+//       userId: req.user.sub
+//     });
+//     await notifyAdmin({
+//       title: "New user inquiry received",
+//       message: `New inquiry from ${inquiry.name} (${inquiry.email}).`,
+//       type: "info",
+//       category: "Inquiries",
+//       meta: { entityType: "inquiry", entityId: inquiry.id, action: "create", actorUserId: req.user.sub }
+//     });
+//     res.status(201).json({ inquiry });
+//   } catch (err) {
+//     if (err instanceof z.ZodError) {
+//       return next(createHttpError(400, "Invalid inquiry data"));
+//     }
+//     next(err);
+//   }
+// };
 export const createInquiryForUser = async (req, res, next) => {
     try {
         if (!req.user) {
             throw createHttpError(401, "Authentication required");
         }
         const data = createInquirySchema.parse(req.body);
-        const externalId = generateInquiryId();
+        const externalId = await generateInquiryId(); // ← was missing await
         const inquiry = await Inquiry.create({
             externalId,
             ...data,

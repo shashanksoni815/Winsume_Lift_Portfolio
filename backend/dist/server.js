@@ -16,9 +16,10 @@ import cartRoutes from "./routes/cart.routes.js";
 import portalConfigRoutes from "./routes/portalConfig.routes.js";
 import productRoutes from "./routes/product.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
+import blogRoutes from './routes/blogroutes.js';
 const app = express();
 app.use(cors({
-    origin: "https://winsume-lift-portfolio-frontend.onrender.com" || "*",
+    origin: "https://winsume-lift-portfolio-frontend.onrender.com",
     credentials: true
 }));
 app.use(express.json());
@@ -37,6 +38,7 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/portal-config", portalConfigRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use('/api/blogs', blogRoutes);
 app.use((_req, _res, next) => {
     next(createHttpError(404, "Not found"));
 });
