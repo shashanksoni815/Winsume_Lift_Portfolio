@@ -3,7 +3,7 @@ import path from "path";
 import fs from "fs";
 import type { Request } from "express";
 
-const uploadDir = path.join(process.cwd(), "backend", "uploads");
+const uploadDir = path.join(process.cwd(), process.env.UPLOAD_DIR ?? "uploads");
 
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
@@ -33,4 +33,3 @@ export const upload = multer({
     cb(null, true);
   }
 });
-

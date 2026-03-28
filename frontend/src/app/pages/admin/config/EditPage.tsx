@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { apiUrl, assetUrl } from "../../../api";
 import { useNavigate, useParams } from 'react-router';
 import { motion } from 'motion/react';
 import React from 'react';
@@ -111,10 +112,10 @@ const BLOG_CATEGORIES = [
   'Technology', 'Design', 'Safety', 'Industry News',
 ];
 
-const BACKEND_BASE_URL = 'https://winsume-lift-backend01.onrender.com';
+
 const resolveMediaUrl = (url?: string) => {
   if (!url) return '';
-  if (url.startsWith('/uploads')) return `${BACKEND_BASE_URL}${url}`;
+  if (url.startsWith('/uploads')) return assetUrl(url);
   return url;
 };
 
@@ -250,7 +251,7 @@ export function EditPage() {
       try {
         setProductLoading(true);
         setProductError(null);
-        const data = await adminFetch('https://winsume-lift-backend01.onrender.com/api/products');
+        const data = await adminFetch(apiUrl('/products'));
         setProducts(Array.isArray((data as any).items) ? (data as any).items : []);
       } catch (error: any) {
         setProductError(error.message || 'Failed to load products');
@@ -266,7 +267,7 @@ export function EditPage() {
     if (id !== 'our-work') return;
     const loadConfig = async () => {
       try {
-        const data = await adminFetch('https://winsume-lift-backend01.onrender.com/api/portal-config');
+        const data = await adminFetch(apiUrl('/portal-config'));
         const ids = data?.portalSettings?.ourWorkFeaturedProductIds;
         setOurWorkFeaturedProductIds(Array.isArray(ids) ? ids : []);
       } catch { /* ignore */ }
@@ -279,7 +280,7 @@ export function EditPage() {
     if (id !== 'home') return;
     const loadConfig = async () => {
       try {
-        const data = await adminFetch('https://winsume-lift-backend01.onrender.com/api/portal-config');
+        const data = await adminFetch(apiUrl('/portal-config'));
         setHomeFeaturedProductIds(Array.isArray(data?.portalSettings?.homePortfolioProjectIds) ? data.portalSettings.homePortfolioProjectIds : []);
         setHomeCollectionsProductIds(Array.isArray(data?.portalSettings?.homeCollectionsProductIds) ? data.portalSettings.homeCollectionsProductIds : []);
       } catch { /* ignore */ }
@@ -301,7 +302,7 @@ export function EditPage() {
       const params = new URLSearchParams({ limit: '50' });
       if (status) params.set('status', status);
       const data = await adminFetch(
-        `https://winsume-lift-backend01.onrender.com/api/blogs?${params}`
+        apiUrl(`/blogs?${params}`)
       );
       setBlogs(Array.isArray((data as any).items) ? (data as any).items : []);
     } catch (error: any) {
@@ -314,7 +315,7 @@ export function EditPage() {
   const loadBlogStats = async () => {
     try {
       const data = await adminFetch(
-        'https://winsume-lift-backend01.onrender.com/api/blogs/stats'
+        apiUrl('/blogs/stats')
       );
       if ((data as any).stats) setBlogStats((data as any).stats);
     } catch { /* ignore */ }
@@ -340,7 +341,7 @@ export function EditPage() {
     setBlogFormError('');
     try {
       const data = await adminFetch(
-        `https://winsume-lift-backend01.onrender.com/api/blogs/${blogId}`
+        apiUrl(`/blogs/${blogId}`)
       );
       const b = (data as any).blog;
       setBlogForm({
@@ -411,8 +412,8 @@ export function EditPage() {
       }
 
       const url    = editingBlogId
-        ? `https://winsume-lift-backend01.onrender.com/api/blogs/${editingBlogId}`
-        : 'https://winsume-lift-backend01.onrender.com/api/blogs';
+        ? apiUrl(`/blogs/${editingBlogId}`)
+        : apiUrl('/blogs');
       const method = editingBlogId ? 'PATCH' : 'POST';
 
       await adminFetch(url, { method, body: payload });
@@ -432,7 +433,7 @@ export function EditPage() {
     const next = current === 'published' ? 'draft' : 'published';
     try {
       await adminFetch(
-        `https://winsume-lift-backend01.onrender.com/api/blogs/${blogId}/status`,
+        apiUrl(`/blogs/${blogId}/status`),
         { method: 'PATCH', body: JSON.stringify({ status: next }) }
       );
       loadBlogs(blogFilterStatus || undefined);
@@ -445,7 +446,7 @@ export function EditPage() {
   const handleBlogFeaturedToggle = async (blogId: string) => {
     try {
       await adminFetch(
-        `https://winsume-lift-backend01.onrender.com/api/blogs/${blogId}/featured`,
+        apiUrl(`/blogs/${blogId}/featured`),
         { method: 'PATCH' }
       );
       loadBlogs(blogFilterStatus || undefined);
@@ -459,7 +460,7 @@ export function EditPage() {
     setDeletingBlog(true);
     try {
       await adminFetch(
-        `https://winsume-lift-backend01.onrender.com/api/blogs/${deleteBlogId}`,
+        apiUrl(`/blogs/${deleteBlogId}`),
         { method: 'DELETE' }
       );
       setDeleteBlogId(null);
@@ -548,13 +549,13 @@ export function EditPage() {
   //     let updatedProducts: Product[];
   //     if (editingProductId) {
   //       const updated: any = await adminFetch(
-  //         `https://winsume-lift-backend01.onrender.com/api/products/${editingProductId}`,
+  //         apiUrl(`/products/${editingProductId}`),
   //         { method: 'PATCH', body: fd }
   //       );
   //       updatedProducts = products.map((p) => (p._id === editingProductId ? updated.product : p));
   //     } else {
   //       const created: any = await adminFetch(
-  //         'https://winsume-lift-backend01.onrender.com/api/products',
+  //         apiUrl('/products'),
   //         { method: 'POST', body: fd }
   //       );
   //       updatedProducts = [created.product, ...products];
@@ -629,7 +630,7 @@ export function EditPage() {
       let updatedProducts: Product[];
       if (editingProductId) {
         const updated: any = await adminFetch(
-          `https://winsume-lift-backend01.onrender.com/api/products/${editingProductId}`,
+          apiUrl(`/products/${editingProductId}`),
           { method: 'PATCH', body: fd }
         );
         updatedProducts = products.map((p) =>
@@ -637,7 +638,7 @@ export function EditPage() {
         );
       } else {
         const created: any = await adminFetch(
-          'https://winsume-lift-backend01.onrender.com/api/products',
+          apiUrl('/products'),
           { method: 'POST', body: fd }
         );
         updatedProducts = [created.product, ...products];
@@ -664,7 +665,7 @@ export function EditPage() {
     try {
       setProductLoading(true);
       setProductError(null);
-      await adminFetch(`https://winsume-lift-backend01.onrender.com/api/products/${productId}`, { method: 'DELETE' });
+      await adminFetch(apiUrl(`/products/${productId}`), { method: 'DELETE' });
       setProducts(products.filter((p) => p._id !== productId));
     } catch (error: any) {
       setProductError(error.message || 'Failed to delete product');
@@ -678,7 +679,7 @@ export function EditPage() {
     try {
       setProductLoading(true);
       setProductError(null);
-      await adminFetch('https://winsume-lift-backend01.onrender.com/api/portal-config', {
+      await adminFetch(apiUrl('/portal-config'), {
         method: 'PATCH',
         body: JSON.stringify({ portalSettings: { homePortfolioProjectIds: homeFeaturedProductIds, homeCollectionsProductIds } }),
       });
@@ -695,7 +696,7 @@ export function EditPage() {
     try {
       setProductLoading(true);
       setProductError(null);
-      await adminFetch('https://winsume-lift-backend01.onrender.com/api/portal-config', {
+      await adminFetch(apiUrl('/portal-config'), {
         method: 'PATCH',
         body: JSON.stringify({ portalSettings: { ourWorkFeaturedProductIds } }),
       });
@@ -1095,7 +1096,7 @@ export function EditPage() {
             <img
               src={
                 productForm.heroImage.startsWith('/uploads')
-                  ? `https://winsume-lift-backend01.onrender.com${productForm.heroImage}`
+                  ? assetUrl(productForm.heroImage)
                   : productForm.heroImage
               }
               alt="Current hero"
@@ -1442,7 +1443,7 @@ export function EditPage() {
             {/* Thumbnail */}
             {product.heroImage && (
               <img
-                src={product.heroImage.startsWith('/uploads') ? `https://winsume-lift-backend01.onrender.com${product.heroImage}` : product.heroImage}
+                src={product.heroImage.startsWith('/uploads') ? assetUrl(product.heroImage) : product.heroImage}
                 alt={product.name}
                 className="w-full md:w-16 h-16 object-cover rounded-lg flex-shrink-0 hidden md:block"
               />

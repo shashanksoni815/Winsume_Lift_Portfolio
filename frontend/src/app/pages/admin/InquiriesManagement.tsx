@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { apiUrl, assetUrl } from "../../api";
 import { useNavigate } from 'react-router';
 import { motion } from 'motion/react';
 import React from 'react';
@@ -67,7 +68,7 @@ export function InquiriesManagement() {
       try {
         setIsLoading(true);
         setLoadError(null);
-        const res = await fetch('https://winsume-lift-backend01.onrender.com/api/inquiries', {
+        const res = await fetch(apiUrl('/inquiries'), {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
@@ -175,7 +176,7 @@ export function InquiriesManagement() {
     }
 
     try {
-      const res = await fetch(`https://winsume-lift-backend01.onrender.com/api/inquiries/${inquiry.id}`, {
+      const res = await fetch(apiUrl(`/inquiries/${inquiry.id}`), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

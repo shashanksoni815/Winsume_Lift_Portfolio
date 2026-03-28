@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { apiUrl, assetUrl } from "../api";
 import { Navigation } from '../components/Navigation';
 import { Footer } from '../components/Footer';
 import { Mail, Lock, Shield, X, Eye, EyeOff } from 'lucide-react';
@@ -22,7 +23,7 @@ export function AdminLoginPage() {
     try {
       setIsSubmitting(true);
 
-      const response = await fetch('https://winsume-lift-backend01.onrender.com/api/auth/admin/login', {
+      const response = await fetch(apiUrl('/auth/admin/login'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

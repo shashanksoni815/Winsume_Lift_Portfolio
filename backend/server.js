@@ -1,4 +1,3 @@
-// Render start command runs: `node server.js`
-// This file boots the compiled TypeScript output in `dist/`.
-import "./dist/server.js";
+// Run with: `node server.js` (loads compiled output from `dist/`)
+import "./dist/index.js";
 

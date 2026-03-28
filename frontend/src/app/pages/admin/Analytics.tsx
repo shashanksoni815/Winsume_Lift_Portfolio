@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { apiUrl, assetUrl } from "../../api";
 import { motion } from 'motion/react';
 import React from 'react';
 import {
@@ -71,8 +72,8 @@ export function Analytics() {
         setIsLoading(true);
         setLoadError(null);
         const [projectsRes, clientsRes] = await Promise.all([
-          adminFetch('https://winsume-lift-backend01.onrender.com/api/projects'),
-          adminFetch('https://winsume-lift-backend01.onrender.com/api/users?role=user&status=active&pageSize=500')
+          adminFetch(apiUrl('/projects')),
+          adminFetch(apiUrl('/users?role=user&status=active&pageSize=500'))
         ]);
 
         const projectsJson = projectsRes.ok ? await projectsRes.json().catch(() => null) : null;

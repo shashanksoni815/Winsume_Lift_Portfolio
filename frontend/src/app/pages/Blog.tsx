@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { apiUrl, assetUrl } from "../api";
 import { Navigation } from '../components/Navigation';
 import { Footer } from '../components/Footer';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
@@ -6,11 +7,11 @@ import { motion } from 'motion/react';
 import { ChevronRight, Clock, Tag, ArrowRight, Star, Shield, Wrench, Award, Building2, Home, Zap, Search } from 'lucide-react';
 import { useNavigate } from 'react-router';
 
-const API = 'https://winsume-lift-backend01.onrender.com/api/blogs';
-const BACKEND_BASE_URL = 'https://winsume-lift-backend01.onrender.com';
+const API = apiUrl('/blogs');
+
 const resolveMediaUrl = (url?: string) => {
   if (!url) return '';
-  if (url.startsWith('/uploads')) return `${BACKEND_BASE_URL}${url}`;
+  if (url.startsWith('/uploads')) return assetUrl(url);
   return url;
 };
 

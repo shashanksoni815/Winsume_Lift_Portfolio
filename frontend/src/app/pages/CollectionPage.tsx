@@ -1,4 +1,5 @@
 import { Navigation } from '../components/Navigation';
+import { apiUrl, assetUrl } from "../api";
 import { InquiryForm } from '../components/InquiryForm';
 import { Footer } from '../components/Footer';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
@@ -77,7 +78,7 @@ export function CollectionPage() {
       try {
         setIsLoading(true);
         setLoadError(null);
-        const res = await fetch('https://winsume-lift-backend01.onrender.com/api/products/public');
+        const res = await fetch(apiUrl('/products/public'));
         if (!res.ok) {
           const data = await res.json().catch(() => null);
           setLoadError(data?.message || 'Failed to load products.');
@@ -90,7 +91,7 @@ export function CollectionPage() {
             p.heroImage || (Array.isArray(p.images) ? p.images[0] : undefined);
           const heroImage =
             typeof rawHero === 'string' && rawHero.startsWith('/uploads')
-              ? `https://winsume-lift-backend01.onrender.com${rawHero}`
+              ? assetUrl(rawHero)
               : rawHero;
 
           return {

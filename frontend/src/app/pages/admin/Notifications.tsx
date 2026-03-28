@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { apiUrl, assetUrl } from "../../api";
 import { motion } from 'motion/react';
 import React from 'react';
 import {
@@ -58,7 +59,7 @@ export function Notifications() {
     try {
       setIsLoading(true);
       setLoadError(null);
-      const url = new URL('https://winsume-lift-backend01.onrender.com/api/notifications');
+      const url = new URL(apiUrl('/notifications'));
       url.searchParams.set('filter', filter);
       if (searchQuery.trim()) url.searchParams.set('search', searchQuery.trim());
       url.searchParams.set('limit', '200');
@@ -121,7 +122,7 @@ export function Notifications() {
 
   const markAsRead = async (id: string) => {
     try {
-      await adminFetch(`https://winsume-lift-backend01.onrender.com/api/notifications/${id}/read`, { method: 'PATCH' });
+      await adminFetch(apiUrl(`/notifications/${id}/read`), { method: 'PATCH' });
       await load();
     } catch (e) {
       // ignore
@@ -130,7 +131,7 @@ export function Notifications() {
 
   const markAllAsRead = async () => {
     try {
-      await adminFetch('https://winsume-lift-backend01.onrender.com/api/notifications/mark-all-read', { method: 'POST' });
+      await adminFetch(apiUrl('/notifications/mark-all-read'), { method: 'POST' });
       await load();
     } catch (e) {
       // ignore
@@ -139,7 +140,7 @@ export function Notifications() {
 
   const deleteNotification = async (id: string) => {
     try {
-      await adminFetch(`https://winsume-lift-backend01.onrender.com/api/notifications/${id}`, { method: 'DELETE' });
+      await adminFetch(apiUrl(`/notifications/${id}`), { method: 'DELETE' });
       await load();
     } catch (e) {
       // ignore

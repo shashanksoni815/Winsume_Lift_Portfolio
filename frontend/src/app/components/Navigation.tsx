@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiUrl } from "../api";
 import { Menu, X, Phone, User, ShoppingCart, FolderKanban, LogOut } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router';
 import { useCart } from '../context/CartContext';
@@ -27,7 +28,7 @@ export function Navigation() {
   useEffect(() => {
     const loadConfig = async () => {
       try {
-        const res = await fetch('https://winsume-lift-backend01.onrender.com/api/portal-config');
+        const res = await fetch(apiUrl('/portal-config'));
         if (!res.ok) return;
         const data = await res.json().catch(() => null);
         if (data?.portalSettings?.siteName) {

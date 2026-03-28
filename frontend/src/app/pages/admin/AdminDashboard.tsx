@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { apiUrl, assetUrl } from "../../api";
 import { useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
 import React from 'react';
@@ -87,9 +88,9 @@ export function AdminDashboard() {
         setLoadError(null);
 
         const [projectsRes, inquiriesRes, clientsRes] = await Promise.all([
-          adminFetch('https://winsume-lift-backend01.onrender.com/api/projects'),
-          adminFetch('https://winsume-lift-backend01.onrender.com/api/inquiries'),
-          adminFetch('https://winsume-lift-backend01.onrender.com/api/users?role=user&status=active&pageSize=100'),
+          adminFetch(apiUrl('/projects')),
+          adminFetch(apiUrl('/inquiries')),
+          adminFetch(apiUrl('/users?role=user&status=active&pageSize=100')),
         ]);
 
         const projectsJson = projectsRes.ok ? await projectsRes.json().catch(() => null) : null;

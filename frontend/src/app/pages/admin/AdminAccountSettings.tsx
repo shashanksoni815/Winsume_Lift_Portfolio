@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { apiUrl, assetUrl } from "../../api";
 import { useNavigate } from 'react-router';
 import { motion } from 'motion/react';
 import { ArrowLeft, Shield, Lock, Eye, EyeOff, Save, Key } from 'lucide-react';
@@ -41,7 +42,7 @@ export function AdminAccountSettings() {
         return;
       }
 
-      const res = await fetch('https://winsume-lift-backend01.onrender.com/api/users/me/password', {
+      const res = await fetch(apiUrl('/users/me/password'), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

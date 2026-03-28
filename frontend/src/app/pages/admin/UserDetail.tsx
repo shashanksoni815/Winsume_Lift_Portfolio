@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { apiUrl, assetUrl } from "../../api";
 import { useNavigate, useParams } from 'react-router';
 import { motion } from 'motion/react';
 import React from 'react';
@@ -95,7 +96,7 @@ export function UserDetail() {
       try {
         setIsLoading(true);
         setLoadError(null);
-        const res = await adminFetch(`https://winsume-lift-backend01.onrender.com/api/users/${id}`);
+        const res = await adminFetch(apiUrl(`/users/${id}`));
         if (!res.ok) {
           const data = await res.json().catch(() => null);
           setLoadError(data?.message || 'Failed to load user.');
@@ -727,7 +728,7 @@ export function UserDetail() {
               <button
                 onClick={async () => {
                   try {
-                    const res = await adminFetch(`https://winsume-lift-backend01.onrender.com/api/users/${userData.id}`, {
+                    const res = await adminFetch(apiUrl(`/users/${userData.id}`), {
                       method: 'PATCH',
                       body: JSON.stringify({ status: 'suspended' }),
                     });

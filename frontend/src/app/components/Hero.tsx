@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { apiUrl } from "../api";
 import { ChevronDown } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { motion } from 'motion/react';
@@ -27,7 +28,7 @@ export function Hero() {
   useEffect(() => {
     const loadConfig = async () => {
       try {
-        const res = await fetch('https://winsume-lift-backend01.onrender.com/api/portal-config');
+        const res = await fetch(apiUrl('/portal-config'));
         if (!res.ok) return;
         const data = await res.json().catch(() => null);
         if (!data) return;

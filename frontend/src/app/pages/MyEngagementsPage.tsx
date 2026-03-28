@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { apiUrl, assetUrl } from "../api";
 import { useNavigate } from 'react-router';
 import { Navigation } from '../components/Navigation';
 import { Footer } from '../components/Footer';
@@ -33,7 +34,7 @@ export function MyEngagementsPage() {
 
       try {
         setIsLoading(true);
-        const res = await fetch('https://winsume-lift-backend01.onrender.com/api/projects/user/me', {
+        const res = await fetch(apiUrl('/projects/user/me'), {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },

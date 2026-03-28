@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { apiUrl, assetUrl } from "../api";
 import { useLocation, useNavigate } from 'react-router';
 import { Navigation } from '../components/Navigation';
 import { Footer } from '../components/Footer';
@@ -47,7 +48,7 @@ export function ResetPasswordPage() {
 
     try {
       setIsSubmitting(true);
-      const response = await fetch('https://winsume-lift-backend01.onrender.com/api/auth/reset-password', {
+      const response = await fetch(apiUrl('/auth/reset-password'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

@@ -29,7 +29,7 @@
 //       const accessToken = localStorage.getItem('accessToken');
 //       if (!accessToken) return;
 //       try {
-//         const res = await fetch('https://winsume-lift-backend01.onrender.com/api/cart/me', {
+//         const res = await fetch(apiUrl('/cart/me'), {
 //           headers: {
 //             Authorization: `Bearer ${accessToken}`,
 //           },
@@ -50,7 +50,7 @@
 //           const rawImage = item.image ?? '';
 //           const image =
 //             typeof rawImage === 'string' && rawImage.startsWith('/uploads')
-//               ? `https://winsume-lift-backend01.onrender.com${rawImage}`
+//               ? assetUrl(${rawImage})
 //               : rawImage;
 //           return {
 //             id: item._id,
@@ -78,7 +78,7 @@
 //     }
 
 //     try {
-//       const res = await fetch('https://winsume-lift-backend01.onrender.com/api/cart/items', {
+//       const res = await fetch(apiUrl('/cart/items'), {
 //         method: 'POST',
 //         headers: {
 //           'Content-Type': 'application/json',
@@ -99,7 +99,7 @@
 //         const rawImage = ci.image ?? '';
 //         const image =
 //           typeof rawImage === 'string' && rawImage.startsWith('/uploads')
-//             ? `https://winsume-lift-backend01.onrender.com${rawImage}`
+//             ? assetUrl(${rawImage})
 //             : rawImage;
 //         return {
 //           id: ci._id,
@@ -125,7 +125,7 @@
 //     }
 
 //     try {
-//       await fetch(`https://winsume-lift-backend01.onrender.com/api/cart/items/${id}`, {
+//       await fetch(apiUrl(`/cart/items/${id}`), {
 //         method: 'DELETE',
 //         headers: {
 //           Authorization: `Bearer ${accessToken}`,
@@ -157,7 +157,7 @@
 //     if (!accessToken) return;
 
 //     try {
-//       await fetch(`https://winsume-lift-backend01.onrender.com/api/cart/items/${id}`, {
+//       await fetch(apiUrl(`/cart/items/${id}`), {
 //         method: 'PATCH',
 //         headers: {
 //           'Content-Type': 'application/json',
@@ -174,7 +174,7 @@
 //     const accessToken = localStorage.getItem('accessToken');
 //     if (accessToken) {
 //       try {
-//         await fetch('https://winsume-lift-backend01.onrender.com/api/cart/me', {
+//         await fetch(apiUrl('/cart/me'), {
 //           method: 'DELETE',
 //           headers: {
 //             Authorization: `Bearer ${accessToken}`,
@@ -215,6 +215,7 @@
 // }
 
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
+import { apiUrl, assetUrl } from "../api";
 import React from 'react';
 
 export interface CartItem {
@@ -239,7 +240,7 @@ interface CartContextType {
 }
 
 const AUTH_KEYS = ['accessToken', 'refreshToken', 'userEmail', 'userRole', 'isLoggedIn'];
-const BASE_URL = 'https://winsume-lift-backend01.onrender.com';
+
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
@@ -254,7 +255,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const rawImage = item.image ?? '';
       const image =
         typeof rawImage === 'string' && rawImage.startsWith('/uploads')
-          ? `${BASE_URL}${rawImage}`
+          ? assetUrl(rawImage)
           : rawImage;
       return {
         id: item._id,
@@ -279,7 +280,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (!accessToken) return;
 
       try {
-        const res = await fetch(`${BASE_URL}/api/cart/me`, {
+        const res = await fetch(apiUrl('/cart/me'), {
           headers: { Authorization: `Bearer ${accessToken}` },
         });
 
@@ -336,7 +337,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     // Best-effort: clear cart on backend
     if (accessToken) {
       try {
-        await fetch(`${BASE_URL}/api/cart/me`, {
+        await fetch(apiUrl('/cart/me'), {
           method: 'DELETE',
           headers: { Authorization: `Bearer ${accessToken}` },
         });
@@ -359,7 +360,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const res = await fetch(`${BASE_URL}/api/cart/items`, {
+      const res = await fetch(apiUrl('/cart/items'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -395,7 +396,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     if (accessToken) {
       try {
-        await fetch(`${BASE_URL}/api/cart/items/${id}`, {
+        await fetch(apiUrl(`/cart/items/${id}`), {
           method: 'DELETE',
           headers: { Authorization: `Bearer ${accessToken}` },
         });
@@ -425,7 +426,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (!accessToken) return;
 
     try {
-      await fetch(`${BASE_URL}/api/cart/items/${id}`, {
+      await fetch(apiUrl(`/cart/items/${id}`), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -444,7 +445,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     if (accessToken) {
       try {
-        await fetch(`${BASE_URL}/api/cart/me`, {
+        await fetch(apiUrl('/cart/me'), {
           method: 'DELETE',
           headers: { Authorization: `Bearer ${accessToken}` },
         });

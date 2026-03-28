@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { apiUrl, assetUrl } from "../../api";
 import { useNavigate } from 'react-router';
 import { motion } from 'motion/react';
 import React from 'react';
@@ -183,7 +184,7 @@ export function UserPortalConfig() {
   useEffect(() => {
     const loadConfig = async () => {
       try {
-        const res = await fetch('https://winsume-lift-backend01.onrender.com/api/portal-config');
+        const res = await fetch(apiUrl('/portal-config'));
         if (!res.ok) return;
         const data = await res.json().catch(() => null);
         if (!data) return;
@@ -233,7 +234,7 @@ export function UserPortalConfig() {
           requiredAuth: p.requiredAuth
         }))
       };
-      const res = await adminFetch('https://winsume-lift-backend01.onrender.com/api/portal-config', {
+      const res = await adminFetch(apiUrl('/portal-config'), {
         method: 'PATCH',
         body: JSON.stringify(body)
       });
@@ -254,7 +255,7 @@ export function UserPortalConfig() {
       return;
     }
     try {
-      const res = await adminFetch('https://winsume-lift-backend01.onrender.com/api/portal-config/reset', {
+      const res = await adminFetch(apiUrl('/portal-config/reset'), {
         method: 'POST'
       });
       if (!res.ok) {

@@ -273,6 +273,7 @@
 // }
 
 import React from 'react';
+import { apiUrl } from "../api";
 import { useState } from 'react';
 import { Send, Phone, Mail, MapPin, MessageCircle } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -306,7 +307,7 @@ export function InquiryForm() {
     try {
       setIsSubmitting(true);
 
-      const response = await fetch('https://winsume-lift-backend01.onrender.com/api/inquiries/user', {
+      const response = await fetch(apiUrl('/inquiries/user'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

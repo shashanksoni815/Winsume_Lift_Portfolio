@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { apiUrl, assetUrl } from "../../api";
 import { useNavigate } from 'react-router';
 import { motion } from 'motion/react';
 import React from 'react';
@@ -107,7 +108,7 @@ export function UserManagement() {
       try {
         setIsLoading(true);
         setLoadError(null);
-        const res = await adminFetch('https://winsume-lift-backend01.onrender.com/api/users');
+        const res = await adminFetch(apiUrl('/users'));
         if (!res.ok) {
           const data = await res.json().catch(() => null);
           setLoadError(data?.message || 'Failed to load users.');
@@ -184,7 +185,7 @@ export function UserManagement() {
       return;
     }
     try {
-      const res = await adminFetch('https://winsume-lift-backend01.onrender.com/api/users', {
+      const res = await adminFetch(apiUrl('/users'), {
         method: 'POST',
         body: JSON.stringify({
           fullName: formData.name,
@@ -201,7 +202,7 @@ export function UserManagement() {
         return;
       }
       // Reload users to reflect new record
-      const listRes = await adminFetch('https://winsume-lift-backend01.onrender.com/api/users');
+      const listRes = await adminFetch(apiUrl('/users'));
       const listData = await listRes.json().catch(() => null);
       const items = Array.isArray(listData?.items) ? listData.items : [];
       const mapped: User[] = items.map((u: any) => ({
@@ -231,7 +232,7 @@ export function UserManagement() {
   const handleEditUser = async () => {
     if (!selectedUser) return;
     try {
-      const res = await adminFetch(`https://winsume-lift-backend01.onrender.com/api/users/${selectedUser.id}`, {
+      const res = await adminFetch(apiUrl(`/users/${selectedUser.id}`), {
         method: 'PATCH',
         body: JSON.stringify({
           fullName: formData.name,
@@ -271,7 +272,7 @@ export function UserManagement() {
   const handleDeleteUser = async () => {
     if (!selectedUser) return;
     try {
-      const res = await adminFetch(`https://winsume-lift-backend01.onrender.com/api/users/${selectedUser.id}`, {
+      const res = await adminFetch(apiUrl(`/users/${selectedUser.id}`), {
         method: 'DELETE',
       });
       if (!res.ok && res.status !== 204) {

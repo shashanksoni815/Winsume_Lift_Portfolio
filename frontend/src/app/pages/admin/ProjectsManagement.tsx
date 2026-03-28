@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { apiUrl, assetUrl } from "../../api";
 import { useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
 import React from 'react';
@@ -111,7 +112,7 @@ export function ProjectsManagement() {
     try {
       setIsLoading(true);
       setLoadError(null);
-      const res = await adminFetch('https://winsume-lift-backend01.onrender.com/api/projects');
+      const res = await adminFetch(apiUrl('/projects'));
       if (!res.ok) {
         const data = await res.json().catch(() => null);
         setLoadError(data?.message || 'Failed to load projects.');
@@ -149,7 +150,7 @@ export function ProjectsManagement() {
     const loadInitial = async () => {
       await loadProjects();
       try {
-        const res = await adminFetch('https://winsume-lift-backend01.onrender.com/api/users?role=user&status=active&pageSize=100');
+        const res = await adminFetch(apiUrl('/users?role=user&status=active&pageSize=100'));
         if (!res.ok) return;
         const data = await res.json().catch(() => null);
         const items = Array.isArray(data?.items) ? data.items : [];
@@ -220,7 +221,7 @@ export function ProjectsManagement() {
 
       // If no existing client selected, create a new user as client
       if (!clientIdToUse && formData.client && formData.clientEmail) {
-        const userRes = await adminFetch('https://winsume-lift-backend01.onrender.com/api/users', {
+        const userRes = await adminFetch(apiUrl('/users'), {
           method: 'POST',
           body: JSON.stringify({
             fullName: formData.client,
@@ -240,7 +241,7 @@ export function ProjectsManagement() {
         clientIdToUse = userData?.user?.id ?? '';
       }
 
-      const res = await adminFetch('https://winsume-lift-backend01.onrender.com/api/projects', {
+      const res = await adminFetch(apiUrl('/projects'), {
         method: 'POST',
         body: JSON.stringify({
           name: formData.name,
@@ -287,7 +288,7 @@ export function ProjectsManagement() {
     }
     try {
       const newSpent = (selectedProject.spent || 0) + amount;
-      const res = await adminFetch(`https://winsume-lift-backend01.onrender.com/api/projects/${selectedProject.id}`, {
+      const res = await adminFetch(apiUrl(`/projects/${selectedProject.id}`), {
         method: 'PATCH',
         body: JSON.stringify({
           spent: newSpent
@@ -310,7 +311,7 @@ export function ProjectsManagement() {
   const handleEditProject = async () => {
     if (!selectedProject) return;
     try {
-      const res = await adminFetch(`https://winsume-lift-backend01.onrender.com/api/projects/${selectedProject.id}`, {
+      const res = await adminFetch(apiUrl(`/projects/${selectedProject.id}`), {
         method: 'PATCH',
         body: JSON.stringify({
           name: formData.name,
@@ -344,7 +345,7 @@ export function ProjectsManagement() {
   const handleDeleteProject = async () => {
     if (!selectedProject) return;
     try {
-      const res = await adminFetch(`https://winsume-lift-backend01.onrender.com/api/projects/${selectedProject.id}`, {
+      const res = await adminFetch(apiUrl(`/projects/${selectedProject.id}`), {
         method: 'DELETE',
       });
       if (!res.ok && res.status !== 204) {

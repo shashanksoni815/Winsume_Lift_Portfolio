@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { apiUrl, assetUrl } from "../api";
 import { Navigation } from '../components/Navigation';
 import { Footer } from '../components/Footer';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
@@ -35,7 +36,7 @@ export function ContactPage() {
     try {
       setIsSubmitting(true);
 
-      const response = await fetch('https://winsume-lift-backend01.onrender.com/api/inquiries/user', {
+      const response = await fetch(apiUrl('/inquiries/user'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

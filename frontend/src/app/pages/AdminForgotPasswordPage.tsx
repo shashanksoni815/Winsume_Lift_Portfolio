@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { apiUrl, assetUrl } from "../api";
 import { Navigation } from '../components/Navigation';
 import { Footer } from '../components/Footer';
 import { Mail, Shield, ArrowLeft } from 'lucide-react';
@@ -19,7 +20,7 @@ export function AdminForgotPasswordPage() {
     try {
       setIsSubmitting(true);
 
-      const response = await fetch('https://winsume-lift-backend01.onrender.com/api/auth/forgot-password', {
+      const response = await fetch(apiUrl('/auth/forgot-password'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

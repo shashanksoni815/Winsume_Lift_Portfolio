@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { apiUrl, assetUrl } from "../api";
 import React from 'react';
 import { Navigation } from '../components/Navigation';
 import { Footer } from '../components/Footer';
@@ -23,7 +24,7 @@ export function LoginPage() {
     try {
       setIsSubmitting(true);
 
-      const response = await fetch('https://winsume-lift-backend01.onrender.com/api/auth/login', {
+      const response = await fetch(apiUrl('/auth/login'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

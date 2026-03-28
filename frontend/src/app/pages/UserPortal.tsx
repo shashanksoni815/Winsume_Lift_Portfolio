@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { apiUrl, assetUrl } from "../api";
 import { useNavigate } from 'react-router';
 import { motion } from 'motion/react';
 import React from 'react';
@@ -75,22 +76,22 @@ export function UserPortal() {
       try {
         setIsLoading(true);
         const [profileRes, inquiriesRes, projectsRes, documentsRes] = await Promise.all([
-          fetch('https://winsume-lift-backend01.onrender.com/api/users/me/profile', {
+          fetch(apiUrl('/users/me/profile'), {
             headers: {
               Authorization: `Bearer ${accessToken}`,
             },
           }),
-          fetch('https://winsume-lift-backend01.onrender.com/api/inquiries/user', {
+          fetch(apiUrl('/inquiries/user'), {
             headers: {
               Authorization: `Bearer ${accessToken}`,
             },
           }),
-          fetch('https://winsume-lift-backend01.onrender.com/api/projects/user/me', {
+          fetch(apiUrl('/projects/user/me'), {
             headers: {
               Authorization: `Bearer ${accessToken}`,
             },
           }),
-          fetch('https://winsume-lift-backend01.onrender.com/api/documents/user/me', {
+          fetch(apiUrl('/documents/user/me'), {
             headers: {
               Authorization: `Bearer ${accessToken}`,
             },
