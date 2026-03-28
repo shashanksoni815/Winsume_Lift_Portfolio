@@ -2,18 +2,40 @@
 
 ## Prerequisites
 
-- Docker + Docker Compose v2
-- DNS `winsumelift.com` and `www.winsumelift.com` → your VPS public IP
-- MongoDB Atlas (or other) reachable from the VPS
+- Docker + Docker Compose **v2** (`docker compose`, not only legacy `docker-compose`)
+- DNS `winsumelift.com` and `www.winsumelift.com` → your VPS public IP (optional for IP-only tests)
 
-## Quick start
+## Why “Can’t find docker-compose.yml”?
+
+You must run commands **inside the project folder** (where `docker-compose.yml` lives), not in `/root` after SSH. Clone the repo first, then `cd` into it.
+
+## Quick start (VPS Ubuntu)
 
 ```bash
-cd Winsume_Lift_Portfolio
-cp .env.example .env
-# Edit .env — set MONGODB_URI, JWT_SECRET, JWT_REFRESH_SECRET
+# 1) Install Docker (once per server)
+apt update && apt install -y ca-certificates curl
+install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+chmod a+r /etc/apt/keyrings/docker.asc
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "${VERSION_CODENAME:-jammy}") stable" > /etc/apt/sources.list.d/docker.list
+apt update && apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
-docker compose up --build
+# 2) Get code (replace with your Git URL)
+cd /opt
+git clone https://github.com/YOUR_USER/YOUR_REPO.git winsume
+cd winsume/Winsume_Lift_Portfolio   # or cd winsume if compose is at repo root
+
+# 3) Start (Mongo runs inside Docker; no .env required for first run)
+docker compose up --build -d
+```
+
+Optional: create `.env` in the **same folder as** `docker-compose.yml` to set `MONGODB_URI` (Atlas), `JWT_SECRET`, `JWT_REFRESH_SECRET` — Compose reads it for variable substitution. **Change default JWT strings before real production.**
+
+## Quick start (local / copy-paste)
+
+```bash
+cd path/to/Winsume_Lift_Portfolio
+docker compose up --build -d
 ```
 
 - Site: `http://winsumelift.com` (port **80**)
