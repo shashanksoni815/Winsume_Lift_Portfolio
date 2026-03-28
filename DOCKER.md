@@ -62,11 +62,55 @@ docker compose up --build -d
 
 Uploaded files persist in the `backend_uploads` volume.
 
-## HTTPS (later)
+## HTTPS / Let’s Encrypt (Docker uses port 80)
 
-1. Obtain certificates (e.g. Certbot / Let’s Encrypt).
-2. Add a `server { listen 443 ssl http2; ... }` block in `nginx/nginx.conf`.
-3. Expose `443:443` in `docker-compose.yml` and mount certs into the nginx container.
+**Problem:** `certbot --nginx` installs **host** Nginx and tries to bind **:80**, but your site is already on **:80** from the **Docker** Nginx container → `Address already in use`.
+
+**Fix:** Get certificates with **standalone** (brief downtime), then run the stack with the **SSL overlay** that mounts certs into **Docker** Nginx.
+
+### 1) Stop site + free port 80
+
+```bash
+cd ~/Winsume_Lift_Portfolio
+docker-compose stop nginx
+```
+
+(Optional) Disable host Nginx so it never fights Docker again:
+
+```bash
+systemctl disable nginx --now 2>/dev/null || true
+```
+
+### 2) Issue certificate (standalone — Certbot uses :80 for a minute)
+
+```bash
+certbot certonly --standalone -d winsumelift.com -d www.winsumelift.com
+```
+
+### 3) Start stack with SSL (both compose files)
+
+After `git pull` (so you have `docker-compose.ssl.yml` + `nginx/nginx.ssl.conf`):
+
+```bash
+cd ~/Winsume_Lift_Portfolio
+docker-compose -f docker-compose.yml -f docker-compose.ssl.yml up -d
+```
+
+Open **https://winsumelift.com**. HTTP on **:80** redirects to HTTPS (except `/.well-known/acme-challenge/` for renewals).
+
+### 4) Renewal (cron example — short downtime)
+
+```bash
+0 4 * * * cd /root/Winsume_Lift_Portfolio && docker-compose stop nginx && certbot renew --standalone --non-interactive && docker-compose -f docker-compose.yml -f docker-compose.ssl.yml start nginx
+```
+
+(Adjust path and compose flags to match your setup.)
+
+### HTTP-only mode again
+
+```bash
+docker-compose -f docker-compose.yml up -d
+```
 
 ## Local smoke test (no domain)
 
