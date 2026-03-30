@@ -3,6 +3,7 @@ import { apiUrl } from "../api";
 import { Menu, X, Phone, User, ShoppingCart, FolderKanban, LogOut } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router';
 import { useCart } from '../context/CartContext';
+// import logo from '../../../public/logo.png';
 
 export function Navigation() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -172,13 +173,30 @@ const handleLogout = async () => {
           <div className="flex items-center justify-between h-20">
 
             {/* Logo */}
-            <button
+            {/* <button
               onClick={() => { navigate('/'); setIsMobileMenuOpen(false); }}
               className="flex items-center space-x-3 cursor-pointer group"
             >
               <div className="relative w-10 h-10 bg-orange-500 rounded-md flex items-center justify-center shadow-md group-hover:shadow-lg transition-all">
                 <div className="text-white font-bold text-xl">W</div>
               </div>
+              <div className="text-white">
+                <div className="font-bold text-xl">{siteName}</div>
+                <div className="text-orange-500 text-xs uppercase">{siteSubtitle}</div>
+              </div>
+            </button> */}
+            <button
+              onClick={() => { navigate('/'); setIsMobileMenuOpen(false); }}
+              className="flex items-center space-x-3 cursor-pointer group"
+            >
+              <div className="w-14 h-14">
+                <img
+                  src={"/logo.png"}
+                  alt="Winsume Lift Logo"
+                  className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-200"
+                />
+              </div>
+
               <div className="text-white">
                 <div className="font-bold text-xl">{siteName}</div>
                 <div className="text-orange-500 text-xs uppercase">{siteSubtitle}</div>

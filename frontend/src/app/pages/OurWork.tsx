@@ -146,7 +146,7 @@ export function OurWork() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              onClick={() => items[0]?.slug && navigate(`/product/${items[0].slug}`)}
+              onClick={() => items[0]?.slug && navigate(`/product/${items[0].id}`)}
               className="md:row-span-2 relative group overflow-hidden rounded-3xl shadow-2xl cursor-pointer"
             >
               <div className="relative h-[400px] md:h-full aspect-[3/4]">
@@ -181,7 +181,7 @@ export function OurWork() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              onClick={() => items[1]?.slug && navigate(`/product/${items[1].slug}`)}
+              onClick={() => items[1]?.slug && navigate(`/product/${items[1].id}`)}
               className="relative group overflow-hidden rounded-3xl shadow-2xl cursor-pointer"
             >
               <div className="relative h-[300px]">
@@ -213,7 +213,7 @@ export function OurWork() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.3 }}
-              onClick={() => items[2]?.slug && navigate(`/product/${items[2].slug}`)}
+              onClick={() => items[2]?.slug && navigate(`/product/${items[2].id}`)}
               className="relative group overflow-hidden rounded-3xl shadow-2xl cursor-pointer"
             >
               <div className="relative h-[300px]">

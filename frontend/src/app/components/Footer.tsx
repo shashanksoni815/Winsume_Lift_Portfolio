@@ -25,13 +25,31 @@ export function Footer() {
         >
           {/* Brand */}
           <div>
-            <div className="text-white mb-6">
-              <div className="font-serif text-2xl tracking-tight">WINSUME</div>
-              <div className="text-orange-500 text-xs tracking-widest uppercase">Lift India</div>
+            <div className="flex items-center space-x-3 text-white mb-6">
+              
+              {/* Logo */}
+              <div className="w-12 h-12">
+                <img
+                  src="/logo.png"
+                  alt="Winsume Logo"
+                  className="w-full h-full object-contain"
+                />
+              </div>
+
+              {/* Brand Text */}
+              <div>
+                <div className="font-serif text-2xl tracking-tight">WINSUME</div>
+                <div className="text-orange-500 text-xs tracking-widest uppercase">
+                  Lift India
+                </div>
+              </div>
+
             </div>
+
             <p className="text-white/60 mb-6">
               Service Provider and Manufacturer of Lift Installation Services, Passenger Lifts, and Maintenance Services Since 2018 in Indore, Madhya Pradesh.
             </p>
+
             <div className="flex space-x-4">
               <a href="https://www.facebook.com/winsome.lift" className="w-10 h-10 bg-[#2a4544] hover:bg-orange-500/20 border border-[#3a5554] hover:border-orange-500/50 rounded-lg flex items-center justify-center transition-all">
                 <Facebook size={18} className="text-white/70 hover:text-orange-500" />
@@ -39,12 +57,6 @@ export function Footer() {
               <a href="https://www.instagram.com/winsumeliftindia?igsh=MW4zMm45ZWpqYjU3bA==" className="w-10 h-10 bg-[#2a4544] hover:bg-orange-500/20 border border-[#3a5554] hover:border-orange-500/50 rounded-lg flex items-center justify-center transition-all">
                 <Instagram size={18} className="text-white/70 hover:text-orange-500" />
               </a>
-              {/* <a href="#" className="w-10 h-10 bg-[#2a4544] hover:bg-orange-500/20 border border-[#3a5554] hover:border-orange-500/50 rounded-lg flex items-center justify-center transition-all">
-                <Linkedin size={18} className="text-white/70 hover:text-orange-500" />
-              </a>
-              <a href="#" className="w-10 h-10 bg-[#2a4544] hover:bg-orange-500/20 border border-[#3a5554] hover:border-orange-500/50 rounded-lg flex items-center justify-center transition-all">
-                <Twitter size={18} className="text-white/70 hover:text-orange-500" />
-              </a> */}
             </div>
           </div>
 
@@ -99,22 +111,25 @@ export function Footer() {
           </div>
         </motion.div>
 
-        <div className="border-t border-[#3a5554] pt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-white/50 text-sm mb-4 md:mb-0">
-              © 2026 Winsume Lift India Private Limited. All rights reserved.
+        <div className="border-t border-[#3a5554] pt-6 mt-8">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-3">
+            
+            <p className="text-white/50 text-sm text-center md:text-left">
+              © {new Date().getFullYear()} Winsume Lift India Private Limited. All rights reserved.
             </p>
-            {/* <div className="flex space-x-6">
-              <a href="#" className="text-white/50 hover:text-orange-500 text-sm transition-colors">
-                Privacy Policy
+
+            <p className="text-white/50 text-sm">
+              Developed by{" "}
+              <a
+                href="https://www.alphanexis.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-orange-500 hover:text-orange-400 font-medium transition-colors duration-200"
+              >
+                Alphanexis
               </a>
-              <a href="#" className="text-white/50 hover:text-orange-500 text-sm transition-colors">
-                Terms of Service
-              </a>
-              <a href="#" className="text-white/50 hover:text-orange-500 text-sm transition-colors">
-                Cookie Policy
-              </a>
-            </div> */}
+            </p>
+
           </div>
         </div>
       </div>
