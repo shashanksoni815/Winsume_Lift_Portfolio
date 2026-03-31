@@ -126,7 +126,7 @@ export function Footer() {
                 rel="noopener noreferrer"
                 className="text-orange-500 hover:text-orange-400 font-medium transition-colors duration-200"
               >
-                Alphanexis
+                Alphanexis Tech Pvt Ltd
               </a>
             </p>
 
