@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { apiUrl, assetUrl } from "../api";
+import { apiUrl } from "../api";
 import React from 'react';
 import { Navigation } from '../components/Navigation';
-import { Footer } from '../components/Footer';
+// import { Footer } from '../components/Footer';
 import { Mail, Lock, Shield, X, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'motion/react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
@@ -116,7 +116,7 @@ export function LoginPage() {
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* Email Field */}
               <div>
-                <label className="block text-white/70 text-xs uppercase tracking-wider mb-2 flex items-center space-x-2">
+                <label className="text-white/70 text-xs uppercase tracking-wider mb-2 flex items-center space-x-2">
                   <Mail size={14} className="text-orange-500" />
                   <span>Email Address</span>
                 </label>
@@ -133,7 +133,7 @@ export function LoginPage() {
 
               {/* Password Field */}
               <div>
-                <label className="block text-white/70 text-xs uppercase tracking-wider mb-2 flex items-center space-x-2">
+                <label className="text-white/70 text-xs uppercase tracking-wider mb-2 flex items-center space-x-2">
                   <Lock size={14} className="text-orange-500" />
                   <span>Private Password</span>
                 </label>
@@ -198,7 +198,7 @@ export function LoginPage() {
         </motion.div>
       </div>
 
-      <Footer />
+      {/* <Footer /> */}
 
       {/* Forgot Password Modal */}
       {showForgotModal && (
@@ -234,7 +234,7 @@ export function LoginPage() {
             <form onSubmit={handleResetPassword} className="space-y-6">
               {/* Email Field */}
               <div>
-                <label className="block text-white/70 text-xs uppercase tracking-wider mb-2 flex items-center space-x-2">
+                <label className="text-white/70 text-xs uppercase tracking-wider mb-2 flex items-center space-x-2">
                   <Mail size={14} className="text-orange-500" />
                   <span>Email Address</span>
                 </label>

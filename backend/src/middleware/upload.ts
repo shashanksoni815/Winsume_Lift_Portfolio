@@ -2,8 +2,12 @@ import multer, { type FileFilterCallback } from "multer";
 import path from "path";
 import fs from "fs";
 import type { Request } from "express";
+import { fileURLToPath } from "url";
 
-const uploadDir = path.join(process.cwd(), process.env.UPLOAD_DIR ?? "uploads");
+const currentFilePath = fileURLToPath(import.meta.url);
+const currentDir = path.dirname(currentFilePath);
+const backendRoot = path.resolve(currentDir, "../..");
+const uploadDir = path.resolve(backendRoot, process.env.UPLOAD_DIR ?? "uploads");
 
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });

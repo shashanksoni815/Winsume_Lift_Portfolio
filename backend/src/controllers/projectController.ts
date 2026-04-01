@@ -5,6 +5,15 @@ import { Project } from "../models/Project.js";
 import { generateProjectId } from "../utils/idGenerator.js";
 import { notifyAdmin } from "../utils/notify.js";
 
+const numberField = z.preprocess((value) => {
+  if (value === undefined || value === null || value === "") return undefined;
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : undefined;
+  }
+  return value;
+}, z.number().optional());
+
 const projectSchema = z.object({
   name: z.string().min(1),
   clientId: z.string().optional(),
@@ -13,24 +22,26 @@ const projectSchema = z.object({
   clientPhone: z.string().optional(),
   location: z.string().optional(),
   status: z.enum(["completed", "in-progress", "pending", "on-hold"]).default("pending"),
-  budget: z.number().optional(),
-  spent: z.number().optional(),
+  budget: numberField,
+  spent: numberField,
   startDate: z.string().optional(),
   endDate: z.string().optional(),
-  progress: z.number().min(0).max(100).optional(),
-  teamSize: z.number().optional(),
+  progress: numberField.refine((v) => v === undefined || (v >= 0 && v <= 100), "Progress must be between 0 and 100"),
+  teamSize: numberField,
   type: z.string().optional(),
   image: z.string().optional(),
   // public portfolio fields
   title: z.string().optional(),
   category: z.string().optional(),
-  year: z.number().optional(),
+  year: numberField,
   description: z.string().optional()
 });
 
 export const createProject = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const data = projectSchema.parse(req.body);
+    const file = (req as any).file as Express.Multer.File | undefined;
+    const imagePath = file ? `/uploads/${file.filename}` : data.image;
     const externalId = await generateProjectId();
 
     const project = await Project.create({
@@ -49,7 +60,7 @@ export const createProject = async (req: Request, res: Response, next: NextFunct
       progress: data.progress,
       teamSize: data.teamSize,
       type: data.type,
-      image: data.image,
+      image: imagePath,
       title: data.title ?? data.name,
       category: data.category,
       year: data.year,
@@ -127,10 +138,15 @@ export const getProject = async (req: Request, res: Response, next: NextFunction
 export const updateProject = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const data = projectSchema.partial().parse(req.body);
+    const file = (req as any).file as Express.Multer.File | undefined;
+    const setPayload: Record<string, any> = { ...data };
+    if (file) {
+      setPayload.image = `/uploads/${file.filename}`;
+    }
     const project = await Project.findByIdAndUpdate(
       req.params.id,
       {
-        $set: data
+        $set: setPayload
       },
       { new: true }
     );

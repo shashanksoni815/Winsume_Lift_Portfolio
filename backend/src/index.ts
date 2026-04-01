@@ -1,5 +1,7 @@
 import express from "express";
+import type { Request, Response, NextFunction } from "express";
 import path from "path";
+import { fileURLToPath } from "url";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
@@ -25,7 +27,7 @@ app.set("trust proxy", 1);
 
 app.use(
   cors({
-    origin: (origin, callback) => {
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
       if (!origin) {
         callback(null, true);
         return;
@@ -43,14 +45,14 @@ app.use(express.json({ limit: "10mb" }));
 app.use(cookieParser());
 app.use(morgan(env.nodeEnv === "production" ? "combined" : "dev"));
 
-const uploadsDir = path.join(
-  process.cwd(),
-  process.env.UPLOAD_DIR ?? "uploads"
-);
+const currentFilePath = fileURLToPath(import.meta.url);
+const currentDir = path.dirname(currentFilePath);
+const backendRoot = path.resolve(currentDir, "..");
+const uploadsDir = path.resolve(backendRoot, process.env.UPLOAD_DIR ?? "uploads");
 
 app.use("/uploads", express.static(uploadsDir));
 
-app.get("/health", (_req, res) => {
+app.get("/health", (_req: Request, res: Response) => {
   res.json({ status: "ok" });
 });
 
@@ -65,7 +67,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/blogs", blogRoutes);
 
-app.use((_req, _res, next) => {
+app.use((_req: Request, _res: Response, next: NextFunction) => {
   next(createHttpError(404, "Not found"));
 });
 

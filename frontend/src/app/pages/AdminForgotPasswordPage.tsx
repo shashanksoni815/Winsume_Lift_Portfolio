@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { apiUrl, assetUrl } from "../api";
+import { apiUrl } from "../api";
 import { Navigation } from '../components/Navigation';
 import { Footer } from '../components/Footer';
 import { Mail, Shield, ArrowLeft } from 'lucide-react';
@@ -98,7 +98,7 @@ export function AdminForgotPasswordPage() {
                 <form onSubmit={handleSubmit} className="space-y-5">
                   {/* Email Field */}
                   <div>
-                    <label className="block text-white/70 text-xs uppercase tracking-wider mb-2 flex items-center space-x-2">
+                    <label className="text-white/70 text-xs uppercase tracking-wider mb-2 flex items-center space-x-2">
                       <Mail size={14} className="text-orange-500" />
                       <span>Admin Email</span>
                     </label>

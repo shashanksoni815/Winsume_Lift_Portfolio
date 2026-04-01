@@ -81,6 +81,7 @@ export function ProjectsManagement() {
   const [clients, setClients] = useState<{ id: string; name: string; email: string }[]>([]);
   const [selectedClientId, setSelectedClientId] = useState<string>('');
   const [additionalSpent, setAdditionalSpent] = useState<string>('');
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
 
   const adminFetch = async (input: RequestInfo | URL, init?: RequestInit) => {
     const accessToken = localStorage.getItem('accessToken');
@@ -88,12 +89,13 @@ export function ProjectsManagement() {
       navigate('/admin-login');
       throw new Error('Not authenticated');
     }
+    const isFormData = init?.body instanceof FormData;
     const res = await fetch(input, {
       ...init,
       headers: {
         ...(init?.headers || {}),
         Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
+        ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
       },
     });
     if (res.status === 401 || res.status === 403) {
@@ -136,7 +138,7 @@ export function ProjectsManagement() {
         progress: typeof p.progress === 'number' ? p.progress : 0,
         team: typeof p.teamSize === 'number' ? p.teamSize : 0,
         type: p.type ?? 'Project',
-        image: p.heroImage,
+        image: p.image,
       }));
       setProjects(mapped);
     } catch {
@@ -243,21 +245,24 @@ export function ProjectsManagement() {
 
       const res = await adminFetch(apiUrl('/projects'), {
         method: 'POST',
-        body: JSON.stringify({
-          name: formData.name,
-          type: formData.type,
-          location: formData.location,
-          status: formData.status,
-          clientId: clientIdToUse || undefined,
-          clientName: formData.client,
-          clientEmail: formData.clientEmail,
-          clientPhone: formData.clientPhone,
-          budget: parseInt(formData.budget) || 0,
-          startDate: formData.startDate || undefined,
-          endDate: formData.endDate || undefined,
-          teamSize: parseInt(formData.team) || 0,
-          progress: parseInt(formData.progress) || 0
-        }),
+        body: (() => {
+          const payload = new FormData();
+          payload.append('name', formData.name);
+          payload.append('type', formData.type);
+          payload.append('location', formData.location);
+          payload.append('status', formData.status);
+          if (clientIdToUse) payload.append('clientId', clientIdToUse);
+          payload.append('clientName', formData.client);
+          payload.append('clientEmail', formData.clientEmail);
+          payload.append('clientPhone', formData.clientPhone);
+          payload.append('budget', String(parseInt(formData.budget) || 0));
+          if (formData.startDate) payload.append('startDate', formData.startDate);
+          if (formData.endDate) payload.append('endDate', formData.endDate);
+          payload.append('teamSize', String(parseInt(formData.team) || 0));
+          payload.append('progress', String(parseInt(formData.progress) || 0));
+          if (selectedImageFile) payload.append('image', selectedImageFile);
+          return payload;
+        })(),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => null);
@@ -313,20 +318,23 @@ export function ProjectsManagement() {
     try {
       const res = await adminFetch(apiUrl(`/projects/${selectedProject.id}`), {
         method: 'PATCH',
-        body: JSON.stringify({
-          name: formData.name,
-          type: formData.type,
-          location: formData.location,
-          status: formData.status,
-          clientName: formData.client,
-          clientEmail: formData.clientEmail,
-          clientPhone: formData.clientPhone,
-          budget: parseInt(formData.budget) || 0,
-          startDate: formData.startDate || undefined,
-          endDate: formData.endDate || undefined,
-          teamSize: parseInt(formData.team) || 0,
-          progress: parseInt(formData.progress) || 0
-        }),
+        body: (() => {
+          const payload = new FormData();
+          payload.append('name', formData.name);
+          payload.append('type', formData.type);
+          payload.append('location', formData.location);
+          payload.append('status', formData.status);
+          payload.append('clientName', formData.client);
+          payload.append('clientEmail', formData.clientEmail);
+          payload.append('clientPhone', formData.clientPhone);
+          payload.append('budget', String(parseInt(formData.budget) || 0));
+          if (formData.startDate) payload.append('startDate', formData.startDate);
+          if (formData.endDate) payload.append('endDate', formData.endDate);
+          payload.append('teamSize', String(parseInt(formData.team) || 0));
+          payload.append('progress', String(parseInt(formData.progress) || 0));
+          if (selectedImageFile) payload.append('image', selectedImageFile);
+          return payload;
+        })(),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => null);
@@ -378,7 +386,8 @@ export function ProjectsManagement() {
       status: project.status,
       image: project.image || ''
     });
-    setImagePreview(project.image || '');
+    setImagePreview(project.image?.startsWith('/uploads') ? assetUrl(project.image) : (project.image || ''));
+    setSelectedImageFile(null);
     setShowEditModal(true);
   };
 
@@ -409,6 +418,7 @@ export function ProjectsManagement() {
       image: ''
     });
     setImagePreview('');
+    setSelectedImageFile(null);
   };
 
   const handleExport = () => {
@@ -430,12 +440,9 @@ export function ProjectsManagement() {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-        setFormData({ ...formData, image: reader.result as string });
-      };
-      reader.readAsDataURL(file);
+      setSelectedImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+      setFormData({ ...formData, image: '' });
     }
   };
 

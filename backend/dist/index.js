@@ -1,5 +1,6 @@
 import express from "express";
 import path from "path";
+import { fileURLToPath } from "url";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
@@ -37,7 +38,10 @@ app.use(cors({
 app.use(express.json({ limit: "10mb" }));
 app.use(cookieParser());
 app.use(morgan(env.nodeEnv === "production" ? "combined" : "dev"));
-const uploadsDir = path.join(process.cwd(), process.env.UPLOAD_DIR ?? "uploads");
+const currentFilePath = fileURLToPath(import.meta.url);
+const currentDir = path.dirname(currentFilePath);
+const backendRoot = path.resolve(currentDir, "..");
+const uploadsDir = path.resolve(backendRoot, process.env.UPLOAD_DIR ?? "uploads");
 app.use("/uploads", express.static(uploadsDir));
 app.get("/health", (_req, res) => {
     res.json({ status: "ok" });

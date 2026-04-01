@@ -59,13 +59,15 @@ export function Notifications() {
     try {
       setIsLoading(true);
       setLoadError(null);
-      const url = new URL(apiUrl('/notifications'));
-      url.searchParams.set('filter', filter);
-      if (searchQuery.trim()) url.searchParams.set('search', searchQuery.trim());
-      url.searchParams.set('limit', '200');
-      url.searchParams.set('offset', '0');
+      const endpoint = apiUrl('/notifications');
+      const params = new URLSearchParams();
+      params.set('filter', filter);
+      if (searchQuery.trim()) params.set('search', searchQuery.trim());
+      params.set('limit', '200');
+      params.set('offset', '0');
+      const requestUrl = `${endpoint}${endpoint.includes('?') ? '&' : '?'}${params.toString()}`;
 
-      const res = await adminFetch(url.toString());
+      const res = await adminFetch(requestUrl);
       const data = await res.json().catch(() => null);
       const items = Array.isArray(data?.items) ? data.items : [];
       setNotifications(items);
