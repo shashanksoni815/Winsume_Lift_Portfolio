@@ -4,6 +4,7 @@ import {
   forgotPassword,
   login,
   me,
+  refreshAccessToken,
   register,
   resetPassword
 } from "../controllers/authController.js";
@@ -16,6 +17,7 @@ router.post("/login", login);
 router.post("/admin/login", adminLogin);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
+router.post("/refresh-token", refreshAccessToken);
 router.get("/me", requireAuth, me);
 
 export default router;

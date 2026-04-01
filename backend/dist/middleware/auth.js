@@ -11,8 +11,11 @@ export const requireAuth = (req, _res, next) => {
         req.user = payload;
         next();
     }
-    catch {
-        next(createHttpError(401, "Invalid or expired token"));
+    catch (error) {
+        if (error?.name === "TokenExpiredError") {
+            return next(createHttpError(401, "Access token expired"));
+        }
+        next(createHttpError(401, "Invalid token"));
     }
 };
 export const requireRole = (...roles) => (req, _res, next) => {

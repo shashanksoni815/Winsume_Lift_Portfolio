@@ -20,8 +20,11 @@ export const requireAuth = (req: Request, _res: Response, next: NextFunction): v
     const payload = verifyAccessToken(token);
     req.user = payload;
     next();
-  } catch {
-    next(createHttpError(401, "Invalid or expired token"));
+  } catch (error: any) {
+    if (error?.name === "TokenExpiredError") {
+      return next(createHttpError(401, "Access token expired"));
+    }
+    next(createHttpError(401, "Invalid token"));
   }
 };
 

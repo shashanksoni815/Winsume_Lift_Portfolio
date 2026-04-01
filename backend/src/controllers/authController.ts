@@ -1,9 +1,14 @@
 import { Request, Response, NextFunction } from "express";
-import createHttpError from "http-errors";
+import createHttpError, { isHttpError } from "http-errors";
 import { z } from "zod";
 import { User } from "../models/User.js";
 import { hashPassword, verifyPassword } from "../utils/hash.js";
-import { signAccessToken, signRefreshToken } from "../utils/jwt.js";
+import {
+  signAccessToken,
+  signRefreshToken,
+  verifyRefreshToken,
+  type JwtPayload
+} from "../utils/jwt.js";
 
 const registerSchema = z.object({
   fullName: z.string().min(1),
@@ -28,6 +33,29 @@ const resetPasswordSchema = z.object({
   password: z.string().min(6)
 });
 
+const refreshTokenSchema = z.object({
+  refreshToken: z.string().min(1)
+});
+
+const buildAuthResponse = (user: any): { user: { id: any; email: any; fullName: any; role: any }; tokens: { accessToken: string; refreshToken: string } } => {
+  const payload: JwtPayload = { sub: user._id.toString(), role: user.role };
+  const accessToken = signAccessToken(payload);
+  const refreshToken = signRefreshToken(payload);
+
+  return {
+    user: {
+      id: user._id,
+      email: user.email,
+      fullName: user.fullName,
+      role: user.role
+    },
+    tokens: {
+      accessToken,
+      refreshToken
+    }
+  };
+};
+
 export const register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const data = registerSchema.parse(req.body);
@@ -49,22 +77,7 @@ export const register = async (req: Request, res: Response, next: NextFunction):
       role: "user"
     });
 
-    const payload = { sub: user._id.toString(), role: user.role };
-    const accessToken = signAccessToken(payload);
-    const refreshToken = signRefreshToken(payload);
-
-    res.status(201).json({
-      user: {
-        id: user._id,
-        email: user.email,
-        fullName: user.fullName,
-        role: user.role
-      },
-      tokens: {
-        accessToken,
-        refreshToken
-      }
-    });
+    res.status(201).json(buildAuthResponse(user));
   } catch (err) {
     if (err instanceof z.ZodError) {
       return next(createHttpError(400, "Invalid registration data"));
@@ -87,22 +100,7 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
       throw createHttpError(401, "Invalid credentials");
     }
 
-    const payload = { sub: user._id.toString(), role: user.role };
-    const accessToken = signAccessToken(payload);
-    const refreshToken = signRefreshToken(payload);
-
-    res.json({
-      user: {
-        id: user._id,
-        email: user.email,
-        fullName: user.fullName,
-        role: user.role
-      },
-      tokens: {
-        accessToken,
-        refreshToken
-      }
-    });
+    res.json(buildAuthResponse(user));
   } catch (err) {
     if (err instanceof z.ZodError) {
       return next(createHttpError(400, "Invalid login data"));
@@ -125,22 +123,7 @@ export const adminLogin = async (req: Request, res: Response, next: NextFunction
       throw createHttpError(401, "Invalid credentials");
     }
 
-    const payload = { sub: user._id.toString(), role: user.role };
-    const accessToken = signAccessToken(payload);
-    const refreshToken = signRefreshToken(payload);
-
-    res.json({
-      user: {
-        id: user._id,
-        email: user.email,
-        fullName: user.fullName,
-        role: user.role
-      },
-      tokens: {
-        accessToken,
-        refreshToken
-      }
-    });
+    res.json(buildAuthResponse(user));
   } catch (err) {
     if (err instanceof z.ZodError) {
       return next(createHttpError(400, "Invalid login data"));
@@ -204,6 +187,41 @@ export const resetPassword = async (req: Request, res: Response, next: NextFunct
       return next(createHttpError(400, "Invalid reset data"));
     }
     next(err);
+  }
+};
+
+export const refreshAccessToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const bodyResult = refreshTokenSchema.safeParse(req.body);
+    const authHeader = req.headers.authorization;
+    const bearerToken =
+      authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : undefined;
+    const refreshToken = bodyResult.success
+      ? bodyResult.data.refreshToken
+      : bearerToken;
+
+    if (!refreshToken) {
+      throw createHttpError(400, "Refresh token is required");
+    }
+
+    const payload = verifyRefreshToken(refreshToken);
+    const user = await User.findById(payload.sub);
+    if (!user) {
+      throw createHttpError(401, "Invalid refresh token");
+    }
+    if (user.status !== "active") {
+      throw createHttpError(403, "User account is not active");
+    }
+
+    res.json(buildAuthResponse(user));
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      return next(createHttpError(400, "Invalid refresh request"));
+    }
+    if (isHttpError(err)) {
+      return next(err);
+    }
+    next(createHttpError(401, "Invalid or expired refresh token"));
   }
 };
 

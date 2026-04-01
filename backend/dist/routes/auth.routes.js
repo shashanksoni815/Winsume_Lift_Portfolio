@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { adminLogin, forgotPassword, login, me, register, resetPassword } from "../controllers/authController.js";
+import { adminLogin, forgotPassword, login, me, refreshAccessToken, register, resetPassword } from "../controllers/authController.js";
 import { requireAuth } from "../middleware/auth.js";
 const router = Router();
 router.post("/register", register);
@@ -7,5 +7,6 @@ router.post("/login", login);
 router.post("/admin/login", adminLogin);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
+router.post("/refresh-token", refreshAccessToken);
 router.get("/me", requireAuth, me);
 export default router;
