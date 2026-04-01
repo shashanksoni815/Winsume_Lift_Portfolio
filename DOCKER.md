@@ -87,30 +87,34 @@ systemctl disable nginx --now 2>/dev/null || true
 certbot certonly --standalone -d winsumelift.com -d www.winsumelift.com
 ```
 
-### 3) Start stack with SSL (both compose files)
+### 3) Start stack with SSL
 
-After `git pull` (so you have `docker-compose.ssl.yml` + `nginx/nginx.ssl.conf`):
+`docker-compose.yml` in this repo includes **HTTPS** (mounts `nginx/nginx.ssl.conf` + `/etc/letsencrypt`). After `git pull`:
 
 ```bash
 cd ~/Winsume_Lift_Portfolio
-docker-compose -f docker-compose.yml -f docker-compose.ssl.yml up -d
+docker-compose up --build -d
 ```
 
-Open **https://winsumelift.com**. HTTP on **:80** redirects to HTTPS (except `/.well-known/acme-challenge/` for renewals).
+Open **https://winsumelift.com**. HTTP **:80** redirects to HTTPS (except `/.well-known/acme-challenge/` for renewals).
+
+Avoid **`docker-compose -f docker-compose.yml -f docker-compose.ssl.yml`** on **docker-compose 1.29** + new Docker (can cause `KeyError: 'ContainerConfig'`). Use a **single** `docker-compose.yml` only.
+
+### `KeyError: 'ContainerConfig'`
+
+If you still see this when **recreating** containers: install **`docker-compose-plugin`** from Docker’s official apt repo, then use **`docker compose`** (space, v2), or run `docker-compose down` and `docker-compose up --build -d` once.
 
 ### 4) Renewal (cron example — short downtime)
 
 ```bash
-0 4 * * * cd /root/Winsume_Lift_Portfolio && docker-compose stop nginx && certbot renew --standalone --non-interactive && docker-compose -f docker-compose.yml -f docker-compose.ssl.yml start nginx
+0 4 * * * cd /root/Winsume_Lift_Portfolio && docker-compose stop nginx && certbot renew --standalone --non-interactive && docker-compose start nginx
 ```
 
-(Adjust path and compose flags to match your setup.)
+(Adjust path to match your server.)
 
-### HTTP-only mode again
+### HTTP-only mode (no TLS yet)
 
-```bash
-docker-compose -f docker-compose.yml up -d
-```
+Edit `docker-compose.yml`: remove nginx line **`443:443`** and the **three** `volumes` under `nginx`, then `docker-compose up --build -d` (uses default HTTP config from the image).
 
 ## Local smoke test (no domain)
 

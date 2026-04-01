@@ -1,8 +1,6 @@
-# SSL overlay — use AFTER certificates exist on the host.
-# Run from project root:
-#   docker-compose -f docker-compose.yml -f docker-compose.ssl.yml up -d
-#
-# Do NOT use `certbot --nginx` on the host: Docker already uses port 80.
+# Optional overlay (second -f) for Docker Compose v2 only.
+# Main repo default is docker-compose.yml (already includes HTTPS).
+# Do NOT merge this with docker-compose 1.29 — use single docker-compose.yml instead.
 
 version: "3.8"
 
