@@ -72,7 +72,7 @@ Uploaded files persist in the `backend_uploads` volume.
 
 ```bash
 cd ~/Winsume_Lift_Portfolio
-docker-compose stop nginx
+docker compose stop nginx
 ```
 
 (Optional) Disable host Nginx so it never fights Docker again:
@@ -93,28 +93,49 @@ certbot certonly --standalone -d winsumelift.com -d www.winsumelift.com
 
 ```bash
 cd ~/Winsume_Lift_Portfolio
-docker-compose up --build -d
+docker compose up --build -d
 ```
 
 Open **https://winsumelift.com**. HTTP **:80** redirects to HTTPS (except `/.well-known/acme-challenge/` for renewals).
 
-Avoid **`docker-compose -f docker-compose.yml -f docker-compose.ssl.yml`** on **docker-compose 1.29** + new Docker (can cause `KeyError: 'ContainerConfig'`). Use a **single** `docker-compose.yml` only.
+Avoid merging two compose files with legacy **`docker-compose`** 1.29 (see troubleshooting below).
 
 ### `KeyError: 'ContainerConfig'`
 
-If you still see this when **recreating** containers: install **`docker-compose-plugin`** from Docker’s official apt repo, then use **`docker compose`** (space, v2), or run `docker-compose down` and `docker-compose up --build -d` once.
+This comes from **legacy Compose v1** (`/usr/bin/docker-compose`, often **1.29.x**) talking to **Docker Engine 25+**. The old Python client expects `ContainerConfig` on image inspect; the API no longer returns it that way. **`docker-compose down` / `up` does not fix this** — you must use **Compose v2**.
+
+**On Ubuntu (recommended):** install the official Docker packages and the Compose **plugin**, then use **`docker compose`** (space):
+
+```bash
+apt update && apt install -y ca-certificates curl
+install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+chmod a+r /etc/apt/keyrings/docker.asc
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "${VERSION_CODENAME:-jammy}") stable" | tee /etc/apt/sources.list.d/docker.list
+apt update && apt install -y docker-compose-plugin
+docker compose version   # should show v2.x
+```
+
+Then in the project directory:
+
+```bash
+cd ~/Winsume_Lift_Portfolio
+docker compose up --build -d
+```
+
+(Optional) Remove the broken v1 shim so you do not accidentally call it: `apt remove -y docker-compose` — only if you are sure nothing else depends on the distro package.
 
 ### 4) Renewal (cron example — short downtime)
 
 ```bash
-0 4 * * * cd /root/Winsume_Lift_Portfolio && docker-compose stop nginx && certbot renew --standalone --non-interactive && docker-compose start nginx
+0 4 * * * cd /root/Winsume_Lift_Portfolio && docker compose stop nginx && certbot renew --standalone --non-interactive && docker compose start nginx
 ```
 
 (Adjust path to match your server.)
 
 ### HTTP-only mode (no TLS yet)
 
-Edit `docker-compose.yml`: remove nginx line **`443:443`** and the **three** `volumes` under `nginx`, then `docker-compose up --build -d` (uses default HTTP config from the image).
+Edit `docker-compose.yml`: remove nginx line **`443:443`** and the **three** `volumes` under `nginx`, then `docker compose up --build -d` (uses default HTTP config from the image).
 
 ## Local smoke test (no domain)
 

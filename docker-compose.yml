@@ -1,9 +1,9 @@
 # Full stack: Nginx → frontend + backend + Mongo (Docker)
 # HTTPS: needs Let's Encrypt on host: /etc/letsencrypt/live/winsumelift.com/
-#   docker-compose stop nginx && certbot certonly --standalone -d your.domain ...
+#   docker compose stop nginx && certbot certonly --standalone -d your.domain ...
 # HTTP-only (no certs): remove nginx "443:443" and the three nginx volumes below (uses image default.conf).
 #
-# Run: docker-compose up --build -d
+# Run: docker compose up --build -d  (Compose v2; legacy docker-compose 1.29 breaks on Docker 25+)
 
 version: "3.8"
 
