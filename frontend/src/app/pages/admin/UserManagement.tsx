@@ -755,9 +755,7 @@ export function UserManagement() {
                     className="w-full bg-[#1a3332] border border-orange-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500/40"
                   >
                     <option value="user">User</option>
-                    <option value="manager">Manager</option>
                     <option value="admin">Admin</option>
-                    <option value="guest">Guest</option>
                   </select>
                 </div>
 
