@@ -174,7 +174,7 @@ export function ProjectsManagement() {
       project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       project.client.toLowerCase().includes(searchQuery.toLowerCase()) ||
       project.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      project.location.toLowerCase().includes(searchQuery.toLowerCase());
+      project.location?.toLowerCase().includes(searchQuery.toLowerCase()) || '';
     const matchesStatus = selectedStatus === 'all' || project.status === selectedStatus;
     
     return matchesSearch && matchesStatus;
@@ -374,13 +374,13 @@ export function ProjectsManagement() {
     setFormData({
       name: project.name,
       client: project.client,
-      clientEmail: project.clientEmail,
-      clientPhone: project.clientPhone,
-      location: project.location,
+      clientEmail: project.clientEmail || '',
+      clientPhone: project.clientPhone || '',
+      location: project.location || '',
       type: project.type,
       budget: project.budget.toString(),
-      startDate: project.startDate,
-      endDate: project.endDate,
+      startDate: project.startDate || '',
+      endDate: project.endDate || '',
       team: project.team.toString(),
       progress: project.progress.toString(),
       status: project.status,
