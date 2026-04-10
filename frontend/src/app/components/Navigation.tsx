@@ -364,7 +364,7 @@ const handleLogout = async () => {
                 <div className="flex flex-col space-y-2 py-2">
                   {userRole === 'admin' ? (
                     <>
-                      <button onClick={() => { navigate('/admin'); setIsProfileMenuOpen(false); }} className="flex items-center space-x-3 text-white/80 hover:text-orange-500 hover:bg-orange-500/10 transition-all px-4 py-3 rounded-lg group">
+                      <button onClick={() => { navigate('/admin-dashboard'); setIsProfileMenuOpen(false); }} className="flex items-center space-x-3 text-white/80 hover:text-orange-500 hover:bg-orange-500/10 transition-all px-4 py-3 rounded-lg group">
                         <div className="w-8 h-8 bg-orange-500/20 border border-orange-500/40 rounded-full flex items-center justify-center group-hover:bg-orange-500/30 transition-all"><User size={16} className="text-orange-500" /></div>
                         <div className="text-left flex-1"><div className="text-sm font-medium">Admin Dashboard</div><div className="text-xs text-white/40">Management Portal</div></div>
                       </button>
