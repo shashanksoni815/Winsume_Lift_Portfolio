@@ -46,16 +46,16 @@ app.use(express.json({ limit: "10mb" }));
 app.use(cookieParser());
 app.use(morgan(env.nodeEnv === "production" ? "combined" : "dev"));
 
-const currentFilePath = fileURLToPath(import.meta.url);
-const currentDir = path.dirname(currentFilePath);
+// const currentFilePath = fileURLToPath(import.meta.url);
+// const currentDir = path.dirname(currentFilePath);
 // const backendRoot = path.resolve(currentDir, "..");
 const uploadsDir = uploadsPath;
 // const uploadsDir = path.resolve(backendRoot, process.env.UPLOAD_DIR ?? "uploads");
 
+console.log("UPLOADS PATH:", uploadsDir);
 app.use("/uploads", express.static(uploadsDir));
 // app.use("/uploads", express.static(path.join(__dirname, "../../uploads")));
 
-console.log("UPLOADS PATH:", uploadsDir);
 
 app.get("/health", (_req: Request, res: Response) => {
   res.json({ status: "ok" });
