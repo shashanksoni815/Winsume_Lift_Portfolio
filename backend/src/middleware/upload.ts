@@ -12,10 +12,11 @@ const __dirname = path.dirname(__filename);
 const backendRoot = path.resolve(__dirname, "../../");
 
 // Upload directory (default: backend/uploads)
-const uploadDir = path.join(
-  backendRoot,
-  process.env.UPLOAD_DIR || "uploads"
-);
+// const uploadDir = path.join(
+//   backendRoot,
+//   process.env.UPLOAD_DIR || "uploads"
+// );
+const uploadDir = path.resolve("backend/uploads");
 
 // Ensure folder exists
 if (!fs.existsSync(uploadDir)) {
