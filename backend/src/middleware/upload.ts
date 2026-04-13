@@ -2,26 +2,30 @@ import multer, { type FileFilterCallback } from "multer";
 import path from "path";
 import fs from "fs";
 import type { Request } from "express";
-import { fileURLToPath } from "url";
+// import { fileURLToPath } from "url";
+import { uploadsPath } from "../utils/paths.js";
 
-// Fix __dirname for ESM
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// // Fix __dirname for ESM
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
 
 // Always resolve to backend root (works in src + dist)
-const backendRoot = path.resolve(__dirname, "../../");
+// const backendRoot = path.resolve(__dirname, "../../");
 
 // Upload directory (default: backend/uploads)
 // const uploadDir = path.join(
 //   backendRoot,
 //   process.env.UPLOAD_DIR || "uploads"
 // );
-const uploadDir = path.resolve("backend/uploads");
+// const uploadDir = path.resolve("backend/uploads");
+const uploadDir = uploadsPath;
 
 // Ensure folder exists
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
+
+console.log("UPLOAD PATH:", uploadDir);
 
 // Storage config
 const storage = multer.diskStorage({

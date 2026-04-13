@@ -19,6 +19,7 @@ import portalConfigRoutes from "./routes/portalConfig.routes.js";
 import productRoutes from "./routes/product.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
 import blogRoutes from "./routes/blogroutes.js";
+import { uploadsPath } from "./utils/paths.js";
 
 const app = express();
 
@@ -47,11 +48,14 @@ app.use(morgan(env.nodeEnv === "production" ? "combined" : "dev"));
 
 const currentFilePath = fileURLToPath(import.meta.url);
 const currentDir = path.dirname(currentFilePath);
-const backendRoot = path.resolve(currentDir, "..");
-const uploadsDir = path.resolve(backendRoot, process.env.UPLOAD_DIR ?? "uploads");
+// const backendRoot = path.resolve(currentDir, "..");
+const uploadsDir = uploadsPath;
+// const uploadsDir = path.resolve(backendRoot, process.env.UPLOAD_DIR ?? "uploads");
 
 app.use("/uploads", express.static(uploadsDir));
 // app.use("/uploads", express.static(path.join(__dirname, "../../uploads")));
+
+console.log("UPLOADS PATH:", uploadsDir);
 
 app.get("/health", (_req: Request, res: Response) => {
   res.json({ status: "ok" });
