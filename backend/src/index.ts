@@ -50,8 +50,8 @@ const currentDir = path.dirname(currentFilePath);
 const backendRoot = path.resolve(currentDir, "..");
 const uploadsDir = path.resolve(backendRoot, process.env.UPLOAD_DIR ?? "uploads");
 
-// app.use("/uploads", express.static(uploadsDir));
-app.use("/uploads", express.static(path.join(__dirname, "../../uploads")));
+app.use("/uploads", express.static(uploadsDir));
+// app.use("/uploads", express.static(path.join(__dirname, "../../uploads")));
 
 app.get("/health", (_req: Request, res: Response) => {
   res.json({ status: "ok" });
