@@ -114,6 +114,8 @@ export const upload = multer({
 
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB
+    fieldSize: 2 * 1024 * 1024,    // 🔥 FIX: max text field size (2MB)
+    files: 2 // 🔥 FIX: max file count (2)
   },
 
   fileFilter(

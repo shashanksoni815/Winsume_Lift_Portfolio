@@ -288,6 +288,30 @@ export function EditPage() {
     loadConfig();
   }, [id]);
 
+  const resolveProductRefToId = (ref: string): string | null => {
+    const byId = products.find((p) => p._id === ref);
+    if (byId?._id) return byId._id;
+
+    const bySlug = products.find((p) => p.slug === ref);
+    if (bySlug?._id) return bySlug._id;
+
+    return null;
+  };
+
+  const normalizeSelectedProductIds = (refs: string[], max: number): string[] => {
+    const normalized = refs
+      .map(resolveProductRefToId)
+      .filter((pid): pid is string => Boolean(pid));
+    return Array.from(new Set(normalized)).slice(0, max);
+  };
+
+  // Backward-compat: old config may store slugs; normalize to product ids.
+  useEffect(() => {
+    if (id !== 'home' || products.length === 0) return;
+    setHomeFeaturedProductIds((prev) => normalizeSelectedProductIds(prev, 4));
+    setHomeCollectionsProductIds((prev) => normalizeSelectedProductIds(prev, 3));
+  }, [id, products]);
+
   // ── Load blogs when editing Blog page ─────────────────────────────────────
   useEffect(() => {
     if (id !== 'blog') return;
@@ -674,18 +698,106 @@ export function EditPage() {
     }
   };
 
-  const handleSaveHomeFeatured = async () => {
+  // const handleSaveHomeFeatured = async () => {
+  //   if (id !== 'home') return;
+  //   try {
+  //     setProductLoading(true);
+  //     setProductError(null);
+  //     await adminFetch(apiUrl('/portal-config'), {
+  //       method: 'PATCH',
+  //       body: JSON.stringify({ portalSettings: { homePortfolioProjectIds: homeFeaturedProductIds, homeCollectionsProductIds } }),
+  //     });
+  //     alert('Home page selections updated.');
+  //   } catch (error: any) {
+  //     setProductError(error.message || 'Failed to save Home portfolio products');
+  //   } finally {
+  //     setProductLoading(false);
+  //   }
+  // };
+
+  // ── Save ONLY portfolio products ──────────────────────────────────
+// const handleSaveHomeFeatured = async () => {
+//   if (id !== 'home') return;
+//   try {
+//     setProductLoading(true);
+//     setProductError(null);
+//     await adminFetch(apiUrl('/portal-config'), {
+//       method: 'PATCH',
+//       body: JSON.stringify({
+//         portalSettings: {
+//           homePortfolioProjectIds: homeFeaturedProductIds,
+//           // ❌ Do NOT include homeCollectionsProductIds here
+//         },
+//       }),
+//     });
+//     alert('Home page portfolio updated.');
+//   } catch (error: any) {
+//     setProductError(error.message || 'Failed to save Home portfolio products');
+//   } finally {
+//     setProductLoading(false);
+//   }
+// };
+
+// // ── Save ONLY collections products ───────────────────────────────
+// const handleSaveHomeCollections = async () => {
+//   if (id !== 'home') return;
+//   try {
+//     setProductLoading(true);
+//     setProductError(null);
+//     await adminFetch(apiUrl('/portal-config'), {
+//       method: 'PATCH',
+//       body: JSON.stringify({
+//         portalSettings: {
+//           homeCollectionsProductIds: homeFeaturedProductIds,
+//           // ❌ Do NOT include homePortfolioProjectIds here
+//         },
+//       }),
+//     });
+//     alert('Home page collections updated.');
+//   } catch (error: any) {
+//     setProductError(error.message || 'Failed to save Home collections');
+//   } finally {
+//     setProductLoading(false);
+//   }
+// };
+
+  const handleSaveHomePortfolio = async () => {
     if (id !== 'home') return;
     try {
       setProductLoading(true);
       setProductError(null);
       await adminFetch(apiUrl('/portal-config'), {
         method: 'PATCH',
-        body: JSON.stringify({ portalSettings: { homePortfolioProjectIds: homeFeaturedProductIds, homeCollectionsProductIds } }),
+        body: JSON.stringify({
+          portalSettings: {
+            homePortfolioProjectIds: homeFeaturedProductIds,
+          },
+        }),
       });
-      alert('Home page selections updated.');
+      alert('Home page portfolio updated.');
     } catch (error: any) {
       setProductError(error.message || 'Failed to save Home portfolio products');
+    } finally {
+      setProductLoading(false);
+    }
+  };
+
+  const handleSaveHomeCollections = async () => {
+    if (id !== 'home') return;
+    try {
+      setProductLoading(true);
+      setProductError(null);
+      await adminFetch(apiUrl('/portal-config'), {
+        method: 'PATCH',
+        body: JSON.stringify({
+          portalSettings: {
+            homeCollectionsProductIds,
+          },
+        }),
+      });
+      alert('Home page collections updated.');
+    } catch (error: any) {
+      setProductError(error.message || 'Failed to save Home collections');
     } finally {
       setProductLoading(false);
     }
@@ -1500,9 +1612,17 @@ export function EditPage() {
                   <h3 className="text-white text-xl font-semibold mb-4 flex items-center gap-2"><Star className="text-orange-500" size={24}/>Home Page Portfolio Products</h3>
                   <p className="text-white/70 text-sm mb-4">Choose which lift products appear in the <span className="font-semibold">Our Portfolio</span> section on the home page.</p>
                   <div className="space-y-4">
-                    <select className="w-full bg-[#1a3332] border border-orange-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500/40" value="" onChange={(e) => { const pid=e.target.value; if(!pid)return; setHomeFeaturedProductIds(prev=>prev.includes(pid)?prev:[...prev,pid].slice(0,4)); }}>
+                    <select className="w-full bg-[#1a3332] border border-orange-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500/40" value="" onChange={(e) => { const pid=e.target.value; if(!pid || pid === "")return; setHomeFeaturedProductIds(prev=>{ const base = normalizeSelectedProductIds(prev, 4); return base.includes(pid) ? base : [...base, pid].slice(0,4); }); }}>
                       <option value="">Select a product…</option>
-                      {products.map((p) => <option key={p._id} value={p._id}>{p.name} ({p.slug})</option>)}
+                      {/* {products.map((p) => <option key={p._id} value={p._id}>{p.name} ({p.slug})</option>)} */}
+                      {products
+                        .filter(p => p._id)                           // ← skip products without _id
+                        .map((p) => (
+                          <option key={p._id} value={p._id}>
+                            {p.name} ({p.slug})
+                          </option>
+                        ))
+                      }
                     </select>
                     <p className="text-white/40 text-xs">Up to <span className="text-orange-400 font-semibold">4</span> products.</p>
                     <div className="space-y-2">
@@ -1518,7 +1638,7 @@ export function EditPage() {
                       })}
                     </div>
                     {productError && <p className="text-red-400 text-sm flex items-center gap-1"><AlertCircle size={14}/>{productError}</p>}
-                    <button type="button" onClick={handleSaveHomeFeatured} disabled={productLoading} className="px-6 py-3 bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white rounded-lg transition-all flex items-center gap-2">
+                    <button type="button" onClick={handleSaveHomePortfolio} disabled={productLoading} className="px-6 py-3 bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white rounded-lg transition-all flex items-center gap-2">
                       <Save size={18}/><span>Save Home Portfolio</span>
                     </button>
                   </div>
@@ -1531,9 +1651,17 @@ export function EditPage() {
                   <h3 className="text-white text-xl font-semibold mb-4 flex items-center gap-2"><ShoppingBag className="text-orange-500" size={24}/>Home Page Collections Products</h3>
                   <p className="text-white/70 text-sm mb-4">Choose which products appear in the <span className="font-semibold">Our Collections</span> section.</p>
                   <div className="space-y-4">
-                    <select className="w-full bg-[#1a3332] border border-orange-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500/40" value="" onChange={(e) => { const pid=e.target.value; if(!pid)return; setHomeCollectionsProductIds(prev=>prev.includes(pid)?prev:[...prev,pid].slice(0,3)); }}>
+                    <select className="w-full bg-[#1a3332] border border-orange-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500/40" value="" onChange={(e) => { const pid=e.target.value; if(!pid || pid === '')return; setHomeCollectionsProductIds(prev=>{ const base = normalizeSelectedProductIds(prev, 3); return base.includes(pid) ? base : [...base, pid].slice(0,3); }); }}>
                       <option value="">Select a product…</option>
-                      {products.map((p) => <option key={p._id} value={p._id}>{p.name} ({p.slug})</option>)}
+                      {/* {products.map((p) => <option key={p._id} value={p._id}>{p.name} ({p.slug})</option>)} */}
+                      {products
+                        .filter(p => p._id)                           // ← skip products without _id
+                        .map((p) => (
+                          <option key={p._id} value={p._id}>
+                            {p.name} ({p.slug})
+                          </option>
+                        ))
+                      }
                     </select>
                     <p className="text-white/40 text-xs">Up to <span className="text-orange-400 font-semibold">3</span> products.</p>
                     <div className="space-y-2">
@@ -1549,7 +1677,7 @@ export function EditPage() {
                       })}
                     </div>
                     {productError && <p className="text-red-400 text-sm flex items-center gap-1"><AlertCircle size={14}/>{productError}</p>}
-                    <button type="button" onClick={handleSaveHomeFeatured} disabled={productLoading} className="px-6 py-3 bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white rounded-lg transition-all flex items-center gap-2">
+                    <button type="button" onClick={handleSaveHomeCollections} disabled={productLoading} className="px-6 py-3 bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white rounded-lg transition-all flex items-center gap-2">
                       <Save size={18}/><span>Save Home Collections</span>
                     </button>
                   </div>

@@ -20,22 +20,22 @@ const stringArray = z.preprocess((value) => {
 }, z.array(z.string()).optional());
 
 const blogSchema = z.object({
-  title:          z.string().min(1),
-  slug:           z.string().optional(),
+  title:          z.string().min(1).max(150),
+  slug:           z.string().max(150).optional(),
   category:       z.string().min(1),
   excerpt:        z.string().min(1).max(300),
-  content:        z.string().min(1),
+  content:        z.string().min(1).max(10000),
   heroImage:      z.string().optional(),
   tags:           stringArray,
-  author:         z.string().optional(),
-  authorBio:      z.string().optional(),
+  author:         z.string().max(100).optional(),
+  authorBio:      z.string().max(500).optional(),
   authorImage:    z.string().optional(),
   status:         z.enum(["draft", "published"]).default("draft"),
-  seoTitle:       z.string().optional(),
-  seoDescription: z.string().max(160).optional(),
+  seoTitle:       z.string().max(150).optional(),
+  seoDescription: z.string().max(500).optional(),
   seoKeywords:    stringArray,
   featured:       z.coerce.boolean().optional()
-});
+}); 
 
 const statusSchema = z.object({
   status: z.enum(["draft", "published"])
@@ -211,7 +211,7 @@ export const getBlog = async (req: Request, res: Response, next: NextFunction): 
 export const createBlog = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const data = blogSchema.parse(req.body);
-    const files = (req as any).files as Record<string, Express.Multer.File[]> | undefined;
+    const files = (req as any).file as Record<string, Express.Multer.File[]> | undefined;
     const heroImagePath = files?.heroImage?.[0] ? `/uploads/${files.heroImage[0].filename}` : undefined;
     const authorImagePath = files?.authorImage?.[0] ? `/uploads/${files.authorImage[0].filename}` : undefined;
 
@@ -260,7 +260,7 @@ export const createBlog = async (req: Request, res: Response, next: NextFunction
 export const updateBlog = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const data = blogSchema.partial().parse(req.body);
-    const files = (req as any).files as Record<string, Express.Multer.File[]> | undefined;
+    const files = (req as any).file as Record<string, Express.Multer.File[]> | undefined;
     const heroImagePath = files?.heroImage?.[0] ? `/uploads/${files.heroImage[0].filename}` : undefined;
     const authorImagePath = files?.authorImage?.[0] ? `/uploads/${files.authorImage[0].filename}` : undefined;
 

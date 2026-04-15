@@ -83,7 +83,7 @@ interface ThemeSettings {
 export function UserPortalConfig() {
   const navigate = useNavigate();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [activeTab, setActiveTab] = useState<'general' | 'pages' | 'theme'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'pages'>('general');
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
   const [expandedSections, setExpandedSections] = useState<string[]>(['portal-settings']);
   const [isEditingGeneral, setIsEditingGeneral] = useState(false);
@@ -94,7 +94,7 @@ export function UserPortalConfig() {
     tagline: 'Luxury Vertical Lift Solutions',
     heroHeading: 'The Art of Vertical Mastery',
     supportEmail: 'support@winsumelift.com',
-    supportPhone: '+91 1800 123 4567',
+    supportPhone: '+91 7089344991',
     projectsCompleted: 200,
     citiesServed: 15,
     yearsExperience: 6,

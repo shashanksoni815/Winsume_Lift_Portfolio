@@ -21,8 +21,8 @@ export function Portfolio() {
     const load = async () => {
       try {
         const [configRes, productsRes] = await Promise.all([
-          fetch(apiUrl('/api/portal-config')),
-          fetch(apiUrl('/api/products/public'))
+          fetch(apiUrl('/portal-config')),
+          fetch(apiUrl('/products/public'))
         ]);
 
         if (!configRes.ok || !productsRes.ok) return;
