@@ -170,36 +170,25 @@ const handleLogout = async () => {
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 sm:h-20">
+          <div className="flex items-center justify-between h-16 sm:h-20 md:h-24 lg:h-28">
 
-            {/* Logo */}
-            {/* <button
-              onClick={() => { navigate('/'); setIsMobileMenuOpen(false); }}
-              className="flex items-center space-x-3 cursor-pointer group"
-            >
-              <div className="relative w-10 h-10 bg-orange-500 rounded-md flex items-center justify-center shadow-md group-hover:shadow-lg transition-all">
-                <div className="text-white font-bold text-xl">W</div>
-              </div>
-              <div className="text-white">
-                <div className="font-bold text-xl">{siteName}</div>
-                <div className="text-orange-500 text-xs uppercase">{siteSubtitle}</div>
-              </div>
-            </button> */}
+          
             <button
               onClick={() => { navigate('/'); setIsMobileMenuOpen(false); }}
               className="flex items-center space-x-3 cursor-pointer group"
             >
-              <div className="w-10 h-10 sm:w-14 sm:h-14 flex-shrink-0">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 lg:w-20 lg:h-20 flex-shrink-0">
                 <img
                   src={"/logo.png"}
                   alt="Winsume Lift Logo"
-                  className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-200"
+                  // className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300"
+                  className="w-full h-full object-contain scale-110 sm:scale-100 md:scale-110"
                 />
               </div>
 
               <div className="text-white min-w-0">
-                <div className="font-bold text-sm sm:text-xl leading-tight truncate max-w-[120px] sm:max-w-none">{siteName}</div>
-                <div className="hidden sm:block text-orange-500 text-xs uppercase">{siteSubtitle}</div>
+                <div className="font-bold text-base sm:text-lg md:text-xl lg:text-2xl leading-tight tracking-wide">{siteName}</div>
+                <div className="hidden sm:block text-orange-500 text-xs md:text-sm uppercase tracking-wider">{siteSubtitle}</div>
               </div>
             </button>
 
