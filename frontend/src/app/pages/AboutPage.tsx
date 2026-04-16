@@ -110,9 +110,9 @@ export function AboutPage() {
               transition={{ duration: 0.8 }}
               className="grid grid-cols-2 gap-4"
             >
-              <div className="relative h-[300px] rounded-lg overflow-hidden">
+              {/* <div className="relative h-[300px] rounded-lg overflow-hidden">
                 <ImageWithFallback
-                  src="https://images.unsplash.com/photo-1772721559246-286e6d986d73?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsdXh1cnklMjBnb2xkZW4lMjBlbGV2YXRvciUyMGRvb3JzfGVufDF8fHx8MTc3MzIzNjMwNHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+                  src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80"
                   alt="Golden Elevator Doors"
                   className="w-full h-full object-cover"
                 />
@@ -122,14 +122,37 @@ export function AboutPage() {
               </div>
               <div className="relative h-[300px] rounded-lg overflow-hidden">
                 <ImageWithFallback
-                  src="https://images.unsplash.com/photo-1770625467936-37cb2d4156bf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcmVtaXVtJTIwd29vZCUyMHBhbmVsaW5nJTIwdGV4dHVyZXxlbnwxfHx8fDE3NzMyMzYzMDV8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+                  src="https://images.unsplash.com/photo-1541123437800-1bb1317badc2?w=800&q=80"
                   alt="Premium Wood Paneling"
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute bottom-4 left-4 text-white text-xs">
                   Artisan Wood Finishes
                 </div>
-              </div>
+              </div> */}
+              {/* LEFT IMAGE */}
+<div className="relative h-[300px] rounded-lg overflow-hidden">
+  <img
+    src="https://images.pexels.com/photos/1643383/pexels-photo-1643383.jpeg"
+    alt="Golden Elevator Doors"
+    className="w-full h-full object-cover"
+  />
+  <div className="absolute bottom-4 left-4 text-white text-xs">
+    Metal (Stainless/Bronze)
+  </div>
+</div>
+
+{/* RIGHT IMAGE */}
+<div className="relative h-[300px] rounded-lg overflow-hidden">
+  <img
+    src="https://images.pexels.com/photos/1108101/pexels-photo-1108101.jpeg?auto=compress&w=800"
+    alt="Premium Wood Paneling"
+    className="w-full h-full object-cover"
+  />
+  <div className="absolute bottom-4 left-4 text-white text-xs">
+    Artisan Wood Finishes
+  </div>
+</div>
             </motion.div>
           </div>
         </div>

@@ -169,8 +169,8 @@ const handleLogout = async () => {
           isScrolled ? 'bg-[#1a3332]/95 backdrop-blur-md shadow-lg' : 'bg-transparent'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16 sm:h-20">
 
             {/* Logo */}
             {/* <button
@@ -189,7 +189,7 @@ const handleLogout = async () => {
               onClick={() => { navigate('/'); setIsMobileMenuOpen(false); }}
               className="flex items-center space-x-3 cursor-pointer group"
             >
-              <div className="w-14 h-14">
+              <div className="w-10 h-10 sm:w-14 sm:h-14 flex-shrink-0">
                 <img
                   src={"/logo.png"}
                   alt="Winsume Lift Logo"
@@ -197,14 +197,14 @@ const handleLogout = async () => {
                 />
               </div>
 
-              <div className="text-white">
-                <div className="font-bold text-xl">{siteName}</div>
-                <div className="text-orange-500 text-xs uppercase">{siteSubtitle}</div>
+              <div className="text-white min-w-0">
+                <div className="font-bold text-sm sm:text-xl leading-tight truncate max-w-[120px] sm:max-w-none">{siteName}</div>
+                <div className="hidden sm:block text-orange-500 text-xs uppercase">{siteSubtitle}</div>
               </div>
             </button>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-8">
+            <div className="hidden xl:flex items-center space-x-6 2xl:space-x-8">
             <button
               onClick={handlePortfolioClick}
               className={`text-sm uppercase tracking-wider transition-colors ${
@@ -284,15 +284,15 @@ const handleLogout = async () => {
             </div>
 
             {/* Mobile Menu Button */}
-            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="md:hidden text-white p-2">
+            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="xl:hidden text-white p-2 -mr-2">
               {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
 
           {/* Mobile Menu */}
           {isMobileMenuOpen && (
-            <div className="md:hidden bg-[#1a3332]/95 backdrop-blur-md rounded-lg mb-4 p-4">
-              <div className="flex flex-col space-y-4">
+            <div className="xl:hidden bg-[#1a3332]/95 backdrop-blur-md rounded-lg mb-4 p-4 max-h-[calc(100vh-5rem)] overflow-y-auto">
+              <div className="flex flex-col space-y-3">
                 <button onClick={handlePortfolioClick}  className="text-white/80 hover:text-orange-500 transition-colors text-left py-2 text-sm uppercase tracking-wider">Portfolio</button>
                 <button onClick={handleCollectionClick} className="text-white/80 hover:text-orange-500 transition-colors text-left py-2 text-sm uppercase tracking-wider">Collection</button>
                 <button onClick={handleServicesClick}   className="text-white/80 hover:text-orange-500 transition-colors text-left py-2 text-sm uppercase tracking-wider">Services</button>
@@ -342,7 +342,7 @@ const handleLogout = async () => {
 
           {/* Profile Menu */}
           {isProfileMenuOpen && (
-            <div className="absolute right-6 top-20 bg-[#1a3332]/95 backdrop-blur-md border border-orange-500/20 rounded-lg shadow-2xl p-2 w-64">
+            <div className="absolute right-3 sm:right-6 top-16 sm:top-20 bg-[#1a3332]/95 backdrop-blur-md border border-orange-500/20 rounded-lg shadow-2xl p-2 w-[calc(100vw-1.5rem)] max-w-64">
               <div className="relative text-center py-3 border-b border-white/10">
                 <button
                   type="button"

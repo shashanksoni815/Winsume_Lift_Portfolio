@@ -23,6 +23,8 @@ export function OurWork() {
   const [items, setItems] = useState<FeaturedItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const HERO_FALLBACK = 'https://images.unsplash.com/photo-1772721559246-286e6d986d73?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsdXh1cnklMjBlbGV2YXRvciUyMGNhYmluJTIwaW50ZXJpb3IlMjBnb2xkfGVufDF8fHx8MTc3MzIzNjYyOXww&ixlib=rb-4.1.0&q=80&w=1080';
+const heroImage =  HERO_FALLBACK; 
 
   useEffect(() => {
     const load = async () => {
@@ -82,17 +84,17 @@ export function OurWork() {
       <Navigation />
       
       {/* Hero Section */}
-      <section className="relative py-20 md:py-32 pt-32 overflow-hidden">
-        <div className="absolute inset-0">
+      <section className="relative min-h-[65vh] md:min-h-[72vh] flex items-center py-20 md:py-32 pt-32 overflow-hidden">
+        <div className="absolute inset-0 -z-0">
           <ImageWithFallback
-            src="https://images.unsplash.com/photo-1772721559246-286e6d986d73?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBidWlsZGluZyUyMGVsZXZhdG9yJTIwbHV4dXJ5JTIwbG9iYnl8ZW58MXx8fHwxNzczMjM2NjI5fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+            src={heroImage}
             alt="Modern Luxury Elevator Lobby"
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-[#1a3332]/80 via-[#1a3332]/70 to-[#1a3332]"></div>
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}

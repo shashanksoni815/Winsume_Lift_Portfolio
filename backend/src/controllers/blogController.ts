@@ -211,7 +211,7 @@ export const getBlog = async (req: Request, res: Response, next: NextFunction): 
 export const createBlog = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const data = blogSchema.parse(req.body);
-    const files = (req as any).file as Record<string, Express.Multer.File[]> | undefined;
+    const files = (req as any).files as Record<string, Express.Multer.File[]> | undefined;
     const heroImagePath = files?.heroImage?.[0] ? `/uploads/${files.heroImage[0].filename}` : undefined;
     const authorImagePath = files?.authorImage?.[0] ? `/uploads/${files.authorImage[0].filename}` : undefined;
 
@@ -260,7 +260,7 @@ export const createBlog = async (req: Request, res: Response, next: NextFunction
 export const updateBlog = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const data = blogSchema.partial().parse(req.body);
-    const files = (req as any).file as Record<string, Express.Multer.File[]> | undefined;
+    const files = (req as any).files as Record<string, Express.Multer.File[]> | undefined;
     const heroImagePath = files?.heroImage?.[0] ? `/uploads/${files.heroImage[0].filename}` : undefined;
     const authorImagePath = files?.authorImage?.[0] ? `/uploads/${files.authorImage[0].filename}` : undefined;
 
