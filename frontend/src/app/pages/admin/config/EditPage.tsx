@@ -300,8 +300,8 @@ export function EditPage() {
   // Backward-compat: old config may store slugs; normalize to product ids.
   useEffect(() => {
     if (id !== 'home' || products.length === 0) return;
-    setHomeFeaturedProductIds((prev) => normalizeSelectedProductIds(prev, 4));
-    setHomeCollectionsProductIds((prev) => normalizeSelectedProductIds(prev, 3));
+    setHomeFeaturedProductIds((prev) => normalizeSelectedProductIds(prev, 6));
+    setHomeCollectionsProductIds((prev) => normalizeSelectedProductIds(prev, 6));
   }, [id, products]);
 
   // ── Load blogs when editing Blog page ─────────────────────────────────────
@@ -1602,7 +1602,7 @@ export function EditPage() {
                   <h3 className="text-white text-xl font-semibold mb-4 flex items-center gap-2"><Star className="text-orange-500" size={24}/>Home Page Portfolio Products</h3>
                   <p className="text-white/70 text-sm mb-4">Choose which lift products appear in the <span className="font-semibold">Our Portfolio</span> section on the home page.</p>
                   <div className="space-y-4">
-                    <select className="w-full bg-[#1a3332] border border-orange-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500/40" value="" onChange={(e) => { const pid=e.target.value; if(!pid || pid === "")return; setHomeFeaturedProductIds(prev=>{ const base = normalizeSelectedProductIds(prev, 4); return base.includes(pid) ? base : [...base, pid].slice(0,4); }); }}>
+                    <select className="w-full bg-[#1a3332] border border-orange-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500/40" value="" onChange={(e) => { const pid=e.target.value; if(!pid || pid === "")return; setHomeFeaturedProductIds(prev=>{ const base = normalizeSelectedProductIds(prev, 6); return base.includes(pid) ? base : [...base, pid].slice(0,6); }); }}>
                       <option value="">Select a product…</option>
                       {/* {products.map((p) => <option key={p._id} value={p._id}>{p.name} ({p.slug})</option>)} */}
                       {products
@@ -1614,7 +1614,7 @@ export function EditPage() {
                         ))
                       }
                     </select>
-                    <p className="text-white/40 text-xs">Up to <span className="text-orange-400 font-semibold">4</span> products.</p>
+                    <p className="text-white/40 text-xs">Up to <span className="text-orange-400 font-semibold">6</span> products.</p>
                     <div className="space-y-2">
                       {homeFeaturedProductIds.map((pid, index) => {
                         const p = products.find((prod) => prod._id === pid);
@@ -1641,7 +1641,7 @@ export function EditPage() {
                   <h3 className="text-white text-xl font-semibold mb-4 flex items-center gap-2"><ShoppingBag className="text-orange-500" size={24}/>Home Page Collections Products</h3>
                   <p className="text-white/70 text-sm mb-4">Choose which products appear in the <span className="font-semibold">Our Collections</span> section.</p>
                   <div className="space-y-4">
-                    <select className="w-full bg-[#1a3332] border border-orange-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500/40" value="" onChange={(e) => { const pid=e.target.value; if(!pid || pid === '')return; setHomeCollectionsProductIds(prev=>{ const base = normalizeSelectedProductIds(prev, 3); return base.includes(pid) ? base : [...base, pid].slice(0,3); }); }}>
+                    <select className="w-full bg-[#1a3332] border border-orange-500/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500/40" value="" onChange={(e) => { const pid=e.target.value; if(!pid || pid === '')return; setHomeCollectionsProductIds(prev=>{ const base = normalizeSelectedProductIds(prev, 6); return base.includes(pid) ? base : [...base, pid].slice(0,6); }); }}>
                       <option value="">Select a product…</option>
                       {/* {products.map((p) => <option key={p._id} value={p._id}>{p.name} ({p.slug})</option>)} */}
                       {products
@@ -1653,7 +1653,7 @@ export function EditPage() {
                         ))
                       }
                     </select>
-                    <p className="text-white/40 text-xs">Up to <span className="text-orange-400 font-semibold">3</span> products.</p>
+                    <p className="text-white/40 text-xs">Up to <span className="text-orange-400 font-semibold">6</span> products.</p>
                     <div className="space-y-2">
                       {homeCollectionsProductIds.map((pid, index) => {
                         const p = products.find((prod) => prod._id === pid);

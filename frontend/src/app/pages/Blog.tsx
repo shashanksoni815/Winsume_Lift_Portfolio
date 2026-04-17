@@ -6,6 +6,7 @@ import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { motion } from 'motion/react';
 import { ChevronRight, Clock, Tag, ArrowRight, Star, Shield, Wrench, Award, Building2, Home, Zap, Search } from 'lucide-react';
 import { useNavigate } from 'react-router';
+import { Services } from '../components/Services';
 
 const API = apiUrl('/blogs');
 
@@ -348,7 +349,7 @@ export function BlogPage() {
       )}
 
       {/* ── Services ── */}
-      <section className="py-16 md:py-24 bg-[#2a4544]">
+      {/* <section className="py-16 md:py-24 bg-[#2a4544]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }} className="text-center mb-14">
             <p className="text-orange-500 text-xs uppercase tracking-widest mb-3">What We Do</p>
@@ -377,7 +378,8 @@ export function BlogPage() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
+      <Services />
 
       <Footer />
     </div>
