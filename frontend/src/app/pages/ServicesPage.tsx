@@ -136,36 +136,81 @@ const mainServices = [
   },
 ];
 
+// const processSteps = [
+//   {
+//     step: '01',
+//     title: 'Initial Consultation',
+//     description: 'Our engineers visit your site, assess requirements, and understand your vision.',
+//   },
+//   {
+//     step: '02',
+//     title: 'Custom Proposal',
+//     description: 'We prepare a detailed proposal with design options, timeline, and transparent pricing.',
+//   },
+//   {
+//     step: '03',
+//     title: 'Design & Engineering',
+//     description: '3D visualizations and engineering drawings are prepared and approved by you.',
+//   },
+//   {
+//     step: '04',
+//     title: 'Precision Installation',
+//     description: 'Certified technicians execute the installation with minimal disruption.',
+//   },
+//   {
+//     step: '05',
+//     title: 'Safety Handover',
+//     description: 'Full safety testing, BIS certification, and operator training before handover.',
+//   },
+//   {
+//     step: '06',
+//     title: 'Lifetime Support',
+//     description: 'AMC and 24/7 emergency support keeps your lift running at peak performance.',
+//   },
+// ];
+
 const processSteps = [
   {
     step: '01',
     title: 'Initial Consultation',
     description: 'Our engineers visit your site, assess requirements, and understand your vision.',
+    image: 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=400&q=75&fit=crop',
+    imageAlt: 'Engineer consulting with client at site',
   },
   {
     step: '02',
     title: 'Custom Proposal',
     description: 'We prepare a detailed proposal with design options, timeline, and transparent pricing.',
+    image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&q=75&fit=crop',
+    imageAlt: 'Proposal document and pricing discussion',
   },
   {
     step: '03',
     title: 'Design & Engineering',
     description: '3D visualizations and engineering drawings are prepared and approved by you.',
+    image: 'https://images.unsplash.com/photo-1581094271901-8022df4466f9?w=400&q=75&fit=crop',
+    imageAlt: 'Engineer working on 3D design drawings',
   },
   {
     step: '04',
     title: 'Precision Installation',
     description: 'Certified technicians execute the installation with minimal disruption.',
+    image: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=400&q=75&fit=crop',
+    imageAlt: 'Certified technicians installing elevator',
   },
   {
     step: '05',
     title: 'Safety Handover',
     description: 'Full safety testing, BIS certification, and operator training before handover.',
+    image: 'https://images.unsplash.com/photo-1590012314607-cda9d9b699ae?w=400&q=75&fit=crop',
+    imageAlt: 'Safety inspection and certification handover',
   },
   {
     step: '06',
     title: 'Lifetime Support',
     description: 'AMC and 24/7 emergency support keeps your lift running at peak performance.',
+    image: 'https://images.unsplash.com/photo-1537671417141-0e4e1d37b6d0?w=400&q=75&fit=crop',
+    imageAlt: '24/7 support and maintenance team',
   },
 ];
 

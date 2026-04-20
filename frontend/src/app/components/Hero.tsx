@@ -131,7 +131,7 @@ export function Hero() {
             Explore Collection
           </button>
           <button
-            onClick={() => scrollToSection('portfolio')}
+            onClick={() => navigate('/all-projects')}
             className="w-full sm:w-auto border-2 border-white/40 text-white px-6 sm:px-8 py-3 rounded-full hover:bg-white/10 hover:border-white/60 transition-all duration-300 text-sm sm:text-base uppercase tracking-wider"
           >
             View Projects

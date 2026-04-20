@@ -5,36 +5,88 @@ import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { motion } from 'motion/react';
 import React from 'react';
 
+// const companyStats = [
+//   {
+//     label: 'YEARS IN BUSINESS',
+//     value: 'Quality Elevate since 1 Year',
+//   },
+//   {
+//     label: 'GLOBAL MANUFACTURING',
+//     value: 'Sites in Punjab',
+//   },
+//   {
+//     label: 'ISO CERTIFIED OPERATIONS',
+//     value: '',
+//   },
+//   {
+//     label: 'YEARS OF EXCELLENCE',
+//     value: 'National Company',
+//   },
+//   {
+//     label: 'PROJECTS COMPLETED',
+//     value: '14 + 12+',
+//   },
+//   {
+//     label: 'WARRANTY',
+//     value: 'Lifetime',
+//   },
+//   {
+//     label: 'TRAINED TECHNICIANS',
+//     value: 'Specialized Security',
+//   },
+// ];
 const companyStats = [
   {
     label: 'YEARS IN BUSINESS',
     value: 'Quality Elevate since 1 Year',
+    image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=500&q=75&fit=crop',
+    imageAlt: 'Business building in operation',
+    badge: 'Est. 2018',
   },
   {
     label: 'GLOBAL MANUFACTURING',
     value: 'Sites in Punjab',
+    image: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=500&q=75&fit=crop',
+    imageAlt: 'Manufacturing facility',
+    badge: 'Punjab',
   },
   {
     label: 'ISO CERTIFIED OPERATIONS',
-    value: '',
+    value: 'BIS & EN 81 Compliant',
+    image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=500&q=75&fit=crop',
+    imageAlt: 'ISO certification documentation',
+    badge: 'ISO 9001',
   },
   {
     label: 'YEARS OF EXCELLENCE',
     value: 'National Company',
+    image: 'https://images.unsplash.com/photo-1567427018141-0584cfcbf1b8?w=500&q=75&fit=crop',
+    imageAlt: 'National excellence award',
+    badge: 'National',
   },
   {
     label: 'PROJECTS COMPLETED',
     value: '14 + 12+',
+    image: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=500&q=75&fit=crop',
+    imageAlt: 'Elevator installation projects',
+    badge: '26+ Projects',
   },
   {
     label: 'WARRANTY',
     value: 'Lifetime',
+    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&q=75&fit=crop',
+    imageAlt: 'Luxury elevator with lifetime warranty',
+    badge: 'Lifetime',
   },
   {
     label: 'TRAINED TECHNICIANS',
     value: 'Specialized Security',
+    image: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?w=500&q=75&fit=crop',
+    imageAlt: 'Certified technician team',
+    badge: 'Certified',
   },
 ];
+
 
 export function AboutPage() {
   return (
@@ -177,7 +229,7 @@ export function AboutPage() {
             </h2>
           </motion.div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+          {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {companyStats.map((stat, index) => (
               <motion.div
                 key={index}
@@ -198,7 +250,53 @@ export function AboutPage() {
                 </div>
               </motion.div>
             ))}
-          </div>
+          </div> */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+  {companyStats.map((stat, index) => (
+    <motion.div
+      key={index}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.6, delay: index * 0.1 }}
+      className="group bg-[#2a4544] border border-orange-500/30 rounded-lg
+                 overflow-hidden hover:border-orange-500/60 hover:-translate-y-1
+                 transition-all duration-300"
+    >
+      {/* Image */}
+      <div className="relative h-32 overflow-hidden">
+        <ImageWithFallback
+          src={stat.image}
+          alt={stat.imageAlt}
+          className="w-full h-full object-cover brightness-[0.55]
+                     transition-transform duration-500 group-hover:scale-105"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#2a4544] pointer-events-none" />
+        <span className="absolute bottom-2 left-3 z-10
+                         bg-orange-500/85 text-white
+                         text-[9px] font-bold tracking-widest uppercase
+                         px-2 py-0.5 rounded">
+          {stat.badge}
+        </span>
+      </div>
+
+      {/* Body */}
+      <div className="flex items-start gap-3 px-4 py-4">
+        <div className="w-8 h-8 bg-orange-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+          <span className="text-orange-500 text-sm">◆</span>
+        </div>
+        <div className="flex-1">
+          <p className="text-orange-500 text-[10px] uppercase tracking-wider mb-1.5 font-semibold">
+            {stat.label}
+          </p>
+          {stat.value && (
+            <p className="text-white text-sm leading-snug">{stat.value}</p>
+          )}
+        </div>
+      </div>
+    </motion.div>
+  ))}
+</div>
         </div>
       </section>
 
