@@ -170,7 +170,7 @@ const handleLogout = async () => {
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 sm:h-20 md:h-24 lg:h-28">
+          <div className="flex items-center justify-between h-16 sm:h-20 mt-2 md:h-24 lg:h-20">
 
           
             <button
@@ -398,3 +398,357 @@ const handleLogout = async () => {
     </>
   );
 }
+
+// import React, { useState, useEffect, useRef } from 'react';
+// import { apiUrl } from "../api";
+// import { Menu, X, Phone, User, ShoppingCart, FolderKanban, LogOut } from 'lucide-react';
+// import { useNavigate, useLocation } from 'react-router';
+// import { useCart } from '../context/CartContext';
+
+// // ─── Height token — import this in hero sections to match ─────────────────────
+// export const NAV_HEIGHT = 96; // px
+
+// type UserRole = 'admin' | 'user' | null;
+
+// // ─────────────────────────────────────────────────────────────────────────────
+// // LoginRequiredModal
+// // ─────────────────────────────────────────────────────────────────────────────
+// function LoginRequiredModal({ onClose, onLogin }: { onClose: () => void; onLogin: () => void }) {
+//   return (
+//     <div
+//       className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
+//       onClick={onClose}
+//     >
+//       <div
+//         className="relative bg-[#0f2625] border border-orange-500/30 rounded-2xl shadow-2xl w-full max-w-sm p-8 text-center"
+//         onClick={e => e.stopPropagation()}
+//       >
+//         <button onClick={onClose} className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center transition-all" aria-label="Close">
+//           <X size={15} className="text-white/60" />
+//         </button>
+//         <div className="w-16 h-16 bg-orange-500/15 border border-orange-500/35 rounded-full flex items-center justify-center mx-auto mb-5">
+//           <ShoppingCart size={26} className="text-orange-400" />
+//         </div>
+//         <h2 className="text-white text-xl font-semibold mb-2 tracking-tight">Login Required</h2>
+//         <p className="text-white/45 text-sm mb-7 leading-relaxed">
+//           Please log in to view your cart and manage your selected items.
+//         </p>
+//         <button onClick={onLogin} className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-full transition-all hover:scale-[1.02] shadow-lg text-sm uppercase tracking-widest mb-3">
+//           Login to Continue
+//         </button>
+//         <button onClick={onClose} className="w-full text-white/35 hover:text-white/60 text-sm py-2 transition-colors">Cancel</button>
+//       </div>
+//     </div>
+//   );
+// }
+
+// // ─────────────────────────────────────────────────────────────────────────────
+// // ProfileMenu
+// // ─────────────────────────────────────────────────────────────────────────────
+// function ProfileMenu({ isLoggedIn, userRole, onClose, onNavigate, onLogout }: {
+//   isLoggedIn: boolean; userRole: UserRole;
+//   onClose: () => void; onNavigate: (p: string) => void; onLogout: () => void;
+// }) {
+//   const ref = useRef<HTMLDivElement>(null);
+//   useEffect(() => {
+//     const h = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) onClose(); };
+//     document.addEventListener('mousedown', h);
+//     return () => document.removeEventListener('mousedown', h);
+//   }, [onClose]);
+
+//   const Item = ({ icon, label, sub, onClick }: { icon: React.ReactNode; label: string; sub: string; onClick: () => void }) => (
+//     <button onClick={onClick} className="flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl text-white/75 hover:text-orange-400 hover:bg-orange-500/10 transition-all group">
+//       <span className="w-8 h-8 bg-orange-500/15 border border-orange-500/30 rounded-full flex items-center justify-center group-hover:bg-orange-500/25 shrink-0 transition-all">{icon}</span>
+//       <span className="flex-1 min-w-0">
+//         <span className="block text-sm font-medium leading-tight">{label}</span>
+//         <span className="block text-[11px] text-white/35 truncate mt-0.5">{sub}</span>
+//       </span>
+//     </button>
+//   );
+
+//   return (
+//     <div ref={ref} className="absolute right-0 w-64 bg-[#0f2625]/98 backdrop-blur-xl border border-orange-500/20 rounded-2xl shadow-2xl overflow-hidden z-[150]"
+//       style={{ top: 'calc(100% + 10px)', boxShadow: '0 24px 60px rgba(0,0,0,0.5),0 0 0 1px rgba(249,115,22,0.1)' }}>
+//       <div className="px-4 py-4 border-b border-white/8 text-center relative">
+//         <button onClick={onClose} className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center transition-all" aria-label="Close">
+//           <X size={13} className="text-white/50" />
+//         </button>
+//         <p className="text-orange-500/70 text-[10px] uppercase tracking-[0.2em] mb-1">
+//           {isLoggedIn ? (userRole === 'admin' ? 'Admin Portal' : 'User Portal') : 'Account'}
+//         </p>
+//         <p className="text-white text-lg font-semibold tracking-tight">
+//           {isLoggedIn ? (userRole === 'admin' ? 'Welcome, Admin' : 'Welcome Back') : 'Sign In'}
+//         </p>
+//       </div>
+//       <div className="p-2">
+//         {isLoggedIn ? (
+//           <>
+//             {userRole === 'admin' ? (
+//               <>
+//                 <Item icon={<User size={14} className="text-orange-400" />} label="Admin Dashboard" sub="Management Portal" onClick={() => onNavigate('/admin-dashboard')} />
+//                 <Item icon={<FolderKanban size={14} className="text-orange-400" />} label="Projects" sub="Manage All Projects" onClick={() => onNavigate('/admin/projects')} />
+//                 <Item icon={<Phone size={14} className="text-orange-400" />} label="Inquiries" sub="View All Inquiries" onClick={() => onNavigate('/admin/inquiries')} />
+//               </>
+//             ) : (
+//               <>
+//                 <Item icon={<User size={14} className="text-orange-400" />} label="User Portal" sub="Dashboard Access" onClick={() => onNavigate('/user-portal')} />
+//                 <Item icon={<FolderKanban size={14} className="text-orange-400" />} label="My Projects" sub="View All Projects" onClick={() => onNavigate('/my-engagements')} />
+//               </>
+//             )}
+//             <div className="my-1.5 border-t border-white/8" />
+//             <Item icon={<LogOut size={14} className="text-orange-400" />} label="Logout" sub="Sign out of your account" onClick={onLogout} />
+//           </>
+//         ) : (
+//           <Item icon={<User size={14} className="text-orange-400" />} label="Login" sub="Access your account" onClick={() => onNavigate('/login')} />
+//         )}
+//       </div>
+//     </div>
+//   );
+// }
+
+// // ─────────────────────────────────────────────────────────────────────────────
+// // Navigation
+// // ─────────────────────────────────────────────────────────────────────────────
+// export function Navigation() {
+//   const [isScrolled,        setIsScrolled]        = useState(false);
+//   const [isMobileMenuOpen,  setIsMobileMenuOpen]  = useState(false);
+//   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+//   const [isLoggedIn,        setIsLoggedIn]        = useState(false);
+//   const [userRole,          setUserRole]          = useState<UserRole>(null);
+//   const [siteName,          setSiteName]          = useState('WINSUME LIFT');
+//   const [siteSubtitle,      setSiteSubtitle]      = useState('INDIA');
+//   const [showLoginModal,    setShowLoginModal]    = useState(false);
+
+//   const navigate = useNavigate();
+//   const location = useLocation();
+//   const { cartCount, logout } = useCart();
+
+//   useEffect(() => {
+//     const fn = () => setIsScrolled(window.scrollY > 40);
+//     window.addEventListener('scroll', fn, { passive: true });
+//     return () => window.removeEventListener('scroll', fn);
+//   }, []);
+
+//   useEffect(() => {
+//     setIsMobileMenuOpen(false);
+//     setIsProfileMenuOpen(false);
+//   }, [location.pathname]);
+
+//   useEffect(() => {
+//     (async () => {
+//       try {
+//         const res = await fetch(apiUrl('/portal-config'));
+//         if (!res.ok) return;
+//         const data = await res.json().catch(() => null);
+//         if (data?.portalSettings?.siteName) {
+//           const raw = (data.portalSettings.siteName as string).trim();
+//           const parts = raw.split(/\s+/);
+//           setSiteName(parts.length >= 2 ? parts.slice(0, -1).join(' ') : raw);
+//           setSiteSubtitle(parts.length >= 2 ? parts[parts.length - 1] : '');
+//         }
+//       } catch { /* keep defaults */ }
+//     })();
+//   }, []);
+
+//   useEffect(() => {
+//     const hasToken = !!localStorage.getItem('accessToken');
+//     const legacy   = localStorage.getItem('isLoggedIn') === 'true';
+//     setIsLoggedIn(hasToken || legacy);
+//     const role = localStorage.getItem('userRole');
+//     setUserRole(role === 'admin' || role === 'user' ? role : null);
+//   }, [location]);
+
+//   const handleLogout = async () => {
+//     ['isLoggedIn','userEmail','accessToken','refreshToken','userRole'].forEach(k => localStorage.removeItem(k));
+//     setIsLoggedIn(false); setUserRole(null); setIsProfileMenuOpen(false);
+//     await logout(); navigate('/');
+//   };
+
+//   const handleCartClick = () => {
+//     if (!isLoggedIn) { setShowLoginModal(true); setIsMobileMenuOpen(false); }
+//     else             { navigate('/cart');        setIsMobileMenuOpen(false); }
+//   };
+
+//   const go = (path: string) => { navigate(path); setIsMobileMenuOpen(false); setIsProfileMenuOpen(false); };
+//   const isActive = (path: string) => location.pathname === path;
+
+//   const navLinks = [
+//     { label: 'Portfolio',  path: '/our-work'   },
+//     { label: 'Collection', path: '/collection' },
+//     { label: 'Services',   path: '/services'   },
+//     { label: 'About',      path: '/about'      },
+//     { label: 'Blog',       path: '/blog'       },
+//     { label: 'Contact',    path: '/contact'    },
+//   ];
+
+//   return (
+//     <>
+//       {showLoginModal && (
+//         <LoginRequiredModal onClose={() => setShowLoginModal(false)} onLogin={() => { setShowLoginModal(false); navigate('/login'); }} />
+//       )}
+
+//       {/* ── Fixed bar ──────────────────────────────────────────────────────── */}
+//       <nav
+//         aria-label="Main navigation"
+//         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out
+//           ${isScrolled
+//             ? 'bg-[#0f2625]/96 backdrop-blur-xl shadow-[0_4px_32px_rgba(0,0,0,0.45)] border-b border-white/6'
+//             : 'bg-[#1a3332]/75 backdrop-blur-md'}`}
+//       >
+//         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+//           {/* ── Row — height: 96px on all breakpoints ──────────────────── */}
+//           <div className="flex items-center justify-between" style={{ height: `${NAV_HEIGHT}px` }}>
+
+//             {/* Logo */}
+//             <button
+//               onClick={() => go('/')}
+//               className="flex items-center gap-3 sm:gap-4 shrink-0 group focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 rounded-xl"
+//               aria-label="Home"
+//             >
+//               {/* Logo: 80px desktop / 68px tablet / 60px mobile */}
+//               <span className="flex-shrink-0 w-[60px] h-[60px] sm:w-[68px] sm:h-[68px] lg:w-20 lg:h-20">
+//                 <img
+//                   src="/logo.png"
+//                   alt="Winsume Lift"
+//                   className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
+//                   loading="eager"
+//                 />
+//               </span>
+//               <span className="flex flex-col leading-none">
+//                 <span className="text-white font-bold tracking-wide text-lg sm:text-xl lg:text-[22px] whitespace-nowrap">
+//                   {siteName}
+//                 </span>
+//                 {siteSubtitle && (
+//                   <span className="text-orange-500 text-[10px] sm:text-[11px] uppercase tracking-[0.22em] mt-[5px] font-semibold whitespace-nowrap">
+//                     {siteSubtitle}
+//                   </span>
+//                 )}
+//               </span>
+//             </button>
+
+//             {/* Desktop links */}
+//             <div className="hidden xl:flex items-center">
+//               {navLinks.map(({ label, path }) => (
+//                 <button
+//                   key={path}
+//                   onClick={() => go(path)}
+//                   className={`relative px-3.5 py-2 text-[13px] uppercase tracking-wider font-medium rounded-lg transition-colors duration-200
+//                     ${isActive(path) ? 'text-orange-500' : 'text-white/70 hover:text-white'}
+//                     after:absolute after:bottom-1 after:left-3.5 after:right-3.5 after:h-[2px]
+//                     after:rounded-full after:bg-orange-500 after:transition-transform after:duration-200
+//                     ${isActive(path) ? 'after:scale-x-100' : 'after:scale-x-0 hover:after:scale-x-100'}`}
+//                 >
+//                   {label}
+//                 </button>
+//               ))}
+//             </div>
+
+//             {/* Desktop actions */}
+//             <div className="hidden xl:flex items-center gap-2.5 shrink-0">
+//               <button
+//                 onClick={handleCartClick}
+//                 aria-label={`Cart${cartCount > 0 ? `, ${cartCount} items` : ''}`}
+//                 className="relative w-10 h-10 bg-white/10 hover:bg-orange-500/20 border border-white/20 hover:border-orange-500/50 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-105"
+//               >
+//                 <ShoppingCart size={17} className="text-white" />
+//                 {cartCount > 0 && (
+//                   <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-[10px] font-bold min-w-[18px] h-[18px] flex items-center justify-center rounded-full border-2 border-[#0f2625] px-0.5">
+//                     {cartCount > 99 ? '99+' : cartCount}
+//                   </span>
+//                 )}
+//               </button>
+//               <div className="relative">
+//                 <button
+//                   onClick={() => setIsProfileMenuOpen(p => !p)}
+//                   aria-label="Profile menu"
+//                   aria-expanded={isProfileMenuOpen}
+//                   className={`w-10 h-10 border rounded-full flex items-center justify-center transition-all duration-200 hover:scale-105
+//                     ${isProfileMenuOpen
+//                       ? 'bg-orange-500/25 border-orange-500/60 text-orange-400'
+//                       : 'bg-white/10 border-white/20 hover:bg-orange-500/20 hover:border-orange-500/50 text-white'}`}
+//                 >
+//                   <User size={17} />
+//                 </button>
+//                 {isProfileMenuOpen && (
+//                   <ProfileMenu isLoggedIn={isLoggedIn} userRole={userRole}
+//                     onClose={() => setIsProfileMenuOpen(false)} onNavigate={go} onLogout={handleLogout} />
+//                 )}
+//               </div>
+//             </div>
+
+//             {/* Mobile right cluster */}
+//             <div className="xl:hidden flex items-center gap-2 shrink-0">
+//               <button onClick={handleCartClick} aria-label="Cart"
+//                 className="relative w-9 h-9 bg-white/10 hover:bg-orange-500/20 border border-white/20 rounded-full flex items-center justify-center transition-all">
+//                 <ShoppingCart size={16} className="text-white" />
+//                 {cartCount > 0 && (
+//                   <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-[10px] font-bold min-w-[16px] h-[16px] flex items-center justify-center rounded-full border-2 border-[#0f2625]">
+//                     {cartCount > 9 ? '9+' : cartCount}
+//                   </span>
+//                 )}
+//               </button>
+//               <button
+//                 onClick={() => setIsMobileMenuOpen(p => !p)}
+//                 aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
+//                 aria-expanded={isMobileMenuOpen}
+//                 className="w-9 h-9 bg-white/10 hover:bg-orange-500/20 border border-white/20 rounded-full flex items-center justify-center transition-all text-white"
+//               >
+//                 {isMobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+//               </button>
+//             </div>
+
+//           </div>{/* end row */}
+//         </div>
+
+//         {/* Mobile drawer */}
+//         <div className={`xl:hidden overflow-hidden transition-all duration-300 ease-in-out
+//           ${isMobileMenuOpen ? 'max-h-[calc(100dvh-96px)] opacity-100' : 'max-h-0 opacity-0'}`}>
+//           <div className="bg-[#0f2625]/98 backdrop-blur-xl border-t border-white/8">
+//             <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-col gap-0.5 overflow-y-auto max-h-[calc(100dvh-96px)]">
+//               {navLinks.map(({ label, path }) => (
+//                 <button key={path} onClick={() => go(path)}
+//                   className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm uppercase tracking-wider font-medium transition-all
+//                     ${isActive(path) ? 'text-orange-500 bg-orange-500/10' : 'text-white/70 hover:text-white hover:bg-white/5'}`}>
+//                   {label}
+//                   {isActive(path) && <span className="w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0" />}
+//                 </button>
+//               ))}
+//               <div className="my-1.5 border-t border-white/8" />
+//               {isLoggedIn ? (
+//                 <>
+//                   {userRole === 'admin' ? (
+//                     <>
+//                       <button onClick={() => go('/admin-dashboard')} className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/70 hover:text-orange-400 hover:bg-orange-500/10 transition-all text-sm"><User size={16} className="text-orange-400 shrink-0" /><span>Admin Dashboard</span></button>
+//                       <button onClick={() => go('/admin/projects')}  className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/70 hover:text-orange-400 hover:bg-orange-500/10 transition-all text-sm"><FolderKanban size={16} className="text-orange-400 shrink-0" /><span>Projects</span></button>
+//                       <button onClick={() => go('/admin/inquiries')} className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/70 hover:text-orange-400 hover:bg-orange-500/10 transition-all text-sm"><Phone size={16} className="text-orange-400 shrink-0" /><span>Inquiries</span></button>
+//                     </>
+//                   ) : (
+//                     <>
+//                       <button onClick={() => go('/user-portal')}     className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/70 hover:text-orange-400 hover:bg-orange-500/10 transition-all text-sm"><User size={16} className="text-orange-400 shrink-0" /><span>User Portal</span></button>
+//                       <button onClick={() => go('/my-engagements')}  className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/70 hover:text-orange-400 hover:bg-orange-500/10 transition-all text-sm"><FolderKanban size={16} className="text-orange-400 shrink-0" /><span>My Projects</span></button>
+//                     </>
+//                   )}
+//                   <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/70 hover:text-red-400 hover:bg-red-500/10 transition-all text-sm mt-1"><LogOut size={16} className="text-orange-400 shrink-0" /><span>Logout</span></button>
+//                 </>
+//               ) : (
+//                 <button onClick={() => go('/login')} className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/70 hover:text-orange-400 hover:bg-orange-500/10 transition-all text-sm"><User size={16} className="text-orange-400 shrink-0" /><span>Login</span></button>
+//               )}
+//               <div className="h-3" />
+//             </div>
+//           </div>
+//         </div>
+//       </nav>
+
+//       {/*
+//         ── Spacer ─────────────────────────────────────────────────────────────
+//         USE THIS for NON-hero pages (login, about, blog, etc.)
+//         For FULL-SCREEN HERO pages (home, our-work, collection…) remove this
+//         spacer from those pages and instead add:
+//           style={{ paddingTop: NAV_HEIGHT }}   ← to the hero section
+//         so the hero image fills correctly behind the transparent navbar.
+//       */}
+//       <div aria-hidden="true" style={{ height: `${NAV_HEIGHT}px` }} />
+//     </>
+//   );
+// }
