@@ -97,22 +97,22 @@ export function Footer() {
             <h3 className="text-white mb-4 font-['Playfair_Display'] text-lg">Quick Links</h3>
             <ul className="space-y-3">
               <li>
-                <button onClick={() => scrollToSection('portfolio')} className="text-white/60 hover:text-orange-500 transition-colors text-sm">
+                <button onClick={() => navigate('/our-work')} className="text-white/60 hover:text-orange-500 transition-colors text-sm">
                   Portfolio
                 </button>
               </li>
               <li>
-                <button onClick={() => scrollToSection('collection')} className="text-white/60 hover:text-orange-500 transition-colors text-sm">
+                <button onClick={() => navigate('/collection')} className="text-white/60 hover:text-orange-500 transition-colors text-sm">
                   Collections
                 </button>
               </li>
               <li>
-                <button onClick={() => scrollToSection('services')} className="text-white/60 hover:text-orange-500 transition-colors text-sm">
+                <button onClick={() => navigate('/services')} className="text-white/60 hover:text-orange-500 transition-colors text-sm">
                   Services
                 </button>
               </li>
               <li>
-                <button onClick={() => scrollToSection('about')} className="text-white/60 hover:text-orange-500 transition-colors text-sm">
+                <button onClick={() => navigate('/about')} className="text-white/60 hover:text-orange-500 transition-colors text-sm">
                   About Us
                 </button>
               </li>

@@ -84,7 +84,7 @@ const certifications = ['ISO 9001', 'BIS Certified', 'EN 81 Compliant'];
 export function Services() {
   const navigate = useNavigate();
 
-  const handleCardClick = () => navigate('/service');
+  const handleCardClick = () => navigate('/services');
 
   return (
     <section
@@ -216,7 +216,7 @@ export function Services() {
                       </span>
                     </div>
                     <h3 className="font-['Playfair_Display'] text-white leading-tight
-                                   text-[12px] sm:text-[15px] lg:text-[17px]">
+                     text-[12px] sm:text-[15px] lg:text-[17px]">
                       {service.title}
                     </h3>
                   </div>
